@@ -104,6 +104,19 @@ export function challengeRoutes(): Hono<AppEnv> {
     });
   });
 
+  /** Hosted page: attach the browser P-256 key so approval issues a pairing. */
+  r.post('/challenge/:id/browser-key', async (c) => {
+    const body = z
+      .object({ browser_pubkey: z.string().regex(/^[A-Za-z0-9_-]{80,100}$/) })
+      .strict()
+      .parse(await c.req.json());
+    const stub = c.env.CHALLENGE_SESSION.getByName(c.req.param('id'));
+    const state = await stub.getState();
+    if (!state) throw notFound('unknown_challenge', 'no such challenge');
+    const ok = await stub.setBrowserPubkey(body.browser_pubkey);
+    return c.json({ ok });
+  });
+
   /** Browser WebSocket to the session DO. */
   r.get('/challenge/:id/ws', (c) => {
     const stub = c.env.CHALLENGE_SESSION.getByName(c.req.param('id'));

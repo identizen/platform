@@ -7,6 +7,7 @@ import {
   type SignedPairing,
 } from '@identizen/protocol';
 import type { Env } from '../env';
+import { expireVerification } from '../services/verification';
 
 export type SessionStatus = 'pending' | 'approved' | 'denied' | 'expired';
 
@@ -108,6 +109,15 @@ export class ChallengeSession extends DurableObject<Env> {
     return s ? this.publicState(s) : null;
   }
 
+  /** The hosted page registers its P-256 key after render; only while pending and unset. */
+  async setBrowserPubkey(key: string): Promise<boolean> {
+    const s = await this.require();
+    if (s.status !== 'pending' || s.browserPubkey) return false;
+    s.browserPubkey = key;
+    await this.save(s);
+    return true;
+  }
+
   /** Record the device a push went to (BLE / paired discovery after creation). */
   async setTargetDevice(deviceId: string): Promise<void> {
     const s = await this.require();
@@ -144,10 +154,11 @@ export class ChallengeSession extends DurableObject<Env> {
   }
 
   /** Redeem the OIDC authorization code exactly once (M4). */
-  async redeemCode(code: string): Promise<SessionState | null> {
+  async redeemCode(code: string, clientId: string): Promise<SessionState | null> {
     const s = await this.load();
     if (!s || s.status !== 'approved' || s.code === null || s.codeUsed || s.code !== code)
       return null;
+    if (s.clientId !== clientId) return null;
     s.codeUsed = true;
     await this.save(s);
     return this.publicState(s);
@@ -161,6 +172,7 @@ export class ChallengeSession extends DurableObject<Env> {
       s.resolvedAt = Date.now();
       await this.save(s);
       this.broadcast({ type: 'expired', challenge_id: s.challengeId });
+      if (s.verificationId) await expireVerification(this.env, s.verificationId);
     }
     // Keep resolved sessions briefly so /token (M4) and pollers can read them, then wipe.
     const age = Date.now() - (s.resolvedAt ?? Date.now());

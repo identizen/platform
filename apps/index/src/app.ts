@@ -9,6 +9,8 @@ import { discoverRoutes } from './routes/discover';
 import { healthRoutes } from './routes/health';
 import { identitiesRoutes } from './routes/identities';
 import { meRoutes } from './routes/me';
+import { oidcRoutes } from './routes/oidc';
+import { verifyRoutes } from './routes/verify';
 import { sitesRoutes } from './routes/sites';
 import { wellKnownRoutes } from './routes/wellknown';
 
@@ -50,6 +52,8 @@ export function createApp(): Hono<AppEnv> {
   app.route('/', discoverRoutes());
   app.route('/', meRoutes());
   app.route('/', sitesRoutes());
+  app.route('/', oidcRoutes());
+  app.route('/', verifyRoutes());
 
   return app;
 }

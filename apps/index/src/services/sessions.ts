@@ -1,6 +1,7 @@
 import { getVerification, recordAudit, resolveVerification, type Session } from '@identizen/db';
 import { randomToken } from '../lib/util';
 import { backchannelLogout } from './backchannel';
+import { deliverWebhook } from './verification';
 import type { ChallengeSession, SessionState } from '../do/challenge-session';
 import type { Env } from '../env';
 import type { Services } from '../lib/services';
@@ -27,13 +28,14 @@ export async function completeApproval(
   let code: string | null = null;
   let redirect: string | null = null;
   if (state.oidc?.redirect_uri) {
-    code = randomToken(32);
+    code = `${state.challengeId}.${randomToken(24)}`;
     redirect = buildRedirect(state.oidc.redirect_uri, { code, state: state.oidc.state });
   }
   if (state.verificationId) {
     const v = await getVerification(db, state.verificationId);
     if (v && v.status === 'pending') {
-      await resolveVerification(db, v.id, 'approved', outcome.signedAssertion);
+      const resolved = await resolveVerification(db, v.id, 'approved', outcome.signedAssertion);
+      await deliverWebhook(services, _env, resolved);
       await recordAudit(db, {
         kind: 'verification.approved',
         idz: outcome.device.idz,
@@ -51,7 +53,8 @@ export async function onSessionDenied(services: Services, state: SessionState): 
   if (!state.verificationId) return;
   const v = await getVerification(services.db, state.verificationId);
   if (v && v.status === 'pending') {
-    await resolveVerification(services.db, v.id, 'denied');
+    const resolved = await resolveVerification(services.db, v.id, 'denied');
+    await deliverWebhook(services, services.env, resolved);
     await recordAudit(services.db, {
       kind: 'verification.denied',
       clientId: state.clientId,

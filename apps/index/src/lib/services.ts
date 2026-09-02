@@ -13,12 +13,15 @@ export interface Services {
   indexUrl: string;
   appUrl: string;
   now: () => number;
+  /** Register background work that must finish before the DB pool closes. */
+  defer: (work: Promise<unknown>) => void;
   close: () => Promise<void>;
 }
 
 export function createServices(env: Env): Services {
   const handle = createDb(env.HYPERDRIVE.connectionString, { max: 2 });
   const indexKey = keyPairFromPrivateKey(fromHex(requireEnv(env, 'INDEX_SIGNING_KEY')));
+  const pending: Promise<unknown>[] = [];
   return {
     env,
     db: handle.db,
@@ -27,7 +30,13 @@ export function createServices(env: Env): Services {
     indexUrl: stripSlash(requireEnv(env, 'INDEX_URL')),
     appUrl: stripSlash(env.APP_URL || requireEnv(env, 'INDEX_URL')),
     now: () => Math.floor(Date.now() / 1000),
-    close: () => handle.close(),
+    defer: (work) => {
+      pending.push(work.catch((err: unknown) => console.error('background task failed', err)));
+    },
+    close: async () => {
+      await Promise.allSettled(pending);
+      await handle.close();
+    },
   };
 }
 
