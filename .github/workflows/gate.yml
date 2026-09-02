@@ -21,14 +21,14 @@ jobs:
           POSTGRES_USER: identizen
           POSTGRES_PASSWORD: identizen
           POSTGRES_DB: identizen
-        ports: ['5432:5432']
+        ports: ['5433:5432']
         options: >-
           --health-cmd "pg_isready -U identizen"
           --health-interval 5s
           --health-timeout 5s
           --health-retries 10
     env:
-      DATABASE_URL: postgres://identizen:identizen@localhost:5432/identizen
+      DATABASE_URL: postgres://identizen:identizen@localhost:5433/identizen
       CI: 'true'
       TURBO_TELEMETRY_DISABLED: '1'
     steps:
