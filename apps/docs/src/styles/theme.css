@@ -1,0 +1,141 @@
+/*
+ * Starlight themed from the shared Identizen token sheet (packages/ui/src/tokens.css).
+ * Light and dark follow the tokens; Starlight's own toggle is kept and synced to `idz:theme`.
+ */
+@import '@identizen/ui/tokens.css';
+
+:root {
+  --sl-font: var(--font-sans);
+  --sl-font-mono: var(--font-mono);
+  --sl-text-code: 0.875rem;
+  --sl-text-code-sm: 0.8125rem;
+  --sl-line-height: 1.6;
+
+  --sl-color-white: var(--color-fg);
+  --sl-color-black: var(--color-surface-0);
+  --sl-color-gray-1: var(--color-fg);
+  --sl-color-gray-2: var(--color-fg-muted);
+  --sl-color-gray-3: var(--color-fg-muted);
+  --sl-color-gray-4: var(--color-border-strong);
+  --sl-color-gray-5: var(--color-border);
+  --sl-color-gray-6: var(--color-surface-2);
+  --sl-color-gray-7: var(--color-surface-1);
+
+  --sl-color-accent-low: var(--color-accent-soft);
+  --sl-color-accent: var(--color-accent);
+  --sl-color-accent-high: var(--color-accent-soft-fg);
+
+  --sl-color-bg: var(--color-surface-0);
+  --sl-color-bg-nav: var(--color-surface-0);
+  --sl-color-bg-sidebar: var(--color-surface-1);
+  --sl-color-bg-inline-code: var(--color-surface-2);
+  --sl-color-bg-accent: var(--color-accent);
+  --sl-color-text: var(--color-fg);
+  --sl-color-text-accent: var(--color-accent);
+  --sl-color-text-invert: var(--color-accent-fg);
+  --sl-color-hairline: var(--color-border);
+  --sl-color-hairline-light: var(--color-border);
+  --sl-color-hairline-shade: var(--color-border);
+
+  --sl-color-orange: var(--color-warning);
+  --sl-color-orange-low: var(--color-warning-soft);
+  --sl-color-orange-high: var(--color-warning-soft-fg);
+  --sl-color-green: var(--color-success);
+  --sl-color-green-low: var(--color-success-soft);
+  --sl-color-green-high: var(--color-success-soft-fg);
+  --sl-color-red: var(--color-danger);
+  --sl-color-red-low: var(--color-danger-soft);
+  --sl-color-red-high: var(--color-danger-soft-fg);
+  --sl-color-blue: var(--color-accent);
+  --sl-color-blue-low: var(--color-accent-soft);
+  --sl-color-blue-high: var(--color-accent-soft-fg);
+  --sl-color-purple: var(--color-accent);
+  --sl-color-purple-low: var(--color-accent-soft);
+  --sl-color-purple-high: var(--color-accent-soft-fg);
+
+  --sl-shadow-sm: var(--shadow-sm);
+  --sl-shadow-md: var(--shadow-md);
+  --sl-shadow-lg: var(--shadow-md);
+}
+
+/* Starlight applies :root[data-theme='light'] overrides for its greys; keep them on the tokens. */
+:root[data-theme='light'],
+:root[data-theme='dark'] {
+  --sl-color-white: var(--color-fg);
+  --sl-color-black: var(--color-surface-0);
+  --sl-color-gray-1: var(--color-fg);
+  --sl-color-gray-2: var(--color-fg-muted);
+  --sl-color-gray-3: var(--color-fg-muted);
+  --sl-color-gray-4: var(--color-border-strong);
+  --sl-color-gray-5: var(--color-border);
+  --sl-color-gray-6: var(--color-surface-2);
+  --sl-color-gray-7: var(--color-surface-1);
+  --sl-color-accent-low: var(--color-accent-soft);
+  --sl-color-accent: var(--color-accent);
+  --sl-color-accent-high: var(--color-accent-soft-fg);
+  --sl-color-bg: var(--color-surface-0);
+  --sl-color-bg-nav: var(--color-surface-0);
+  --sl-color-bg-sidebar: var(--color-surface-1);
+  --sl-color-text: var(--color-fg);
+}
+
+.site-title {
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.sl-markdown-content h1,
+.sl-markdown-content h2,
+.sl-markdown-content h3 {
+  letter-spacing: -0.01em;
+}
+
+.sl-markdown-content code:not(:where(.expressive-code *)) {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  padding: 0.1em 0.35em;
+}
+
+.sl-markdown-content table {
+  font-size: 0.9rem;
+}
+
+.sl-markdown-content th {
+  color: var(--color-fg-muted);
+  font-weight: 500;
+}
+
+.expressive-code .frame {
+  --ec-brdRad: var(--radius-md);
+  box-shadow: var(--shadow-xs);
+}
+
+.hero h1 {
+  letter-spacing: -0.02em;
+}
+
+.card {
+  border-radius: var(--radius-lg);
+}
+
+/* Metric-compatible fallback so the Inter swap does not shift layout (CLS). */
+@font-face {
+  font-family: 'Inter Fallback';
+  src: local('Arial');
+  size-adjust: 107.12%;
+  ascent-override: 90.49%;
+  descent-override: 22.56%;
+  line-gap-override: 0%;
+}
+
+:root {
+  --sl-font: 'Inter Variable', 'Inter Fallback', ui-sans-serif, system-ui, sans-serif;
+}
+
+/* Links inside prose are distinguishable without colour alone (WCAG 1.4.1). */
+.sl-markdown-content a:not(:where(.expressive-code *)),
+.card .body a {
+  text-decoration: underline;
+  text-underline-offset: 0.18em;
+  text-decoration-thickness: 1px;
+}

@@ -1,0 +1,45 @@
+{
+  "name": "@identizen/docs",
+  "version": "0.0.0",
+  "private": true,
+  "description": "docs.identizen.com — Astro Starlight.",
+  "license": "Apache-2.0",
+  "type": "module",
+  "scripts": {
+    "sync-spec": "tsx scripts/sync-spec.ts",
+    "predev": "npm run sync-spec",
+    "dev": "astro dev --port 4330",
+    "prebuild": "npm run sync-spec",
+    "build": "astro build",
+    "preview": "astro preview --port 4331",
+    "typecheck": "npm run sync-spec && astro check",
+    "docs:verify": "npm run sync-spec && tsx scripts/verify-samples.ts",
+    "test:unit": "npm run docs:verify",
+    "e2e": "playwright test",
+    "lighthouse": "lhci autorun"
+  },
+  "dependencies": {
+    "@astrojs/starlight": "^0.36.3",
+    "@identizen/ui": "^0.0.0",
+    "astro": "^5.18.2"
+  },
+  "devDependencies": {
+    "@astrojs/check": "^0.9.10",
+    "@axe-core/playwright": "^4.10.2",
+    "@identizen/protocol": "^0.1.0",
+    "@identizen/react": "^0.1.0",
+    "@identizen/sdk": "^0.1.0",
+    "@lhci/cli": "^0.15.1",
+    "@playwright/test": "^1.55.0",
+    "@tailwindcss/vite": "^4.1.12",
+    "@types/express": "^5.0.6",
+    "@types/react": "^19.1.10",
+    "express": "^5.1.0",
+    "jose": "^6.0.13",
+    "next": "^15.5.2",
+    "react": "^19.1.1",
+    "react-dom": "^19.1.1",
+    "tsx": "^4.20.5",
+    "typescript": "^5.9.2"
+  }
+}
