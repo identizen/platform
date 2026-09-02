@@ -62,9 +62,9 @@ Gate command: `npm run gate` = lint + typecheck + unit + e2e (e2e is a no-op unt
 
 ## M7 — Web surfaces `[cc]` — tag `v0.7.0`
 
-- [ ] **M7.1** `[cc]` `apps/web` PWA dashboard: devices, paired browsers, sessions, revoke, handle; manifest + SW; feature folders. — Gate: Playwright per flow; axe on every route; light/dark snapshots.
-- [ ] **M7.2** `[cc]` `apps/marketing`: Home, Developers, Pricing, Blog, About, Legal, Contact, Playground island. — Gate: Playwright smoke; Lighthouse ≥ 95; theme persists.
-- [ ] **M7.3** `[cc]` `apps/docs`: Quickstart (A), Add MFA (B), framework guides, Verification API, self-hosting, enterprise, protocol spec. — Gate: `docs:verify` compiles every sample; Lighthouse ≥ 95.
+- [x] **M7.1** `[cc]` `apps/web` PWA dashboard: devices, paired browsers, sessions, revoke, handle; manifest + SW; feature folders. — Gate: Playwright per flow; axe on every route; light/dark snapshots.
+- [x] **M7.2** `[cc]` `apps/marketing`: Home, Developers, Pricing, Blog, About, Legal, Contact, Playground island. — Gate: Playwright smoke; Lighthouse ≥ 95; theme persists.
+- [x] **M7.3** `[cc]` `apps/docs`: Quickstart (A), Add MFA (B), framework guides, Verification API, self-hosting, enterprise, protocol spec. — Gate: `docs:verify` compiles every sample; Lighthouse ≥ 95.
 - [ ] **M7.4** `[cc+human]` Self-host: `docker-compose.yml` + Cloudflare deploy button. — Gate: compose up → e2e passes.
 
 ## M8 — Expo app, JS side `[cc]` — tag `v0.8.0`

@@ -115,10 +115,11 @@ export async function scanFromPage(page: Page): Promise<void> {
   await expect(page.locator('body[data-ready="1"]')).toBeAttached();
   const href = await page.locator('a', { hasText: 'Open in Identizen' }).getAttribute('href');
   if (!href) throw new Error('no deep link on the login page');
+  // Read the match code before scanning: an auto-approving phone can navigate the page away within ms.
+  const pageCode = (await page.locator('.code').textContent())?.trim();
   const result = await phone.scan(href);
   expect(result.ok, JSON.stringify(result)).toBe(true);
-  // The match code on the page equals the one the phone saw.
-  await expect(page.locator('.code')).toHaveText(result.code);
+  expect(result.code).toBe(pageCode);
 }
 
 /** The hosted page hides the QR and shows the push hint when the challenge was pushed. */

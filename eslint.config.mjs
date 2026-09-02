@@ -150,6 +150,15 @@ export default tseslint.config(
     },
   },
   {
+    // Astro virtual modules (astro:content) only get types after `astro sync`; lint runs first.
+    files: ['**/content.config.ts'],
+    rules: {
+      '@typescript-eslint/no-unsafe-assignment': 'off',
+      '@typescript-eslint/no-unsafe-call': 'off',
+      '@typescript-eslint/no-unsafe-member-access': 'off',
+    },
+  },
+  {
     files: ['**/*.js', '**/*.mjs', '**/*.cjs'],
     ...tseslint.configs.disableTypeChecked,
   },

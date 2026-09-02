@@ -29,6 +29,13 @@ docker compose up -d postgres   # local Postgres for db/index tests
 npm run gate                    # lint + typecheck + unit + e2e
 ```
 
+## Run it
+
+- **Hosted index (dev/test):** https://identizen-index.noundry.workers.dev with OIDC discovery at `/.well-known/openid-configuration`. Register a site with `npx identizen init --index https://identizen-index.noundry.workers.dev`.
+- **Local index:** `docker compose up -d postgres`, `npm run migrate -w @identizen/db`, `npm run dev -w @identizen/index` (uses the test keys in `apps/index/.dev.vars.dev`).
+- **Self-host anywhere with Docker:** `INDEX_SIGNING_KEY=… OIDC_SIGNING_KEYS=… INDEX_URL=https://index.example.com docker compose --profile selfhost up` runs the same Worker inside workerd next to Postgres, configured by environment only. Generate keys with `npm run keys -w @identizen/index`.
+- **Cloudflare:** `npm run deploy -w @identizen/index` after `wrangler hyperdrive create` and `wrangler secret put INDEX_SIGNING_KEY` / `OIDC_SIGNING_KEYS`. The static apps deploy with `wrangler deploy` from `apps/web`, `apps/marketing`, and `apps/docs`.
+
 See `planning/` for the PRD, architecture one-pager, and implementation plan. `TASKS.md` is the milestone checklist.
 
 License: Apache-2.0.
