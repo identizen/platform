@@ -80,8 +80,8 @@ export function generateVectors(): VectorFiles {
       public_b64url: toBase64Url(index.publicKey),
     },
     identity_proof: {
-      device_id: VECTOR_DEVICE_ID,
-      master_sig: signIdentityProof(VECTOR_DEVICE_ID, master.privateKey),
+      device_pubkey: toBase64Url(device.publicKey),
+      master_sig: signIdentityProof(toBase64Url(device.publicKey), master.privateKey),
     },
   };
 

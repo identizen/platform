@@ -327,18 +327,18 @@ export function verifyRequestSignature(
 }
 
 // ---------------------------------------------------------------------------
-// Identity registration proof: master key signs the device_id.
+// Identity registration proof: master key signs the device public key.
 
-export function signIdentityProof(deviceId: string, masterPrivateKey: Uint8Array): string {
-  return signPayload('identity', { device_id: deviceId }, masterPrivateKey);
+export function signIdentityProof(devicePubkey: string, masterPrivateKey: Uint8Array): string {
+  return signPayload('identity', { device_pubkey: devicePubkey }, masterPrivateKey);
 }
 
 export function verifyIdentityProof(
-  deviceId: string,
+  devicePubkey: string,
   sig: string,
   masterPublicKey: Uint8Array,
 ): boolean {
-  return verifyPayload('identity', { device_id: deviceId }, sig, masterPublicKey);
+  return verifyPayload('identity', { device_pubkey: devicePubkey }, sig, masterPublicKey);
 }
 
 export function nowSeconds(): number {

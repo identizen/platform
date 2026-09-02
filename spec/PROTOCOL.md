@@ -216,7 +216,7 @@ where
 sig = Ed25519.sign(deviceKey, UTF8("identizen/v1/request\n" + METHOD + "\n" + PATH + "\n" + base64url(SHA-256(body)) + "\n" + t))
 ```
 
-`METHOD` is upper-case, `PATH` is the request path including query string, `body` is the raw request body (empty string for none). The index rejects `t` outside ±60 s of its clock and rejects any `(device_id, t, sig)` seen before within that window (replay protection). Device registration (`POST /devices`) is the one unsigned request; it carries the device public key in the body and returns the assigned `device_id` plus the index's pinned public key.
+`METHOD` is upper-case, `PATH` is the request path including query string, `body` is the raw request body (empty string for none). The index rejects `t` outside ±60 s of its clock and rejects any `(device_id, t, sig)` seen before within that window (replay protection). Device registration (`POST /devices`) is the one unsigned request. It carries the device public key, the master public key, and `master_sig` — an Ed25519 signature of type `"identity"` (§2) over `{ "device_pubkey": "<base64url>" }` proving the install holds the master key — and returns the assigned `device_id`, the `idz`, and the index's pinned public key. The identity is created on first sight; a restored phone re-registers against the same `idz`.
 
 ## 9. Identifiers summary
 

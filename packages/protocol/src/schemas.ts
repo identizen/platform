@@ -36,6 +36,11 @@ export const PublicKeySchema = z.string().length(43).regex(B64URL);
 export const SignatureSchema = z.string().length(86).regex(B64URL);
 /** `base64url(SHA-256(x))[0:32]` */
 export const KeyIdSchema = z.string().length(32).regex(B64URL);
+export const HandleSchema = z
+  .string()
+  .min(3)
+  .max(32)
+  .regex(/^[a-z0-9][a-z0-9_.-]*[a-z0-9]$/);
 
 export const ChallengeSchema = z
   .object({
@@ -102,10 +107,15 @@ export const SignedPairingSchema = z
   .strict();
 export type SignedPairing = z.infer<typeof SignedPairingSchema>;
 
-/** Body of `POST /devices` (unsigned; carries the device public key). */
+/** Body of `POST /devices` (unsigned): registers the install and, on first sight, the identity. */
 export const DeviceRegistrationSchema = z
   .object({
     device_pubkey: PublicKeySchema,
+    master_pubkey: PublicKeySchema,
+    /** Proof the device holds the master key: Ed25519 (type "identity") over { device_pubkey }. */
+    master_sig: SignatureSchema,
+    handle: HandleSchema.optional(),
+    kind: z.enum(['personal', 'org']).default('personal'),
     ble_key: Base64UrlSchema.optional(),
     push_token: z.string().max(4096).optional(),
     push_platform: z.enum(['apns', 'fcm', 'web']).optional(),
@@ -115,19 +125,6 @@ export const DeviceRegistrationSchema = z
   .strict();
 export type DeviceRegistration = z.infer<typeof DeviceRegistrationSchema>;
 
-/** Body of `POST /identities` (signed with Idz-Signature by the device). */
-export const IdentityRegistrationSchema = z
-  .object({
-    master_pubkey: PublicKeySchema,
-    handle: z
-      .string()
-      .min(3)
-      .max(32)
-      .regex(/^[a-z0-9][a-z0-9_.-]*[a-z0-9]$/)
-      .optional(),
-    kind: z.enum(['personal', 'org']).default('personal'),
-    /** Proof that the device holds the master key: Ed25519 over the device_id (type "identity"). */
-    master_sig: SignatureSchema,
-  })
-  .strict();
-export type IdentityRegistration = z.infer<typeof IdentityRegistrationSchema>;
+/** Body of `POST /identities` (signed with Idz-Signature): set or clear the handle. */
+export const HandleUpdateSchema = z.object({ handle: HandleSchema.nullable() }).strict();
+export type HandleUpdate = z.infer<typeof HandleUpdateSchema>;

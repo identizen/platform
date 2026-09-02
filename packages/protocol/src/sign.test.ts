@@ -372,9 +372,10 @@ describe('Idz-Signature', () => {
 describe('identity proof and generic helpers', () => {
   it('master key proves possession over the device id', () => {
     const master = keyPairFromPrivateKey(fromHex('60'.repeat(32)));
-    const sig = signIdentityProof(DEV_ID, master.privateKey);
-    expect(verifyIdentityProof(DEV_ID, sig, master.publicKey)).toBe(true);
-    expect(verifyIdentityProof('dev_other', sig, master.publicKey)).toBe(false);
+    const pub = toBase64Url(deviceKey.publicKey);
+    const sig = signIdentityProof(pub, master.privateKey);
+    expect(verifyIdentityProof(pub, sig, master.publicKey)).toBe(true);
+    expect(verifyIdentityProof('A'.repeat(43), sig, master.publicKey)).toBe(false);
   });
 
   it('generic verify never throws', () => {

@@ -30,7 +30,7 @@
     "public_b64url": "JUO5L_EJVRFHatyDadtt3JM2ZaEZeN2hQE7hBmypVZ0"
   },
   "identity_proof": {
-    "device_id": "dev_01K3ZB2N9G0000000000000001",
-    "master_sig": "rrrqvuv67g6fV__nDTh6xPlqF_nDSpuleBFBvVURi95fHGbdI9Kyp1Um2HbnEmwW8OamO02YyX6_8kd9prKxDw"
+    "device_pubkey": "Kay64UG8yvCyLhqU000LxzYeUm0L_hLIl5S8kyKWbdc",
+    "master_sig": "6w2WPTe1N4ACZvlsx22NUCA0-rOEWsmkaZ2W5koeBFuCTb99PeaT8zbxmDTIi6H4TIwi_jHY1FfDJPjL4zhNCA"
   }
 }
