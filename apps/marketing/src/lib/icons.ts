@@ -22,4 +22,5 @@ export type IconName =
   | 'layers'
   | 'building'
   | 'mail'
+  | 'download'
   | 'x';
