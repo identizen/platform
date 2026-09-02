@@ -1,0 +1,23 @@
+# M8.6 — deep-link login on the iOS Simulator (human-run; see README.md in this folder).
+# Prerequisites: local index on :8787, e2e site on :3000, the app installed on the simulator with an
+# identity already created and registered, and CHALLENGE_URL exported by the driver script.
+appId: com.identizen.app
+env:
+  CHALLENGE_URL: ${CHALLENGE_URL}
+---
+- launchApp
+- openLink: ${CHALLENGE_URL}
+- assertVisible:
+    id: 'rp-name'
+- assertVisible:
+    id: 'match-code'
+- tapOn:
+    id: 'approve'
+# Simulator: the Face ID prompt is auto-accepted when "Enrolled" + "Matching Face" is set in
+# Features > Face ID, or the biometric requirement is switched off in Settings.
+- assertVisible:
+    id: 'approve-done'
+- tapOn:
+    id: 'approve-done'
+- assertVisible:
+    id: 'home'
