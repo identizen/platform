@@ -1,0 +1,86 @@
+---
+/** Three numbered steps with a connector rail, used on the landing page. */
+const steps = [
+  {
+    title: 'One click on the site',
+    text: 'The site starts a standard OIDC login. The index issues a 60-second challenge that names the site, a nonce, and a two-digit match code.',
+  },
+  {
+    title: 'The phone is found',
+    text: 'A paired browser pushes straight to the phone. The first time, Chromium finds it over Bluetooth or the user scans a QR; on the phone itself a link opens the app.',
+  },
+  {
+    title: 'Face ID, in',
+    text: 'The phone shows the site name and the code. The user approves with biometrics and the site receives an id_token with a per-site sub. No email, nothing to remember.',
+  },
+];
+---
+
+<ol class="idz-steps">
+  {
+    steps.map((s, i) => (
+      <li class="idz-step">
+        <span class="idz-step-num" aria-hidden="true">
+          {String(i + 1).padStart(2, '0')}
+        </span>
+        <span class="idz-step-title">{s.title}</span>
+        <span class="idz-step-text">{s.text}</span>
+      </li>
+    ))
+  }
+</ol>
+
+<style>
+  .idz-steps {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 1rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    counter-reset: none;
+  }
+  @media (max-width: 56rem) {
+    .idz-steps {
+      grid-template-columns: 1fr;
+    }
+  }
+  .idz-step {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 0.45rem;
+    padding: 1.25rem 1.25rem 1.25rem 1.25rem;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    background: var(--color-surface-1);
+    margin: 0;
+  }
+  .idz-step::before {
+    content: '';
+    position: absolute;
+    left: 1.25rem;
+    right: 1.25rem;
+    top: 0;
+    height: 2px;
+    border-radius: 2px;
+    background: linear-gradient(90deg, var(--color-accent), transparent);
+  }
+  .idz-step-num {
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--color-accent);
+    letter-spacing: 0.08em;
+  }
+  .idz-step-title {
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    color: var(--color-fg);
+  }
+  .idz-step-text {
+    font-size: 0.9rem;
+    line-height: 1.55;
+    color: var(--color-fg-muted);
+  }
+</style>

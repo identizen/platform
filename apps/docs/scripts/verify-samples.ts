@@ -52,20 +52,26 @@ function extract(file: string): Block[] {
   const lines = readFileSync(file, 'utf8').split(/\r?\n/);
   const blocks: Block[] = [];
   for (let i = 0; i < lines.length; i++) {
-    const open = /^```(ts|tsx|js|typescript|javascript)\b(.*)$/.exec(lines[i] ?? '');
+    const open = /^(\s*)```(ts|tsx|js|typescript|javascript)\b(.*)$/.exec(lines[i] ?? '');
     if (!open) continue;
-    const langRaw = open[1] ?? 'ts';
+    const indent = open[1] ?? '';
+    const langRaw = open[2] ?? 'ts';
     const lang =
       langRaw === 'typescript'
         ? 'ts'
         : langRaw === 'javascript'
           ? 'js'
           : (langRaw as Block['lang']);
-    const meta = parseMeta(open[2] ?? '');
+    const meta = parseMeta(open[3] ?? '');
     const start = i + 1;
     let end = start;
-    while (end < lines.length && !/^```\s*$/.test(lines[end] ?? '')) end++;
-    blocks.push({ file, line: start + 1, lang, meta, code: lines.slice(start, end).join('\n') });
+    while (end < lines.length && !/^\s*```\s*$/.test(lines[end] ?? '')) end++;
+    // Blocks nested in <Steps> lists are indented; strip the fence indent so the sample compiles.
+    const code = lines
+      .slice(start, end)
+      .map((l) => (indent && l.startsWith(indent) ? l.slice(indent.length) : l))
+      .join('\n');
+    blocks.push({ file, line: start + 1, lang, meta, code });
     i = end;
   }
   return blocks;

@@ -1,0 +1,114 @@
+---
+/**
+ * Landing card: icon, title, one-line description, and a link. Same card system as the rest
+ * of the site (1px border, layered shadow, hover lift, accent focus ring).
+ */
+interface Props {
+  title: string;
+  href: string;
+  icon: 'rocket' | 'shield' | 'layers' | 'terminal' | 'book' | 'server';
+  cta?: string;
+}
+const { title, href, icon, cta = 'Read' } = Astro.props;
+
+const icons: Record<Props['icon'], string> = {
+  rocket:
+    '<path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"/><path d="m12 15-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z"/><path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 0 5 0"/><path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5"/>',
+  shield:
+    '<path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/><path d="m9 12 2 2 4-4"/>',
+  layers:
+    '<path d="M12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83z"/><path d="M2 12a1 1 0 0 0 .58.91l8.6 3.91a2 2 0 0 0 1.65 0l8.58-3.9A1 1 0 0 0 22 12"/><path d="M2 17a1 1 0 0 0 .58.91l8.6 3.91a2 2 0 0 0 1.65 0l8.58-3.9A1 1 0 0 0 22 17"/>',
+  terminal: '<polyline points="4 17 10 11 4 5"/><line x1="12" x2="20" y1="19" y2="19"/>',
+  book: '<path d="M12 7v14"/><path d="M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z"/>',
+  server:
+    '<rect width="20" height="8" x="2" y="2" rx="2" ry="2"/><rect width="20" height="8" x="2" y="14" rx="2" ry="2"/><line x1="6" x2="6.01" y1="6" y2="6"/><line x1="6" x2="6.01" y1="18" y2="18"/>',
+};
+---
+
+<a class="idz-card" href={href}>
+  <span class="idz-card-icon" aria-hidden="true">
+    <svg
+      viewBox="0 0 24 24"
+      width="20"
+      height="20"
+      fill="none"
+      stroke="currentColor"
+      stroke-width="1.75"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      set:html={icons[icon]}
+    />
+  </span>
+  <span class="idz-card-body">
+    <span class="idz-card-title">{title}</span>
+    <span class="idz-card-text"><slot /></span>
+  </span>
+  <span class="idz-card-cta">{cta} <span aria-hidden="true">→</span></span>
+</a>
+
+<style>
+  .idz-card {
+    display: flex;
+    flex-direction: column;
+    gap: 0.9rem;
+    height: 100%;
+    padding: 1.25rem 1.25rem 1.1rem;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    background: var(--color-surface-0);
+    box-shadow: var(--shadow-xs);
+    color: var(--color-fg);
+    text-decoration: none;
+    transition:
+      transform 160ms var(--ease-out-soft),
+      box-shadow 160ms var(--ease-out-soft),
+      border-color 160ms var(--ease-out-soft);
+  }
+  .idz-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+    border-color: var(--color-border-strong);
+  }
+  .idz-card:focus-visible {
+    outline: 2px solid var(--color-ring);
+    outline-offset: 2px;
+  }
+  .idz-card-icon {
+    display: inline-flex;
+    width: 2.25rem;
+    height: 2.25rem;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--radius-md);
+    background: var(--color-accent-soft);
+    color: var(--color-accent-soft-fg);
+  }
+  .idz-card-body {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    flex: 1;
+  }
+  .idz-card-title {
+    font-weight: 600;
+    font-size: 1rem;
+    letter-spacing: -0.01em;
+  }
+  .idz-card-text {
+    font-size: 0.9rem;
+    line-height: 1.55;
+    color: var(--color-fg-muted);
+  }
+  .idz-card-cta {
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: var(--color-accent);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .idz-card,
+    .idz-card:hover {
+      transition: none;
+      transform: none;
+    }
+  }
+</style>

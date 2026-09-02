@@ -1,0 +1,111 @@
+---
+/**
+ * Starlight Hero override for the landing page: tighter headline, the product illustration,
+ * two CTAs. Reads the same `hero` frontmatter Starlight uses.
+ */
+import { LinkButton } from '@astrojs/starlight/components';
+import LoginIllustration from './LoginIllustration.astro';
+
+const { data } = Astro.locals.starlightRoute.entry;
+const { title = data.title, tagline, actions = [] } = data.hero ?? {};
+---
+
+<section class="idz-hero">
+  <div class="idz-hero-copy">
+    <p class="idz-eyebrow">Documentation</p>
+    <h1 id="_top" set:html={title} />
+    {tagline ? <p class="idz-hero-tagline" set:html={tagline} /> : null}
+    {
+      actions.length > 0 ? (
+        <div class="idz-hero-actions">
+          {actions.map(({ attrs: { class: cls, ...attrs } = {}, icon, link, text, variant }) => (
+            <LinkButton href={link} variant={variant} icon={icon?.name} class:list={[cls]} {...attrs}>
+              {text}{icon?.html && <Fragment set:html={icon.html} />}
+            </LinkButton>
+          ))}
+        </div>
+      ) : null
+    }
+    <p class="idz-hero-meta">
+      <code>npm install @identizen/react</code>
+      <span>Apache-2.0 · standard OIDC · no password database</span>
+    </p>
+  </div>
+  <div class="idz-hero-art">
+    <LoginIllustration />
+  </div>
+</section>
+
+<style>
+  .idz-hero {
+    display: grid;
+    grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+    gap: clamp(1.5rem, 4vw, 4rem);
+    align-items: center;
+    padding-block: clamp(1.5rem, 4vw, 3rem) clamp(1rem, 3vw, 2rem);
+  }
+  @media (max-width: 72rem) {
+    .idz-hero {
+      grid-template-columns: 1fr;
+    }
+    .idz-hero-art {
+      max-width: 34rem;
+    }
+  }
+  .idz-eyebrow {
+    margin: 0 0 0.75rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--color-accent);
+  }
+  .idz-hero h1 {
+    margin: 0;
+    font-size: clamp(2.25rem, 4.2vw, 3.5rem);
+    line-height: 1.05;
+    letter-spacing: -0.03em;
+    font-weight: 700;
+    color: var(--color-fg);
+  }
+  .idz-hero-tagline {
+    margin: 1.25rem 0 0;
+    max-width: 34rem;
+    font-size: clamp(1.05rem, 1.4vw, 1.2rem);
+    line-height: 1.55;
+    color: var(--color-fg-muted);
+  }
+  .idz-hero-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    margin-top: 1.75rem;
+  }
+  .idz-hero-meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.6rem;
+    margin: 1.5rem 0 0;
+    font-size: 0.8125rem;
+    color: var(--color-fg-muted);
+  }
+  .idz-hero-meta code {
+    font-family: var(--font-mono);
+    font-size: 0.8125rem;
+    padding: 0.3rem 0.6rem;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    background: var(--color-surface-1);
+    color: var(--color-fg);
+  }
+  .idz-hero-art {
+    display: flex;
+    justify-content: center;
+  }
+  .idz-hero-art :global(svg) {
+    width: 100%;
+    height: auto;
+    max-width: 38rem;
+  }
+</style>

@@ -1,46 +1,84 @@
 ---
 title: Identizen
-description: Login with your phone. Standard OIDC on the outside.
+description: Login with your phone. Standard OIDC on the outside, a phone-held key on the inside.
 template: splash
 hero:
-  tagline: The user's phone is the identity provider. Sites integrate a standard OIDC provider. Login is one tap plus Face ID.
+  title: Login with your phone.
+  tagline: Your users' phones are the identity provider. You integrate a standard OIDC provider. Login is one tap plus Face ID.
   actions:
     - text: Quickstart
       link: /quickstart/
       icon: right-arrow
-    - text: Add MFA to your existing login
+      variant: primary
+    - text: Add MFA
       link: /add-mfa/
       variant: minimal
 ---
 
-import { Card, CardGrid } from '@astrojs/starlight/components';
+import DocCard from '../../components/DocCard.astro';
+import LandingSteps from '../../components/LandingSteps.astro';
 
-<CardGrid stagger>
-  <Card title="Quickstart" icon="rocket">
-    From `create-next-app` to a working login with `npx identizen init` and `npx identizen dev`. No
-    phone needed to develop. [Start here →](/quickstart/)
-  </Card>
-  <Card title="Add MFA to your existing login" icon="approve-check">
-    Keep your login. Push an approval to the user's phone over OIDC step-up or a server-to-server
-    Verification API, with a signed `reason` for transaction approval. [Path B →](/add-mfa/)
-  </Card>
-  <Card title="Reference" icon="open-book">
-    [OIDC](/reference/oidc/), [Verification API](/reference/verification-api/), [SDK and
-    CLI](/reference/sdk/), [Index API](/reference/index-api/), [Errors](/errors/), and the
-    [protocol](/protocol/).
-  </Card>
-</CardGrid>
+<section class="idz-section" aria-labelledby="start-here">
+  <h2 id="start-here" class="idz-section-title">
+    Start here
+  </h2>
+  <div class="idz-grid">
+    <DocCard title="Quickstart" href="/quickstart/" icon="rocket" cta="Five minutes">
+      A working "Continue with Identizen" button on a fresh Next.js app, with a fake phone so you
+      can develop without a device.
+    </DocCard>
+    <DocCard title="Add MFA" href="/add-mfa/" icon="shield">
+      Keep your password or SSO login. Bind the phone once, then push step-up and transaction
+      approvals to it.
+    </DocCard>
+    <DocCard title="Framework guides" href="/guides/nextjs/" icon="layers" cta="Pick a stack">
+      Next.js, Express, ASP.NET Core, Django, and plain HTML. Each is a normal OIDC integration with
+      one extra claim to read.
+    </DocCard>
+    <DocCard title="Verification API" href="/reference/verification-api/" icon="terminal">
+      Ask a phone to approve a transaction, poll or receive a signed webhook, and read the
+      assertion.
+    </DocCard>
+    <DocCard title="SDK reference" href="/reference/sdk/" icon="book">
+      The server SDK, the React components, and the CLI that scaffolds an app and runs a fake phone.
+    </DocCard>
+    <DocCard title="Self-hosting" href="/self-hosting/" icon="server">
+      Run the index on your own Cloudflare account or as a Docker container, with Postgres behind
+      it.
+    </DocCard>
+  </div>
+</section>
 
-## The shape of it
+<section class="idz-section" aria-labelledby="how-it-works">
+  <h2 id="how-it-works" class="idz-section-title">
+    How a login works
+  </h2>
+  <LandingSteps />
+</section>
 
-```txt
-Browser (site + SDK)          Index / Relay              Phone (Identizen app)
-        │ 1. discover phone          │                            │
-        │ 2. challenge {rp_id, nonce, code, acr, reason?} ── push ─►│
-        │                            │        3. site name, code,  │
-        │                            │           Face ID           │
-        │◄─────── signed assertion ──┼────────────────────────────┤
-        │ 4. index verifies; OIDC provider issues id_token         │
+{/* prettier-ignore */}
+<section class="idz-section idz-split" aria-labelledby="copy-paste">
+  <div>
+    <h2 id="copy-paste" class="idz-section-title">
+      Copy-paste to start
+    </h2>
+    <p>
+      The CLI registers your app with an index, writes the OIDC config and route handlers for your
+      framework, and runs a fake phone on localhost so the whole flow works before you have a device
+      in hand.
+    </p>
+    <p>
+      Nothing here is proprietary on the wire. The index is an OIDC provider; the phone holds an
+      Ed25519 key and signs a challenge that names your site. The index stores public keys and never
+      sees a password, because there is none.
+    </p>
+  </div>
+  <div>
+
+```bash title="Terminal"
+npx identizen init
+npx identizen dev
 ```
 
-The site domain is inside the signed challenge, so a phished login on a lookalike domain produces a signature the real site will never accept. The index stores public keys, push tokens, revocation state, and audit events; there is nothing in it an attacker can log in with.
+  </div>
+</section>
