@@ -2,6 +2,7 @@
 import { defineConfig } from 'astro/config';
 import starlight from '@astrojs/starlight';
 import tailwindcss from '@tailwindcss/vite';
+import { rehypeMethodChips } from './src/plugins/rehype-method-chips.mjs';
 
 /**
  * Keeps Starlight's theme choice in sync with the product-wide `idz:theme` key and
@@ -21,15 +22,17 @@ const themeSync = `(function(){try{
 export default defineConfig({
   site: 'https://docs.identizen.com',
   vite: { plugins: [tailwindcss()] },
+  markdown: { rehypePlugins: [rehypeMethodChips] },
   integrations: [
     starlight({
       title: 'Identizen',
       description: 'Login with your phone. Standard OIDC on the outside.',
       logo: { src: './src/assets/logo.svg', replacesTitle: false },
       customCss: ['./src/styles/theme.css'],
+      components: { Hero: './src/components/Hero.astro' },
       head: [{ tag: 'script', content: themeSync }],
-      social: [{ icon: 'github', label: 'GitHub', href: 'https://github.com/identizen/identizen' }],
-      editLink: { baseUrl: 'https://github.com/identizen/identizen/edit/main/apps/docs/' },
+      social: [{ icon: 'github', label: 'GitHub', href: 'https://github.com/identizen/platform' }],
+      editLink: { baseUrl: 'https://github.com/identizen/platform/edit/main/apps/docs/' },
       lastUpdated: false,
       sidebar: [
         { label: 'Quickstart', link: '/quickstart/' },
