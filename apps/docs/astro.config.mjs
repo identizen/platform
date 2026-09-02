@@ -38,6 +38,7 @@ export default defineConfig({
       sidebar: [
         { label: 'Quickstart', link: '/quickstart/' },
         { label: 'Add MFA to your existing login', link: '/add-mfa/' },
+        { label: 'React (any app)', link: '/guides/react/' },
         {
           label: 'Framework guides',
           items: [
@@ -59,6 +60,7 @@ export default defineConfig({
           ],
         },
         { label: 'Self-hosting', link: '/self-hosting/' },
+        { label: 'AI assistants and llms.txt', link: '/ai-assistants/' },
         { label: 'Enterprise', link: '/enterprise/' },
         {
           label: 'Protocol',

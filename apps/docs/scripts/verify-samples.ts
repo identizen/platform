@@ -131,7 +131,12 @@ for (const [i, b] of blocks.entries()) {
     .replace(/[\\/]/g, '__')
     .replace(/\.mdx?$/, '');
   const name = `${String(i).padStart(3, '0')}_${rel}_L${b.line}.${b.lang}`;
-  const path = join(outDir, name);
+  // A block with a title="…" lives at that path under a per-page folder, so samples on one page
+  // can import each other with relative paths exactly as the reader will.
+  const path = b.meta.title
+    ? join(outDir, 'pages', rel, b.meta.title.replace(/\.(js|mjs|cjs)$/, `.${b.lang}`))
+    : join(outDir, name);
+  mkdirSync(dirname(path), { recursive: true });
   if (b.lang === 'js') {
     jsCount++;
     try {
@@ -167,7 +172,7 @@ if (tsFiles.length) {
       baseUrl: '.',
       paths: { '@/*': ['./stubs/*'] },
     },
-    include: ['*.ts', '*.tsx', 'stubs/**/*.ts'],
+    include: ['*.ts', '*.tsx', 'stubs/**/*.ts', 'pages/**/*.ts', 'pages/**/*.tsx'],
   };
   writeFileSync(join(outDir, 'tsconfig.json'), JSON.stringify(tsconfig, null, 2));
   // Stubs for `@/lib/identizen` and `@/lib/session` imports used by scaffold-style samples.

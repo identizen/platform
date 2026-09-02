@@ -1,0 +1,18 @@
+# Identizen
+
+> Identizen is open-source, device-based login. The user's phone holds the key, your site is a standard OpenID Connect relying party with PKCE, and the hosted index at https://index.identizen.com is the OpenID Provider. One tap plus Face ID. No password, no email, no Google or Microsoft account. Apache-2.0.
+
+The documentation, including the complete React + TypeScript integration inline, lives at docs.identizen.com in the llms.txt format:
+
+- [llms.txt](https://docs.identizen.com/llms.txt): index with the React + TypeScript guide and links to every page as Markdown
+- [llms-full.txt](https://docs.identizen.com/llms-full.txt): every docs page in one file
+- [Quickstart](https://docs.identizen.com/quickstart.md): Next.js in five minutes with the CLI and a fake phone
+- [React (any app)](https://docs.identizen.com/guides/react.md): in-page login with @identizen/react and a public PKCE client
+- [OIDC reference](https://docs.identizen.com/reference/oidc.md): endpoints, PKCE, id_token claims, step-up, back-channel logout
+- [SDK and CLI](https://docs.identizen.com/reference/sdk.md): @identizen/sdk, @identizen/sdk/server, @identizen/react, identizen CLI
+
+## Optional
+
+- [Playground](https://identizen.com/playground/): a real login against the hosted index, approved by a virtual phone in the browser
+- [Brand](https://identizen.com/brand/): logo, wordmark, and usage rules
+- [Source](https://github.com/identizen/platform): the monorepo, Apache-2.0

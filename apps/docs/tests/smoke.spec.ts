@@ -10,6 +10,8 @@ const PAGES = [
   '/guides/aspnet-core/',
   '/guides/django/',
   '/guides/plain-html/',
+  '/guides/react/',
+  '/ai-assistants/',
   '/reference/verification-api/',
   '/reference/oidc/',
   '/reference/sdk/',
@@ -55,4 +57,26 @@ test('errors page has an anchor per error code', async ({ page }) => {
   for (const code of ['config_index_url', 'invalid_grant', 'replayed_request', 'login_required']) {
     await expect(page.locator(`#${code}`)).toHaveCount(1);
   }
+});
+
+test('llms.txt, llms-full.txt and per-page markdown are served', async ({ request }) => {
+  const index = await request.get('/llms.txt');
+  expect(index.status()).toBe(200);
+  expect(index.headers()['content-type']).toContain('text/plain');
+  const text = await index.text();
+  expect(text.startsWith('# Identizen')).toBe(true);
+  expect(text).toContain('> Identizen is open-source');
+  expect(text).toContain('## Add Identizen to a React + TypeScript app');
+  expect(text).toContain('npx identizen register-site');
+  expect(text).toContain('https://docs.identizen.com/quickstart.md');
+  expect(text).not.toMatch(/<Steps>|<Aside|^import /m);
+
+  const full = await request.get('/llms-full.txt');
+  expect(full.status()).toBe(200);
+  expect((await full.text()).split('\n---\n').length).toBeGreaterThan(15);
+
+  const page = await request.get('/guides/react.md');
+  expect(page.status()).toBe(200);
+  expect(page.headers()['content-type']).toContain('text/markdown');
+  expect(await page.text()).toContain('# React (any app)');
 });
