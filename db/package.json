@@ -1,0 +1,44 @@
+{
+  "name": "@identizen/db",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Identizen index schema (Drizzle), migrations, and the typed query module.",
+  "license": "Apache-2.0",
+  "type": "module",
+  "main": "./dist/src/index.js",
+  "types": "./dist/src/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/src/index.d.ts",
+      "import": "./dist/src/index.js"
+    },
+    "./schema": {
+      "types": "./dist/schema.d.ts",
+      "import": "./dist/schema.js"
+    }
+  },
+  "files": [
+    "dist",
+    "migrations",
+    "schema.ts"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test:unit": "vitest run",
+    "generate": "drizzle-kit generate",
+    "migrate": "tsx src/cli-migrate.ts",
+    "studio": "drizzle-kit studio"
+  },
+  "dependencies": {
+    "@identizen/protocol": "^0.1.0",
+    "drizzle-orm": "^0.44.5",
+    "postgres": "^3.4.7"
+  },
+  "devDependencies": {
+    "drizzle-kit": "^0.31.4",
+    "tsx": "^4.20.5",
+    "typescript": "^5.9.2",
+    "vitest": "^3.2.4"
+  }
+}
