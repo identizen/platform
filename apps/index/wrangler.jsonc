@@ -10,6 +10,7 @@
     "APP_URL": "http://localhost:4300",
     "PUSH_PROVIDER": "noop",
     "OPEN_SITE_REGISTRATION": "true",
+    "DASHBOARD_CLIENT_IDS": "*",
   },
   "hyperdrive": [
     {
@@ -32,6 +33,7 @@
         "APP_URL": "http://localhost:8787",
         "PUSH_PROVIDER": "web",
         "OPEN_SITE_REGISTRATION": "true",
+        "DASHBOARD_CLIENT_IDS": "*",
       },
       "hyperdrive": [
         {

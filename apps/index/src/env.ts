@@ -16,6 +16,8 @@ export interface Env {
   /** "true" allows unauthenticated POST /sites (dev / self-host). Otherwise SITE_REGISTRATION_TOKEN is required. */
   OPEN_SITE_REGISTRATION?: string;
   SITE_REGISTRATION_TOKEN?: string;
+  /** Comma-separated client ids allowed to call /me with a bearer token; "*" allows any (dev only). */
+  DASHBOARD_CLIENT_IDS?: string;
   /** Push provider credentials (optional). */
   APNS_KEY_ID?: string;
   APNS_TEAM_ID?: string;
