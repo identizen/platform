@@ -1,0 +1,110 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`<IdentizenButton> > renders the idle button, then the waiting panel with code and QR, then success > approved 1`] = `
+<div>
+  <div
+    data-idz="panel"
+    data-method="qr"
+    data-status="approved"
+  >
+    <p
+      aria-live="polite"
+      data-idz="status"
+      role="status"
+    >
+      Approved. Signing you in…
+    </p>
+  </div>
+</div>
+`;
+
+exports[`<IdentizenButton> > renders the idle button, then the waiting panel with code and QR, then success > idle 1`] = `
+<div>
+  <button
+    data-idz="button"
+    type="button"
+  >
+    Continue with Identizen
+  </button>
+</div>
+`;
+
+exports[`<IdentizenButton> > renders the idle button, then the waiting panel with code and QR, then success > waiting-qr 1`] = `
+<div>
+  <div
+    data-idz="panel"
+    data-method="qr"
+    data-status="waiting"
+  >
+    <p
+      aria-live="polite"
+      data-idz="status"
+      role="status"
+    >
+      Scan the code with the Identizen app and check the match code.
+    </p>
+    <p
+      aria-label="Match code"
+      data-idz="code"
+    >
+      <span>
+        Match code
+      </span>
+       
+      <strong>
+        47
+      </strong>
+    </p>
+    <div
+      data-idz="qr"
+    >
+      <svg
+        aria-label="QR"
+        role="img"
+      />
+    </div>
+    <button
+      data-idz="cancel"
+      type="button"
+    >
+      Cancel
+    </button>
+  </div>
+</div>
+`;
+
+exports[`<IdentizenStepUp> > starts automatically, shows the reason and code, and reports approval > step-up-waiting 1`] = `
+<div>
+  <div
+    data-idz="step-up"
+    data-status="waiting"
+  >
+    <p
+      data-idz="reason"
+    >
+      Approve wire of $12,000?
+    </p>
+    <p
+      aria-live="polite"
+      data-idz="status"
+      role="status"
+    >
+      Check your phone and confirm the match code.
+    </p>
+    <p
+      aria-label="Match code"
+      data-idz="code"
+    >
+      <strong>
+        47
+      </strong>
+    </p>
+    <button
+      data-idz="cancel"
+      type="button"
+    >
+      Cancel
+    </button>
+  </div>
+</div>
+`;
