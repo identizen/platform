@@ -1,336 +1,355 @@
 ---
 import Base from '../layouts/Base.astro';
-import CodeBlock from '../components/CodeBlock.astro';
+import HeroScene from '../components/HeroScene.astro';
+import Code from '../components/Code.astro';
+import Icon from '../components/Icon.astro';
+import type { IconName } from '../lib/icons';
 import { SITE } from '../lib/site';
 
 const reactSnippet = `
 import { IdentizenProvider, IdentizenButton } from '@identizen/react';
 
-<IdentizenProvider indexUrl="https://index.identizen.com" clientId="idz_live_...">
-  <IdentizenButton onSuccess={(user) => router.push('/dashboard')} />
-</IdentizenProvider>`;
+export function Login() {
+  return (
+    <IdentizenProvider indexUrl="https://index.identizen.com" clientId={clientId}>
+      <IdentizenButton login={{ redirectUri: '/api/auth/callback' }} />
+    </IdentizenProvider>
+  );
+}`;
 
 const cliSnippet = `
-npx identizen init   # registers your site, writes .env, scaffolds /api/auth/*
-npx identizen dev    # a fake phone that approves logins while you build`;
+npx identizen init      # registers the site, writes .env.local, scaffolds /api/auth/*
+npx identizen dev       # runs a fake phone that approves logins while you build`;
 
 const verifySnippet = `
-POST /v1/verify
-Authorization: Bearer <client_secret>
-Idz-Client-Id: idz_live_...
+import { createIdentizenServer } from '@identizen/sdk/server';
 
-{ "sub": "…", "reason": "Approve wire transfer of $12,000 to Acme?" }
+const idz = createIdentizenServer({ indexUrl, clientId, clientSecret });
 
-→ { "verification_id": "vf_…", "status": "pending" }
-→ poll or webhook: "approved" + the signed assertion (reason hash inside)`;
+// Any backend, any time after enrollment: the phone shows the reason and signs it.
+const v = await idz.verify({ sub, reason: 'Approve wire of $12,000 to Acme?' });
+const done = await idz.waitForVerification(v.verification_id);
+if (done.status === 'approved') release(wire); // assertion binds the reason hash`;
+
+const stats = [
+  { value: '60 s', label: 'challenge lifetime' },
+  { value: '2-digit', label: 'match code' },
+  { value: '0', label: 'secrets stored' },
+  { value: '5 lines', label: 'to integrate' },
+];
 
 const steps = [
   {
-    title: 'One click on the site',
-    body: 'The site starts a standard OIDC login. The index creates a 60-second challenge that names the site, a nonce, and a two-digit match code.',
+    title: 'Your site asks for a login',
+    text: 'The SDK requests a challenge from the index: a signed, single-use request that expires in 60 seconds and carries a two-digit match code.',
   },
   {
-    title: 'The phone is found',
-    body: 'A paired browser pushes straight to your phone. First time? Chromium finds it over Bluetooth, or you scan a QR. On the phone itself, a link opens the app.',
+    title: 'The phone gets it',
+    text: 'A paired browser pushes straight to the phone. Otherwise the phone is found over Bluetooth, or the user scans a QR. The match code stops relay tricks.',
   },
   {
-    title: 'Face ID, in',
-    body: 'The phone shows the site name and the code, you approve with biometrics, and the site gets an id_token with a per-site sub. No email. No password. Nothing to remember.',
+    title: 'Face ID signs, you get OIDC',
+    text: 'The phone derives a key for your site and signs the assertion. The index verifies it and hands your app a standard id_token. No email, no password.',
   },
 ];
 
-const matrix = [
-  ['Chrome / Edge desktop', '✓', '✓', '✓', '—'],
-  ['Safari macOS', '✓', '—', '✓', '—'],
-  ['Firefox desktop', '✓', '—', '✓', '—'],
-  ['Safari iOS', '—', '—', '—', '✓'],
-  ['Chrome Android', '—', '—', '—', '✓'],
+const features: { icon: IconName; title: string; text: string }[] = [
+  {
+    icon: 'key',
+    title: 'The phone is the identity',
+    text: 'A seed on the device derives one key per site. Two sites cannot correlate a user, and there is no account with us to take over.',
+  },
+  {
+    icon: 'shield',
+    title: 'Nothing to leak',
+    text: 'The index stores public keys, push tokens, and audit events. Never a private key, seed, password, or plaintext token.',
+  },
+  {
+    icon: 'globe',
+    title: 'Standard on the outside',
+    text: 'Your app sees OpenID Connect with PKCE, back-channel logout, and a JWKS. Any OIDC library works; ours is just shorter.',
+  },
+  {
+    icon: 'link',
+    title: 'Pair once, then no QR',
+    text: 'After the first approval the browser holds a pairing key. Later logins push to the phone directly. Revoke from the app at any time.',
+  },
+  {
+    icon: 'bluetooth',
+    title: 'Proximity when you want it',
+    text: 'The phone advertises a rotating Bluetooth id. Chromium browsers can find it without a camera; the id changes every 15 minutes.',
+  },
+  {
+    icon: 'server',
+    title: 'Self-host in one command',
+    text: 'The same Worker runs index.identizen.com. Deploy it to Cloudflare or run the container; indexes federate over WebFinger.',
+  },
+];
+
+const platforms = [
+  ['Web (any framework)', 'OIDC + @identizen/sdk', '@identizen/react'],
+  ['Next.js, Remix, SvelteKit', 'Guides + CLI scaffolds', 'npx identizen init'],
+  ['iOS and Android', 'Identizen app (Expo)', 'Face ID · fingerprint'],
+  ['Your own index', 'Cloudflare Worker or Docker', 'WebFinger federation'],
 ];
 ---
 
 <Base title={SITE.name}>
-  <section class="grid gap-10 py-6 sm:py-14 lg:grid-cols-[1.15fr_1fr] lg:items-center">
-    <div class="max-w-2xl">
-      <p
-        class="mb-4 inline-flex items-center gap-2 rounded-full border border-border bg-surface-1 px-3 py-1 text-xs text-fg-muted"
-      >
-        <span class="size-1.5 rounded-full bg-success" aria-hidden="true"></span> Open source · Apache-2.0
-        · Standard OIDC
+  <!-- Hero -->
+  <section class="bg-glow relative overflow-hidden">
+    <div class="container-site pt-16 pb-16 text-center sm:pt-24 lg:pb-24">
+      <p class="eyebrow justify-center">
+        <span class="h-1.5 w-1.5 rounded-full bg-accent" aria-hidden="true"></span>
+        Open source · Standard OIDC · Apache-2.0
       </p>
-      <h1 class="text-4xl font-semibold tracking-tight text-balance sm:text-6xl">
-        Login with your phone.
+      <h1 class="display mx-auto mt-5 max-w-4xl text-5xl sm:text-6xl lg:text-7xl">
+        Login with your <span class="accent-text">phone</span>.
       </h1>
-      <p class="mt-5 max-w-xl text-lg text-fg-muted text-pretty">
-        No password, no email, no Google or Microsoft account. One tap, Face ID, in.
+      <p class="mx-auto mt-6 max-w-2xl text-lg leading-relaxed text-fg-muted sm:text-xl">
+        Device-based identity for any website. Your users tap once and confirm with Face ID. Your
+        app receives a standard OpenID Connect token. No password, no email, no big-tech account,
+        and nothing on our servers worth stealing.
       </p>
-      <p class="mt-3 max-w-xl text-base text-fg-muted text-pretty">
-        Identizen is a device-based identity system. Your phone holds the key; sites integrate a
-        standard OpenID Connect provider in five lines. The index we host is a phonebook, not a
-        vault.
-      </p>
-      <div class="mt-8 flex flex-wrap gap-3">
-        <a
-          href={`${SITE.docs}/quickstart`}
-          class="inline-flex h-11 items-center rounded-lg bg-accent px-6 text-base font-medium text-accent-fg hover:bg-accent-hover"
-          >Start in 5 minutes</a
-        >
-        <a
-          href="/playground"
-          class="inline-flex h-11 items-center rounded-lg border border-border-strong bg-surface-0 px-6 text-base font-medium hover:bg-surface-1"
-          >Try it with your phone</a
-        >
+      <div class="mt-9 flex flex-wrap items-center justify-center gap-3">
+        <a href={`${SITE.docs}/quickstart`} class="btn btn-primary">
+          Get started
+          <Icon name="arrow-right" />
+        </a>
+        <a href="/playground" class="btn btn-secondary">
+          <Icon name="smartphone" />
+          Try the playground
+        </a>
       </div>
-      <p class="mt-6 font-mono text-sm text-fg-muted">npm install @identizen/react</p>
-    </div>
-    <div class="relative">
-      <svg viewBox="0 0 520 300" role="img" aria-labelledby="flow-title flow-desc" class="w-full">
-        <title id="flow-title">How a login flows</title>
-        <desc id="flow-desc"
-          >A browser sends a challenge through the index to a phone; the phone signs it after a
-          biometric check and the browser is logged in.</desc
+      <div class="mt-6 flex justify-center">
+        <div
+          class="inline-flex items-center gap-2 rounded-full border border-border bg-surface-0/80 py-1.5 pr-1.5 pl-4 font-mono text-sm shadow-xs backdrop-blur"
+          data-code-window
         >
-        <defs>
-          <marker
-            id="arrow"
-            viewBox="0 0 10 10"
-            refX="9"
-            refY="5"
-            markerWidth="6"
-            markerHeight="6"
-            orient="auto-start-reverse"
+          <span class="text-fg-muted" aria-hidden="true">$</span>
+          <pre
+            class="m-0 bg-transparent p-0 font-mono text-sm text-fg">npm install @identizen/react</pre>
+          <button
+            type="button"
+            class="inline-flex h-7 items-center gap-1 rounded-full bg-surface-2 px-2.5 text-2xs text-fg-muted hover:bg-surface-3 hover:text-fg focus-visible:outline-2 focus-visible:outline-ring"
+            data-copy
+            aria-label="Copy install command"
           >
-            <path d="M0 0L10 5L0 10z" fill="var(--color-fg-subtle)"></path>
-          </marker>
-        </defs>
-        <g font-family="ui-monospace, Menlo, monospace" font-size="12" fill="var(--color-fg-muted)">
-          <rect
-            x="16"
-            y="90"
-            width="150"
-            height="120"
-            rx="12"
-            fill="var(--color-surface-1)"
-            stroke="var(--color-border)"></rect>
-          <text x="91" y="120" text-anchor="middle" fill="var(--color-fg)" font-weight="600"
-            >Browser</text
-          >
-          <text x="91" y="142" text-anchor="middle">site + SDK</text>
-          <rect x="52" y="160" width="78" height="30" rx="6" fill="var(--color-accent-soft)"></rect>
-          <text
-            x="91"
-            y="180"
-            text-anchor="middle"
-            fill="var(--color-accent-soft-fg)"
-            font-weight="600">code 47</text
-          >
+            <Icon name="copy" size={12} />
+            <span data-copy-label>copy</span>
+          </button>
+        </div>
+      </div>
 
-          <rect
-            x="200"
-            y="60"
-            width="120"
-            height="180"
-            rx="12"
-            fill="var(--color-surface-1)"
-            stroke="var(--color-border)"></rect>
-          <text x="260" y="90" text-anchor="middle" fill="var(--color-fg)" font-weight="600"
-            >Index</text
-          >
-          <text x="260" y="112" text-anchor="middle">public keys</text>
-          <text x="260" y="130" text-anchor="middle">push tokens</text>
-          <text x="260" y="148" text-anchor="middle">revocation</text>
-          <text x="260" y="176" text-anchor="middle" fill="var(--color-fg-subtle)">no secrets</text>
-
-          <rect
-            x="370"
-            y="40"
-            width="120"
-            height="220"
-            rx="20"
-            fill="var(--color-surface-1)"
-            stroke="var(--color-border)"></rect>
-          <text x="430" y="75" text-anchor="middle" fill="var(--color-fg)" font-weight="600"
-            >Phone</text
-          >
-          <text x="430" y="100" text-anchor="middle">Example App</text>
-          <rect x="395" y="115" width="70" height="36" rx="6" fill="var(--color-accent-soft)"
-          ></rect>
-          <text
-            x="430"
-            y="139"
-            text-anchor="middle"
-            fill="var(--color-accent-soft-fg)"
-            font-size="18"
-            font-weight="700">47</text
-          >
-          <circle cx="430" cy="200" r="22" fill="none" stroke="var(--color-accent)" stroke-width="3"
-          ></circle>
-          <text x="430" y="205" text-anchor="middle" fill="var(--color-accent)" font-size="11"
-            >Face ID</text
-          >
-
-          <path
-            d="M166 120 H196"
-            stroke="var(--color-fg-subtle)"
-            stroke-width="1.5"
-            marker-end="url(#arrow)"></path>
-          <text x="181" y="112" text-anchor="middle" font-size="10">challenge</text>
-          <path
-            d="M320 120 H366"
-            stroke="var(--color-fg-subtle)"
-            stroke-width="1.5"
-            marker-end="url(#arrow)"></path>
-          <text x="343" y="112" text-anchor="middle" font-size="10">push</text>
-          <path
-            d="M366 190 H324"
-            stroke="var(--color-fg-subtle)"
-            stroke-width="1.5"
-            marker-end="url(#arrow)"></path>
-          <text x="345" y="206" text-anchor="middle" font-size="10">signed</text>
-          <path
-            d="M196 190 H170"
-            stroke="var(--color-fg-subtle)"
-            stroke-width="1.5"
-            marker-end="url(#arrow)"></path>
-          <text x="183" y="206" text-anchor="middle" font-size="10">id_token</text>
-        </g>
-      </svg>
+      <div class="mx-auto mt-16 max-w-6xl sm:mt-20">
+        <HeroScene />
+      </div>
     </div>
   </section>
 
-  <section aria-labelledby="how" class="py-14">
-    <h2 id="how" class="text-2xl font-semibold tracking-tight">How it works</h2>
-    <ol class="mt-8 grid gap-6 sm:grid-cols-3">
+  <!-- Stats -->
+  <section class="border-y border-border bg-surface-1">
+    <dl class="container-site grid grid-cols-2 divide-border py-8 md:grid-cols-4 md:divide-x">
       {
-        steps.map((s, i) => (
-          <li class="rounded-xl border border-border bg-surface-1 p-6">
-            <span class="font-mono text-2xs text-fg-muted">0{i + 1}</span>
-            <h3 class="mt-2 text-lg font-semibold">{s.title}</h3>
-            <p class="mt-2 text-sm leading-relaxed text-fg-muted">{s.body}</p>
-          </li>
+        stats.map((s) => (
+          <div class="flex flex-col px-4 py-3 text-center md:py-1">
+            <dt class="order-2 mt-1 text-sm text-fg-muted">{s.label}</dt>
+            <dd class="headline tabular text-3xl sm:text-4xl">{s.value}</dd>
+          </div>
         ))
       }
-    </ol>
+    </dl>
   </section>
 
-  <section aria-labelledby="dx" class="grid gap-8 py-14 lg:grid-cols-[1fr_1.2fr] lg:items-center">
-    <div>
-      <h2 id="dx" class="text-2xl font-semibold tracking-tight">Five lines. Standard OIDC.</h2>
-      <p class="mt-4 text-fg-muted leading-relaxed">
-        Any OIDC library already works: Auth.js, Passport, Spring Security, ASP.NET Core Identity,
-        Django allauth. The React binding renders the button, the match code, and the QR. The CLI
-        registers your site and scaffolds the callback route, so a fresh Next.js app logs in before
-        your coffee cools.
-      </p>
-      <ul class="mt-6 space-y-2 text-sm text-fg-muted">
-        <li>· Typed SDK, documented <code class="font-mono">user</code> object</li>
-        <li>· Every error has a code, a cause, and a link to the fix</li>
-        <li>· Local dev mode with a fake phone — no device needed</li>
-      </ul>
-    </div>
-    <div class="grid gap-4">
-      <CodeBlock code={reactSnippet} lang="tsx" title="app/login.tsx" />
-      <CodeBlock code={cliSnippet} lang="sh" title="terminal" />
-    </div>
-  </section>
-
-  <section
-    aria-labelledby="pathb"
-    class="grid gap-8 py-14 lg:grid-cols-[1.2fr_1fr] lg:items-center"
-  >
-    <CodeBlock
-      code={verifySnippet}
-      lang="http"
-      title="Verification API"
-      class="order-2 lg:order-1"
-    />
-    <div class="order-1 lg:order-2">
-      <h2 id="pathb" class="text-2xl font-semibold tracking-tight">
-        Or keep your login and add the factor.
-      </h2>
-      <p class="mt-4 text-fg-muted leading-relaxed">
-        Replace SMS codes and authenticator apps with a push to the user's phone, approved with Face
-        ID. Use OIDC step-up (<code class="font-mono text-sm">acr_values=idz:mfa</code>) with the
-        library you already have, or the Duo-style Verification API from any backend. The <code
-          class="font-mono text-sm">reason</code
-        > is shown on the phone and signed into the assertion — transaction signing you can prove.
-      </p>
-    </div>
-  </section>
-
-  <section aria-labelledby="sov" class="rounded-2xl border border-border bg-surface-1 p-8 sm:p-12">
-    <h2 id="sov" class="text-2xl font-semibold tracking-tight">
-      The index is a phonebook, not a vault.
-    </h2>
-    <div class="mt-6 grid gap-6 sm:grid-cols-3 text-sm leading-relaxed text-fg-muted">
-      <p>
-        <strong class="text-fg">No shared secrets.</strong> Private keys are generated on-device and never
-        leave it. A breach of any Identizen-hosted system yields public keys.
-      </p>
-      <p>
-        <strong class="text-fg">No big tech in the chain.</strong> Not Google, not Microsoft, not Apple's
-        keychain. Push transport is the one unavoidable dependency, and it only carries a challenge id.
-      </p>
-      <p>
-        <strong class="text-fg">Fully self-hostable.</strong> One Cloudflare Worker or one container.
-        Federated indexes resolve handles over WebFinger. If we vanish, your users still log in.
-      </p>
-    </div>
-  </section>
-
-  <section aria-labelledby="matrix" class="py-14">
-    <h2 id="matrix" class="text-2xl font-semibold tracking-tight">Works everywhere, by layers.</h2>
-    <p class="mt-3 max-w-2xl text-fg-muted">
-      After the first login a browser is paired, so repeat logins push straight to the phone on
-      every browser. Bluetooth and QR only ever cover the first time.
-    </p>
-    <div class="mt-6 overflow-x-auto rounded-xl border border-border">
-      <table class="w-full text-sm">
-        <thead class="bg-surface-1 text-left text-fg-muted">
-          <tr>
-            <th scope="col" class="px-4 py-3 font-medium">Browser / OS</th>
-            <th scope="col" class="px-4 py-3 font-medium">Paired push</th>
-            <th scope="col" class="px-4 py-3 font-medium">Bluetooth</th>
-            <th scope="col" class="px-4 py-3 font-medium">QR</th>
-            <th scope="col" class="px-4 py-3 font-medium">Deep link</th>
-          </tr>
-        </thead>
-        <tbody>
+  <!-- How it works -->
+  <section class="section" aria-labelledby="how">
+    <div class="container-site">
+      <div class="max-w-2xl">
+        <p class="eyebrow">How it works</p>
+        <h2 id="how" class="headline mt-3 text-3xl sm:text-4xl">Three hops, one tap.</h2>
+        <p class="mt-4 text-lg text-fg-muted">
+          Challenge in, signed assertion out. Every step is specified, signed, and verifiable by
+          anyone running the open-source index.
+        </p>
+      </div>
+      <div class="relative mt-12">
+        <div
+          class="absolute top-6 right-[16%] left-[16%] hidden h-px bg-gradient-to-r from-accent/40 via-border-strong to-accent/40 md:block"
+          aria-hidden="true"
+        >
+        </div>
+        <ol class="relative grid gap-8 md:grid-cols-3 md:gap-6">
           {
-            matrix.map(([name, ...cells]) => (
-              <tr class="border-t border-border">
-                <th scope="row" class="px-4 py-3 text-left font-medium">
-                  {name}
-                </th>
-                {cells.map((c) => (
-                  <td class="px-4 py-3 font-mono text-fg-muted">{c}</td>
-                ))}
-              </tr>
+            steps.map((s, i) => (
+              <li class="relative">
+                <span class="tabular relative inline-flex h-12 w-12 items-center justify-center rounded-full border border-border bg-surface-0 font-mono text-sm font-semibold text-accent shadow-xs">
+                  0{i + 1}
+                </span>
+                <h3 class="mt-5 text-lg font-semibold tracking-tight">{s.title}</h3>
+                <p class="mt-2 text-sm leading-relaxed text-fg-muted">{s.text}</p>
+              </li>
             ))
           }
-        </tbody>
-      </table>
+        </ol>
+      </div>
     </div>
   </section>
 
-  <section
-    class="flex flex-wrap items-center justify-between gap-6 rounded-2xl bg-accent p-8 text-accent-fg sm:p-12"
-  >
-    <div>
-      <h2 class="text-2xl font-semibold tracking-tight">Ship it this afternoon.</h2>
-      <p class="mt-2">Quickstart, framework guides, and the protocol spec — all in the docs.</p>
+  <!-- DX -->
+  <section class="section border-t border-border bg-surface-1" aria-labelledby="dx">
+    <div class="container-site grid items-center gap-12 lg:grid-cols-[0.9fr_1.1fr]">
+      <div>
+        <p class="eyebrow">Developer experience</p>
+        <h2 id="dx" class="headline mt-3 text-3xl sm:text-4xl">
+          Built for the afternoon you have.
+        </h2>
+        <p class="mt-4 text-lg text-fg-muted">
+          A typed SDK, a React component with accessible states, and a CLI that registers your site
+          and scaffolds the callback route. If a quickstart step needs explaining, we treat it as a
+          bug.
+        </p>
+        <ul class="mt-6 space-y-3 text-sm">
+          {
+            [
+              'Works with any OIDC library; the SDK is optional.',
+              'Fake phone for local development and CI, no device needed.',
+              'Framework guides for Next.js, Remix, SvelteKit, and plain Node.',
+            ].map((t) => (
+              <li class="flex items-start gap-3">
+                <span class="mt-0.5 inline-flex h-5 w-5 items-center justify-center rounded-full bg-success-soft text-success-soft-fg">
+                  <Icon name="check" size={12} />
+                </span>
+                <span class="text-fg-muted">{t}</span>
+              </li>
+            ))
+          }
+        </ul>
+        <div class="mt-8 flex flex-wrap gap-3">
+          <a href="/developers" class="btn btn-secondary btn-sm">For developers</a>
+          <a href={`${SITE.docs}/quickstart`} class="link inline-flex items-center gap-1 text-sm">
+            Read the quickstart <Icon name="arrow-right" size={14} />
+          </a>
+        </div>
+      </div>
+      <div class="grid gap-4">
+        <Code code={reactSnippet} lang="tsx" title="app/login.tsx" />
+        <Code code={cliSnippet} lang="sh" title="terminal" />
+      </div>
     </div>
-    <div class="flex gap-3">
-      <a
-        href={`${SITE.docs}/quickstart`}
-        class="inline-flex h-11 items-center rounded-lg bg-surface-0 px-6 font-medium text-fg"
-        >Read the quickstart</a
-      >
-      <a
-        href={SITE.github}
-        rel="noopener"
-        class="inline-flex h-11 items-center rounded-lg border border-accent-fg/40 px-6 font-medium"
-        >GitHub</a
-      >
+  </section>
+
+  <!-- Features -->
+  <section class="section" aria-labelledby="why">
+    <div class="container-site">
+      <div class="max-w-2xl">
+        <p class="eyebrow">Why it holds up</p>
+        <h2 id="why" class="headline mt-3 text-3xl sm:text-4xl">
+          The index is a phonebook, not a vault.
+        </h2>
+        <p class="mt-4 text-lg text-fg-muted">
+          Everything we host must be safe to leak. That single constraint shapes the protocol.
+        </p>
+      </div>
+      <ul class="mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+        {
+          features.map((f) => (
+            <li class="card card-hover p-6">
+              <span class="icon-tile">
+                <Icon name={f.icon} />
+              </span>
+              <h3 class="mt-5 font-semibold tracking-tight">{f.title}</h3>
+              <p class="mt-2 text-sm leading-relaxed text-fg-muted">{f.text}</p>
+            </li>
+          ))
+        }
+      </ul>
+    </div>
+  </section>
+
+  <!-- Path B -->
+  <section class="section border-t border-border bg-surface-1" aria-labelledby="pathb">
+    <div class="container-site grid items-center gap-12 lg:grid-cols-[1.1fr_0.9fr]">
+      <Code
+        code={verifySnippet}
+        lang="ts"
+        title="server/approve-wire.ts"
+        class="order-2 lg:order-1"
+      />
+      <div class="order-1 lg:order-2">
+        <p class="eyebrow">Path B</p>
+        <h2 id="pathb" class="headline mt-3 text-3xl sm:text-4xl">
+          Keep your login. Add the factor.
+        </h2>
+        <p class="mt-4 text-lg text-fg-muted">
+          Bind a user's phone once, then ask it to approve anything: a login from a new country, a
+          wire transfer, a production deploy. The reason is shown on the phone and bound into the
+          signature, so an approval cannot be replayed for something else.
+        </p>
+        <a href={`${SITE.docs}/add-mfa`} class="link mt-6 inline-flex items-center gap-1 text-sm">
+          Add MFA to an existing app <Icon name="arrow-right" size={14} />
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Platforms -->
+  <section class="section" aria-labelledby="platforms">
+    <div class="container-site">
+      <div class="max-w-2xl">
+        <p class="eyebrow">Where it runs</p>
+        <h2 id="platforms" class="headline mt-3 text-3xl sm:text-4xl">
+          One protocol, every surface.
+        </h2>
+      </div>
+      <div class="card mt-10 overflow-x-auto">
+        <table class="w-full text-sm">
+          <thead class="bg-surface-1 text-left text-fg-muted">
+            <tr>
+              <th scope="col" class="px-5 py-3 font-medium">Surface</th>
+              <th scope="col" class="px-5 py-3 font-medium">Integration</th>
+              <th scope="col" class="px-5 py-3 font-medium">Ships with</th>
+            </tr>
+          </thead>
+          <tbody>
+            {
+              platforms.map(([a, b, c]) => (
+                <tr class="border-t border-border">
+                  <th scope="row" class="px-5 py-3 text-left font-medium">
+                    {a}
+                  </th>
+                  <td class="px-5 py-3 text-fg-muted">{b}</td>
+                  <td class="px-5 py-3 font-mono text-xs text-fg-muted">{c}</td>
+                </tr>
+              ))
+            }
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section class="container-site pb-24">
+    <div
+      class="card-gradient bg-glow relative overflow-hidden px-6 py-14 text-center sm:px-12 sm:py-20"
+    >
+      <div class="bg-dots absolute inset-0 -z-0" aria-hidden="true"></div>
+      <div class="relative">
+        <h2 class="headline text-3xl sm:text-4xl">Ship login this afternoon.</h2>
+        <p class="mx-auto mt-4 max-w-xl text-lg text-fg-muted">
+          Register a site, drop in the button, and approve your first login with the phone in your
+          pocket. Free for personal identities, forever.
+        </p>
+        <div class="mt-8 flex flex-wrap items-center justify-center gap-3">
+          <a href={`${SITE.docs}/quickstart`} class="btn btn-primary">
+            Read the quickstart
+            <Icon name="arrow-right" />
+          </a>
+          <a href={SITE.github} rel="noopener" class="btn btn-secondary">
+            <Icon name="git-branch" />
+            View the source
+          </a>
+        </div>
+      </div>
     </div>
   </section>
 </Base>

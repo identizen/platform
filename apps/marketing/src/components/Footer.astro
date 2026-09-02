@@ -1,27 +1,55 @@
 ---
 import { FOOTER, SITE } from '../lib/site';
 const year = new Date().getFullYear();
+const hosts = [
+  { host: 'index.identizen.com', what: 'index · OIDC' },
+  { host: 'app.identizen.com', what: 'dashboard' },
+  { host: 'docs.identizen.com', what: 'docs' },
+];
 ---
 
 <footer class="border-t border-border bg-surface-1">
-  <div class="container-prose grid gap-10 py-12 sm:grid-cols-[1.4fr_1fr_1fr_1fr]">
-    <div class="max-w-xs">
-      <p class="font-semibold">{SITE.name}</p>
-      <p class="mt-2 text-sm text-fg-muted">
+  <div class="container-site grid gap-10 py-14 md:grid-cols-[1.6fr_1fr_1fr_1fr]">
+    <div class="max-w-sm">
+      <a href="/" class="flex items-center gap-2 font-semibold tracking-tight">
+        <svg width="22" height="22" viewBox="0 0 32 32" aria-hidden="true" class="text-accent">
+          <rect x="2" y="2" width="28" height="28" rx="8" fill="currentColor"></rect>
+          <path d="M11 9h10M16 9v14M11 23h10" stroke="white" stroke-width="3" stroke-linecap="round"
+          ></path>
+        </svg>
+        {SITE.name}
+      </a>
+      <p class="mt-3 text-sm leading-relaxed text-fg-muted">
         Open-source, device-based identity. Standard OIDC on the outside, your phone on the inside.
       </p>
-      <p class="mt-4 text-xs text-fg-muted">Apache-2.0 · One monorepo · No password database</p>
+      <ul class="mt-5 space-y-1.5">
+        {
+          hosts.map((h) => (
+            <li class="flex items-center gap-2 py-1 font-mono text-xs">
+              <span class="h-1.5 w-1.5 rounded-full bg-success" aria-hidden="true" />
+              <a
+                href={`https://${h.host}`}
+                class="inline-flex min-h-6 items-center text-fg hover:text-accent"
+                rel="noopener"
+              >
+                {h.host}
+              </a>
+              <span class="text-fg-muted">{h.what}</span>
+            </li>
+          ))
+        }
+      </ul>
     </div>
     {
       FOOTER.map((group) => (
         <nav aria-label={group.heading}>
-          <p class="text-2xs font-medium uppercase tracking-wide text-fg-muted">{group.heading}</p>
-          <ul class="mt-3 space-y-2">
+          <p class="eyebrow">{group.heading}</p>
+          <ul class="mt-4 space-y-2.5">
             {group.items.map((item) => (
               <li>
                 <a
                   href={item.href}
-                  class="text-sm text-fg-muted hover:text-fg"
+                  class="text-sm text-fg-muted transition-colors hover:text-fg"
                   rel={item.external ? 'noopener' : undefined}
                 >
                   {item.label}
@@ -35,10 +63,10 @@ const year = new Date().getFullYear();
   </div>
   <div class="border-t border-border">
     <div
-      class="container-prose flex flex-wrap items-center justify-between gap-2 py-5 text-xs text-fg-muted"
+      class="container-site flex flex-wrap items-center justify-between gap-2 py-5 text-xs text-fg-muted"
     >
       <span>© {year} Identizen. Built in the open.</span>
-      <span class="font-mono">index.identizen.com · app.identizen.com · docs.identizen.com</span>
+      <span class="font-mono">Apache-2.0 · one monorepo · no password database</span>
     </div>
   </div>
 </footer>

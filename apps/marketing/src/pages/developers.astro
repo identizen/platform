@@ -1,16 +1,19 @@
 ---
 import Base from '../layouts/Base.astro';
-import CodeBlock from '../components/CodeBlock.astro';
+import PageHeader from '../components/PageHeader.astro';
+import Code from '../components/Code.astro';
+import Icon from '../components/Icon.astro';
+import type { IconName } from '../lib/icons';
 import { SITE } from '../lib/site';
 
 const pathA = `
-# Path A — primary login
+# Path A: primary login
 npx create-next-app@latest my-app && cd my-app
 npx identizen init          # register site, write .env.local, scaffold app/api/auth/*
 npm install && npm run dev  # open /api/auth/login`;
 
 const pathB = `
-// Path B — step-up after your own login
+// Path B: step-up after your own login
 import { createIdentizenServer } from '@identizen/sdk/server';
 const idz = createIdentizenServer({ indexUrl, clientId, clientSecret });
 
@@ -30,18 +33,48 @@ const claims = [
   ['idz_org', 'Org identifier for org identities (enterprise).'],
 ];
 
-const packages = [
+const packages: { icon: IconName; name: string; text: string }[] = [
   {
+    icon: 'code',
     name: '@identizen/sdk',
     text: 'Browser core (discovery, challenge session, pairing, QR) and server helpers (OIDC exchange, Verification API, webhooks, back-channel logout) for Node, Bun, and Workers.',
   },
   {
+    icon: 'layers',
     name: '@identizen/react',
     text: '<IdentizenProvider>, <IdentizenButton>, <IdentizenStepUp>, useIdentizen(). Accessible states for code, QR, waiting, approved, denied.',
   },
   {
+    icon: 'terminal',
     name: 'identizen',
     text: 'The CLI. init registers your site and scaffolds routes; dev runs a fake phone; register-site for CI.',
+  },
+];
+
+const links: { icon: IconName; label: string; href: string; text: string }[] = [
+  {
+    icon: 'zap',
+    label: 'Quickstart',
+    href: `${SITE.docs}/quickstart`,
+    text: 'First login in five minutes.',
+  },
+  {
+    icon: 'shield',
+    label: 'Add MFA',
+    href: `${SITE.docs}/add-mfa`,
+    text: 'Path B for an existing app.',
+  },
+  {
+    icon: 'book',
+    label: 'Framework guides',
+    href: `${SITE.docs}/frameworks/nextjs`,
+    text: 'Next.js, Remix, SvelteKit, Node.',
+  },
+  {
+    icon: 'radio',
+    label: 'Verification API',
+    href: `${SITE.docs}/verification-api`,
+    text: 'Transaction signing from any backend.',
   },
 ];
 ---
@@ -50,117 +83,127 @@ const packages = [
   title="Developers"
   description="Integrate Identizen in under five minutes with tools you already know: standard OIDC, a React button, a CLI that scaffolds the callback route."
 >
-  <header class="max-w-2xl">
-    <h1 class="text-4xl font-semibold tracking-tight">Built for the afternoon you have.</h1>
-    <p class="mt-4 text-lg text-fg-muted">
-      Standard OIDC on the outside. A typed SDK, a React component, and a CLI that does the boring
-      parts. If a quickstart step needs explaining, that is a bug we fix.
-    </p>
-  </header>
-
-  <section aria-labelledby="quick" class="mt-14 grid gap-6 lg:grid-cols-2">
-    <h2 id="quick" class="sr-only">Quickstarts</h2>
-    <div>
-      <h3 class="text-lg font-semibold">Primary login</h3>
-      <p class="mt-1 text-sm text-fg-muted">Replace password and social login.</p>
-      <CodeBlock code={pathA} lang="sh" title="Path A" class="mt-4" />
+  <PageHeader
+    eyebrow="Developers"
+    title="Built for the afternoon you have."
+    lede="Standard OIDC on the outside. A typed SDK, a React component, and a CLI that does the boring parts. If a quickstart step needs explaining, that is a bug we fix."
+  >
+    <div class="mt-8 flex flex-wrap gap-3">
+      <a href={`${SITE.docs}/quickstart`} class="btn btn-primary">
+        Quickstart <Icon name="arrow-right" />
+      </a>
+      <a href="/playground" class="btn btn-secondary">Open the playground</a>
     </div>
-    <div>
-      <h3 class="text-lg font-semibold">MFA and transaction approval</h3>
-      <p class="mt-1 text-sm text-fg-muted">Keep your login, add the factor.</p>
-      <CodeBlock code={pathB} lang="ts" title="Path B" class="mt-4" />
+  </PageHeader>
+
+  <section aria-labelledby="quick" class="container-site pb-20">
+    <h2 id="quick" class="sr-only">Quickstarts</h2>
+    <div class="grid gap-6 lg:grid-cols-2">
+      <div class="card p-6">
+        <p class="eyebrow">Path A</p>
+        <h3 class="mt-2 text-lg font-semibold tracking-tight">Primary login</h3>
+        <p class="mt-1 text-sm text-fg-muted">Replace password and social login.</p>
+        <Code code={pathA} lang="sh" title="terminal" class="mt-5" />
+      </div>
+      <div class="card p-6">
+        <p class="eyebrow">Path B</p>
+        <h3 class="mt-2 text-lg font-semibold tracking-tight">MFA and transaction approval</h3>
+        <p class="mt-1 text-sm text-fg-muted">Keep your login, add the factor.</p>
+        <Code code={pathB} lang="ts" title="server/step-up.ts" class="mt-5" />
+      </div>
     </div>
   </section>
 
-  <section aria-labelledby="pk" class="mt-16">
-    <h2 id="pk" class="text-2xl font-semibold tracking-tight">Packages</h2>
-    <ul class="mt-6 grid gap-4 sm:grid-cols-3">
+  <section aria-labelledby="pk" class="section border-t border-border bg-surface-1">
+    <div class="container-site">
+      <p class="eyebrow">Packages</p>
+      <h2 id="pk" class="headline mt-3 text-3xl">
+        Three packages, one <code class="font-mono">npm install</code>.
+      </h2>
+      <ul class="mt-10 grid gap-5 sm:grid-cols-3">
+        {
+          packages.map((p) => (
+            <li class="card card-hover p-6">
+              <span class="icon-tile">
+                <Icon name={p.icon} />
+              </span>
+              <p class="mt-5 font-mono text-sm font-semibold">{p.name}</p>
+              <p class="mt-2 text-sm leading-relaxed text-fg-muted">{p.text}</p>
+            </li>
+          ))
+        }
+      </ul>
+    </div>
+  </section>
+
+  <section aria-labelledby="claims" class="section">
+    <div class="container-site">
+      <p class="eyebrow">Claims</p>
+      <h2 id="claims" class="headline mt-3 text-3xl">What your site receives</h2>
+      <p class="mt-4 max-w-2xl text-fg-muted">
+        An <code class="font-mono text-sm">id_token</code> with these claims. No email: if you need one,
+        ask the user after login like any app.
+      </p>
+      <div class="card mt-8 overflow-x-auto">
+        <table class="w-full text-sm">
+          <thead class="bg-surface-1 text-left text-fg-muted">
+            <tr>
+              <th scope="col" class="px-5 py-3 font-medium">Claim</th>
+              <th scope="col" class="px-5 py-3 font-medium">Value</th>
+            </tr>
+          </thead>
+          <tbody>
+            {
+              claims.map(([k, v]) => (
+                <tr class="border-t border-border">
+                  <th scope="row" class="px-5 py-3 text-left font-mono font-medium">
+                    {k}
+                  </th>
+                  <td class="px-5 py-3 text-fg-muted">{v}</td>
+                </tr>
+              ))
+            }
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <section aria-labelledby="self" class="container-site pb-20">
+    <div class="card-gradient grid gap-8 p-8 sm:grid-cols-[1.2fr_1fr] sm:p-10">
+      <div>
+        <p class="eyebrow">Self-host</p>
+        <h2 id="self" class="headline mt-3 text-3xl">Self-host in one command</h2>
+        <p class="mt-4 leading-relaxed text-fg-muted">
+          The same code runs index.identizen.com. Deploy the index as a Cloudflare Worker with
+          Postgres behind Hyperdrive, or run the container. Configuration by environment variables
+          only. Federation over WebFinger means your index and ours resolve each other's handles.
+        </p>
+      </div>
+      <div class="flex flex-col justify-center gap-3">
+        <a href={`${SITE.docs}/self-hosting`} class="btn btn-primary">Self-hosting guide</a>
+        <a href={`${SITE.docs}/protocol`} class="btn btn-secondary">Read the protocol spec</a>
+      </div>
+    </div>
+  </section>
+
+  <section class="container-site pb-24">
+    <ul class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
       {
-        packages.map((p) => (
-          <li class="rounded-xl border border-border bg-surface-1 p-5">
-            <p class="font-mono text-sm font-semibold">{p.name}</p>
-            <p class="mt-2 text-sm leading-relaxed text-fg-muted">{p.text}</p>
+        links.map((l) => (
+          <li>
+            <a href={l.href} class="card card-hover flex h-full flex-col p-5">
+              <span class="icon-tile">
+                <Icon name={l.icon} />
+              </span>
+              <span class="mt-4 flex items-center gap-1 font-medium">
+                {l.label} <Icon name="arrow-right" size={14} />
+              </span>
+              <span class="mt-1 text-sm text-fg-muted">{l.text}</span>
+            </a>
           </li>
         ))
       }
     </ul>
-  </section>
-
-  <section aria-labelledby="claims" class="mt-16">
-    <h2 id="claims" class="text-2xl font-semibold tracking-tight">What your site receives</h2>
-    <p class="mt-3 max-w-2xl text-fg-muted">
-      An <code class="font-mono text-sm">id_token</code> with these claims. No email: if you need one,
-      ask the user after login like any app.
-    </p>
-    <div class="mt-6 overflow-x-auto rounded-xl border border-border">
-      <table class="w-full text-sm">
-        <thead class="bg-surface-1 text-left text-fg-muted">
-          <tr
-            ><th scope="col" class="px-4 py-3 font-medium">Claim</th><th
-              scope="col"
-              class="px-4 py-3 font-medium">Value</th
-            ></tr
-          >
-        </thead>
-        <tbody>
-          {
-            claims.map(([k, v]) => (
-              <tr class="border-t border-border">
-                <>
-                  <th scope="row" class="px-4 py-3 text-left font-mono font-medium">
-                    {k}
-                  </th>
-                  <td class="px-4 py-3 text-fg-muted">{v}</td>
-                </>
-              </tr>
-            ))
-          }
-        </tbody>
-      </table>
-    </div>
-  </section>
-
-  <section
-    aria-labelledby="self"
-    class="mt-16 grid gap-8 rounded-2xl border border-border bg-surface-1 p-8 sm:grid-cols-2"
-  >
-    <div>
-      <h2 id="self" class="text-2xl font-semibold tracking-tight">Self-host in one command</h2>
-      <p class="mt-3 text-fg-muted leading-relaxed">
-        The same code runs index.identizen.com. Deploy the index as a Cloudflare Worker with
-        Postgres behind Hyperdrive, or run the container. Configuration by environment variables
-        only. Federation over WebFinger means your index and ours resolve each other's handles.
-      </p>
-    </div>
-    <div class="flex flex-col justify-center gap-3">
-      <a
-        href={`${SITE.docs}/self-hosting`}
-        class="inline-flex h-11 items-center justify-center rounded-lg bg-accent px-6 font-medium text-accent-fg hover:bg-accent-hover"
-        >Self-hosting guide</a
-      >
-      <a
-        href={`${SITE.docs}/protocol/spec`}
-        class="inline-flex h-11 items-center justify-center rounded-lg border border-border-strong px-6 font-medium hover:bg-surface-0"
-        >Read the protocol spec</a
-      >
-    </div>
-  </section>
-
-  <section class="mt-16 grid gap-4 sm:grid-cols-4">
-    {
-      [
-        ['Quickstart', `${SITE.docs}/quickstart`],
-        ['Add MFA', `${SITE.docs}/add-mfa`],
-        ['Framework guides', `${SITE.docs}/frameworks/nextjs`],
-        ['Verification API', `${SITE.docs}/verification-api`],
-      ].map(([label, href]) => (
-        <a
-          href={href}
-          class="rounded-xl border border-border p-5 text-sm font-medium hover:bg-surface-1"
-        >
-          {label} <span aria-hidden="true">→</span>
-        </a>
-      ))
-    }
   </section>
 </Base>

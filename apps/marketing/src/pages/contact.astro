@@ -1,85 +1,77 @@
 ---
 import Base from '../layouts/Base.astro';
+import Icon from '../components/Icon.astro';
 
 const siteKey = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY as string | undefined;
+const field =
+  'h-11 rounded-md border border-input bg-surface-0 px-3 text-sm shadow-xs transition-colors focus:border-accent focus:outline-2 focus:outline-ring aria-[invalid=true]:border-danger';
 ---
 
 <Base
   title="Contact"
   description="Talk to the Identizen team about the enterprise tier, migrations, or anything else."
 >
-  <div class="grid gap-12 lg:grid-cols-[1fr_1.2fr]">
-    <header>
-      <h1 class="text-4xl font-semibold tracking-tight">Talk to us.</h1>
-      <p class="mt-4 text-lg text-fg-muted">
-        Enterprise pilots, migrations from an existing IdP, security questions, or a bug you want to
-        walk through.
-      </p>
-      <p class="mt-6 text-sm text-fg-muted">
-        Prefer email? <a
-          class="text-accent underline underline-offset-2"
-          href="mailto:hello@identizen.com">hello@identizen.com</a
-        >
-      </p>
-      <p class="mt-2 text-sm text-fg-muted">
-        Security reports: <a
-          class="text-accent underline underline-offset-2"
-          href="mailto:security@identizen.com">security@identizen.com</a
-        >
-      </p>
-    </header>
+  <section class="bg-glow">
+    <div class="container-site grid gap-12 py-16 sm:py-24 lg:grid-cols-[1fr_1.2fr]">
+      <header>
+        <p class="eyebrow">Contact</p>
+        <h1 class="headline mt-3 text-4xl sm:text-5xl">Talk to us.</h1>
+        <p class="mt-5 max-w-md text-lg leading-relaxed text-fg-muted">
+          Enterprise pilots, migrations from an existing IdP, security questions, or a bug you want
+          to walk through.
+        </p>
+        <ul class="mt-8 space-y-3 text-sm">
+          <li class="flex items-center gap-3">
+            <span class="icon-tile h-9 w-9"><Icon name="mail" /></span>
+            <span>
+              <span class="block text-fg-muted">Prefer email?</span>
+              <a class="link" href="mailto:hello@identizen.com">hello@identizen.com</a>
+            </span>
+          </li>
+          <li class="flex items-center gap-3">
+            <span class="icon-tile h-9 w-9"><Icon name="shield" /></span>
+            <span>
+              <span class="block text-fg-muted">Security reports</span>
+              <a class="link" href="mailto:security@identizen.com">security@identizen.com</a>
+            </span>
+          </li>
+        </ul>
+      </header>
 
-    <form
-      id="contact"
-      method="post"
-      action="/api/contact"
-      novalidate
-      class="grid gap-5 rounded-2xl border border-border bg-surface-1 p-6 sm:p-8"
-    >
-      <div class="grid gap-1.5">
-        <label for="name" class="text-sm font-medium">Name</label>
-        <input
-          id="name"
-          name="name"
-          autocomplete="name"
-          required
-          minlength="2"
-          class="h-10 rounded-md border border-input bg-surface-0 px-3 text-sm"
-        />
-        <p class="text-xs text-danger" data-error-for="name" aria-live="polite"></p>
-      </div>
-      <div class="grid gap-1.5">
-        <label for="email" class="text-sm font-medium">Email</label>
-        <input
-          id="email"
-          name="email"
-          type="email"
-          autocomplete="email"
-          required
-          class="h-10 rounded-md border border-input bg-surface-0 px-3 text-sm"
-        />
-        <p class="text-xs text-danger" data-error-for="email" aria-live="polite"></p>
-      </div>
-      <div class="grid gap-1.5">
-        <label for="message" class="text-sm font-medium">Message</label>
-        <textarea
-          id="message"
-          name="message"
-          rows="5"
-          required
-          minlength="10"
-          class="rounded-md border border-input bg-surface-0 px-3 py-2 text-sm"></textarea>
-        <p class="text-xs text-danger" data-error-for="message" aria-live="polite"></p>
-      </div>
-      {siteKey ? <div class="cf-turnstile" data-sitekey={siteKey} data-theme="auto" /> : null}
-      <button
-        type="submit"
-        class="inline-flex h-11 items-center justify-center rounded-lg bg-accent px-6 font-medium text-accent-fg hover:bg-accent-hover"
-        >Send</button
+      <form
+        id="contact"
+        method="post"
+        action="/api/contact"
+        novalidate
+        class="card grid gap-5 p-6 sm:p-8"
       >
-      <p id="contact-status" role="status" aria-live="polite" class="text-sm text-fg-muted"></p>
-    </form>
-  </div>
+        <div class="grid gap-1.5">
+          <label for="name" class="text-sm font-medium">Name</label>
+          <input id="name" name="name" autocomplete="name" required minlength="2" class={field} />
+          <p class="text-xs text-danger" data-error-for="name" aria-live="polite"></p>
+        </div>
+        <div class="grid gap-1.5">
+          <label for="email" class="text-sm font-medium">Email</label>
+          <input id="email" name="email" type="email" autocomplete="email" required class={field} />
+          <p class="text-xs text-danger" data-error-for="email" aria-live="polite"></p>
+        </div>
+        <div class="grid gap-1.5">
+          <label for="message" class="text-sm font-medium">Message</label>
+          <textarea
+            id="message"
+            name="message"
+            rows="6"
+            required
+            minlength="10"
+            class:list={[field, 'h-auto py-2']}></textarea>
+          <p class="text-xs text-danger" data-error-for="message" aria-live="polite"></p>
+        </div>
+        {siteKey ? <div class="cf-turnstile" data-sitekey={siteKey} data-theme="auto" /> : null}
+        <button type="submit" class="btn btn-primary justify-self-start">Send</button>
+        <p id="contact-status" role="status" aria-live="polite" class="text-sm text-fg-muted"></p>
+      </form>
+    </div>
+  </section>
   {
     siteKey ? (
       <script is:inline src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer />
@@ -117,7 +109,7 @@ const siteKey = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY as string | undefined;
         });
         const body = (await res.json()) as { ok: boolean; error?: string };
         status.textContent = body.ok
-          ? 'Thanks — we will reply by email.'
+          ? 'Thanks. We will reply by email.'
           : `Could not send: ${body.error ?? res.status}`;
         if (body.ok) form.reset();
       } catch {

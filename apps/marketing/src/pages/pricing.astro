@@ -1,11 +1,30 @@
 ---
 import Base from '../layouts/Base.astro';
+import PageHeader from '../components/PageHeader.astro';
+import Icon from '../components/Icon.astro';
 import { SITE } from '../lib/site';
+
+const oss = [
+  'Protocol, phone app, index/relay, OIDC provider, SDKs, CLI, dashboard',
+  'Path A login and Path B MFA, Verification API, back-channel logout',
+  'Personal identities on the public index at no cost',
+  'Self-host with one Worker deploy or one container; federate over WebFinger',
+  'Community support on GitHub',
+];
+
+const enterprise = [
+  'Hosted org index with SLA, or a supported self-host',
+  'Device fleet console: enroll, disable, re-enroll, attestation status',
+  'Instant revocation with back-channel logout to every connected site',
+  'SSO bridging into Okta, Entra ID, Google Workspace; SCIM in',
+  'Policy: require attestation, biometric class, geo/time rules',
+  'Exportable, SIEM-friendly audit; SOC 2 report, DPA, data residency',
+];
 
 const faq = [
   [
     'Is the open-source version crippled?',
-    'No. The enterprise tier is hosting, control, and support — not withheld features. Everything a customer pays for can be reproduced by a capable team running the OSS.',
+    'No. The enterprise tier is hosting, control, and support, not withheld features. Everything a customer pays for can be reproduced by a capable team running the OSS.',
   ],
   [
     'What counts as an active device?',
@@ -26,80 +45,102 @@ const faq = [
   title="Pricing"
   description="Identizen is open source and free to self-host. The enterprise tier adds a hosted org index, fleet console, SSO bridging, audit, and an SLA, priced per active device."
 >
-  <header class="max-w-2xl">
-    <h1 class="text-4xl font-semibold tracking-tight">Free to run. Paid to not have to.</h1>
-    <p class="mt-4 text-lg text-fg-muted">
-      Everything ships open. You pay for hosting, control, and a phone number that answers.
-    </p>
-  </header>
+  <PageHeader
+    eyebrow="Pricing"
+    title="Free to run. Paid to not have to."
+    lede="Everything ships open. You pay for hosting, control, and a phone number that answers."
+  />
 
-  <div class="mt-12 grid gap-6 lg:grid-cols-2">
-    <section aria-labelledby="oss" class="rounded-2xl border border-border bg-surface-1 p-8">
-      <h2 id="oss" class="text-xl font-semibold">Open source</h2>
-      <p class="mt-1 text-sm text-fg-muted">Apache-2.0, one monorepo</p>
-      <p class="mt-6 text-4xl font-semibold tracking-tight">$0</p>
-      <ul class="mt-6 space-y-2 text-sm text-fg-muted">
-        <li>· Protocol, phone app, index/relay, OIDC provider, SDKs, CLI, dashboard</li>
-        <li>· Path A login and Path B MFA, Verification API, back-channel logout</li>
-        <li>· Personal identities on the public index at no cost</li>
-        <li>· Self-host with one Worker deploy or one container; federate over WebFinger</li>
-        <li>· Community support on GitHub</li>
-      </ul>
-      <a
-        href={SITE.github}
-        rel="noopener"
-        class="mt-8 inline-flex h-11 items-center rounded-lg border border-border-strong px-6 font-medium hover:bg-surface-0"
-        >Get the code</a
-      >
-    </section>
+  <section class="container-site pb-16">
+    <div class="grid gap-6 lg:grid-cols-2">
+      <section aria-labelledby="oss" class="card flex flex-col p-8">
+        <p class="eyebrow">Open source</p>
+        <h2 id="oss" class="mt-2 text-2xl font-semibold tracking-tight">Community</h2>
+        <p class="mt-1 text-sm text-fg-muted">Apache-2.0, one monorepo</p>
+        <p class="headline tabular mt-6 text-5xl">$0</p>
+        <ul class="mt-8 space-y-3 text-sm">
+          {
+            oss.map((t) => (
+              <li class="flex items-start gap-3">
+                <span class="mt-0.5 inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-surface-2 text-fg-muted">
+                  <Icon name="check" size={12} />
+                </span>
+                <span class="text-fg-muted">{t}</span>
+              </li>
+            ))
+          }
+        </ul>
+        <a href={SITE.github} rel="noopener" class="btn btn-secondary mt-10 self-start">
+          <Icon name="git-branch" /> Get the code
+        </a>
+      </section>
+
+      <section aria-labelledby="ent" class="card-gradient bg-glow relative flex flex-col p-8">
+        <span
+          class="absolute top-6 right-6 rounded-full bg-accent px-2.5 py-1 font-mono text-2xs font-semibold uppercase tracking-wider text-accent-fg"
+          >Enterprise</span
+        >
+        <p class="eyebrow">Hosted org index</p>
+        <h2 id="ent" class="mt-2 text-2xl font-semibold tracking-tight">Enterprise</h2>
+        <p class="mt-1 text-sm text-fg-muted">The Duo playbook, without the SMS</p>
+        <p class="headline mt-6 text-3xl sm:text-4xl">
+          Per active device<span class="text-base font-normal text-fg-muted"> / month</span>
+        </p>
+        <p class="mt-2 text-sm text-fg-muted">
+          Free tier for your first devices, so hosted and self-hosted start in the same place.
+        </p>
+        <ul class="mt-8 space-y-3 text-sm">
+          {
+            enterprise.map((t) => (
+              <li class="flex items-start gap-3">
+                <span class="mt-0.5 inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-accent-soft text-accent-soft-fg">
+                  <Icon name="check" size={12} />
+                </span>
+                <span class="text-fg-muted">{t}</span>
+              </li>
+            ))
+          }
+        </ul>
+        <a href="/contact" class="btn btn-primary mt-10 self-start">
+          Talk to us <Icon name="arrow-right" />
+        </a>
+      </section>
+    </div>
 
     <section
-      aria-labelledby="ent"
-      class="rounded-2xl border border-accent bg-surface-0 p-8 shadow-md"
+      aria-labelledby="ps"
+      class="card mt-6 flex flex-wrap items-center justify-between gap-6 p-8"
     >
-      <h2 id="ent" class="text-xl font-semibold">Enterprise</h2>
-      <p class="mt-1 text-sm text-fg-muted">The Duo playbook, without the SMS</p>
-      <p class="mt-6 text-4xl font-semibold tracking-tight">
-        Per active device<span class="text-base font-normal text-fg-muted"> / month</span>
-      </p>
-      <p class="mt-1 text-sm text-fg-muted">
-        Free tier for your first devices, so hosted and self-hosted start in the same place.
-      </p>
-      <ul class="mt-6 space-y-2 text-sm text-fg-muted">
-        <li>· Hosted org index with SLA, or a supported self-host</li>
-        <li>· Device fleet console: enroll, disable, re-enroll, attestation status</li>
-        <li>· Instant revocation with back-channel logout to every connected site</li>
-        <li>· SSO bridging into Okta, Entra ID, Google Workspace; SCIM in</li>
-        <li>· Policy: require attestation, biometric class, geo/time rules</li>
-        <li>· Exportable, SIEM-friendly audit; SOC 2 report, DPA, data residency</li>
-      </ul>
-      <a
-        href="/contact"
-        class="mt-8 inline-flex h-11 items-center rounded-lg bg-accent px-6 font-medium text-accent-fg hover:bg-accent-hover"
-        >Talk to us</a
-      >
+      <div class="max-w-2xl">
+        <h2 id="ps" class="text-xl font-semibold tracking-tight">Professional services</h2>
+        <p class="mt-2 text-sm leading-relaxed text-fg-muted">
+          Implementation, migration from an existing IdP, custom SDK work, on-site rollout. Quoted
+          separately.
+        </p>
+      </div>
+      <a href="/contact" class="btn btn-secondary btn-sm">Request a quote</a>
     </section>
-  </div>
-
-  <section aria-labelledby="ps" class="mt-12 rounded-2xl border border-border p-8">
-    <h2 id="ps" class="text-xl font-semibold">Professional services</h2>
-    <p class="mt-2 max-w-2xl text-sm leading-relaxed text-fg-muted">
-      Implementation, migration from an existing IdP, custom SDK work, on-site rollout. Quoted
-      separately.
-    </p>
   </section>
 
-  <section aria-labelledby="faq" class="mt-16 max-w-3xl">
-    <h2 id="faq" class="text-2xl font-semibold tracking-tight">Questions</h2>
-    <dl class="mt-6 divide-y divide-border">
-      {
-        faq.map(([q, a]) => (
-          <div class="py-5">
-            <dt class="font-medium">{q}</dt>
-            <dd class="mt-2 text-sm leading-relaxed text-fg-muted">{a}</dd>
-          </div>
-        ))
-      }
-    </dl>
+  <section aria-labelledby="faq" class="section border-t border-border bg-surface-1">
+    <div class="container-site max-w-3xl">
+      <p class="eyebrow">FAQ</p>
+      <h2 id="faq" class="headline mt-3 text-3xl">Questions</h2>
+      <div class="mt-8 divide-y divide-border rounded-xl border border-border bg-surface-0">
+        {
+          faq.map(([q, a]) => (
+            <details class="group px-6 py-4 open:bg-surface-1/50">
+              <summary class="flex cursor-pointer list-none items-center justify-between gap-4 font-medium [&::-webkit-details-marker]:hidden">
+                {q}
+                <span class="text-fg-muted transition-transform group-open:rotate-45">
+                  <Icon name="x" size={16} class="rotate-45" />
+                </span>
+              </summary>
+              <p class="mt-3 text-sm leading-relaxed text-fg-muted">{a}</p>
+            </details>
+          ))
+        }
+      </div>
+    </div>
   </section>
 </Base>

@@ -1,0 +1,71 @@
+---
+import { Code as ShikiCode } from 'astro:components';
+import type { BundledLanguage } from 'shiki';
+import Icon from './Icon.astro';
+
+interface Props {
+  code: string;
+  lang?: BundledLanguage | 'text';
+  /** Filename tab, e.g. `app/login.tsx`. */
+  title?: string;
+  class?: string;
+  /** Hide the traffic-light chrome (compact inline usage). */
+  bare?: boolean;
+}
+const { code, lang = 'ts', title, class: className, bare = false } = Astro.props;
+const trimmed = code.replace(/^\n+/, '').replace(/\s+$/, '');
+---
+
+<figure class:list={['code-window text-left', className]} data-code-window>
+  {
+    !bare && (
+      <figcaption class="flex items-center justify-between gap-3 border-b border-border bg-surface-1/70 px-3 py-2">
+        <span class="flex items-center gap-3">
+          <span class="chrome-dots" aria-hidden="true">
+            <i />
+            <i />
+            <i />
+          </span>
+          {title && (
+            <span class="rounded-md bg-surface-2 px-2 py-0.5 font-mono text-2xs text-fg-muted">
+              {title}
+            </span>
+          )}
+        </span>
+        <button
+          type="button"
+          class="inline-flex items-center gap-1 rounded-md px-2 py-1 font-mono text-2xs text-fg-muted hover:bg-surface-2 hover:text-fg focus-visible:outline-2 focus-visible:outline-ring"
+          data-copy
+          aria-label="Copy code"
+        >
+          <Icon name="copy" size={13} />
+          <span data-copy-label>copy</span>
+        </button>
+      </figcaption>
+    )
+  }
+  <ShikiCode
+    code={trimmed}
+    lang={lang}
+    themes={{ light: 'github-light-high-contrast', dark: 'github-dark-high-contrast' }}
+    defaultColor={false}
+    tabindex="0"
+  />
+</figure>
+
+<script>
+  document.addEventListener('click', async (e) => {
+    const btn = (e.target as HTMLElement | null)?.closest<HTMLButtonElement>('[data-copy]');
+    if (!btn) return;
+    const pre = btn.closest('[data-code-window]')?.querySelector('pre');
+    const label = btn.querySelector('[data-copy-label]');
+    if (!pre || !label) return;
+    try {
+      await navigator.clipboard.writeText(pre.textContent ?? '');
+      label.textContent = 'copied';
+    } catch {
+      label.textContent = 'select to copy';
+    }
+    setTimeout(() => (label.textContent = 'copy'), 1600);
+  });
+</script>

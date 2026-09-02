@@ -1,0 +1,19 @@
+---
+/** Eyebrow + headline + lede at the top of an inner page, on the glow background. */
+interface Props {
+  eyebrow?: string;
+  title: string;
+  lede?: string;
+  class?: string;
+}
+const { eyebrow, title, lede, class: className } = Astro.props;
+---
+
+<section class:list={['bg-glow', className]}>
+  <div class="container-site pt-16 pb-12 sm:pt-24 sm:pb-16">
+    {eyebrow && <p class="eyebrow">{eyebrow}</p>}
+    <h1 class="headline mt-3 max-w-3xl text-4xl sm:text-5xl">{title}</h1>
+    {lede && <p class="mt-5 max-w-2xl text-lg leading-relaxed text-fg-muted">{lede}</p>}
+    <slot />
+  </div>
+</section>

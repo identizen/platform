@@ -1,6 +1,8 @@
 ---
 import { getCollection } from 'astro:content';
 import Base from '../../layouts/Base.astro';
+import PageHeader from '../../components/PageHeader.astro';
+import Icon from '../../components/Icon.astro';
 
 const posts = (await getCollection('blog', ({ data }) => !data.draft)).sort(
   (a, b) => b.data.date.getTime() - a.data.date.getTime(),
@@ -12,30 +14,32 @@ const fmt = new Intl.DateTimeFormat('en', { dateStyle: 'long' });
   title="Blog"
   description="Notes from building Identizen: protocol decisions, product thinking, and what we learned shipping device-based identity."
 >
-  <header class="max-w-2xl">
-    <h1 class="text-4xl font-semibold tracking-tight">Blog</h1>
-    <p class="mt-4 text-lg text-fg-muted">Protocol decisions, product thinking, release notes.</p>
-  </header>
-  <ul class="mt-10 divide-y divide-border">
-    {
-      posts.map((post) => (
-        <li class="py-6">
-          <a href={`/blog/${post.id}`} class="group block">
-            <time
-              datetime={post.data.date.toISOString()}
-              class="font-mono text-2xs uppercase tracking-wide text-fg-muted"
-            >
-              {fmt.format(post.data.date)}
-            </time>
-            <h2 class="mt-1 text-xl font-semibold group-hover:underline underline-offset-4">
-              {post.data.title}
-            </h2>
-            <p class="mt-2 max-w-2xl text-sm leading-relaxed text-fg-muted">
-              {post.data.description}
-            </p>
-          </a>
-        </li>
-      ))
-    }
-  </ul>
+  <PageHeader
+    eyebrow="Writing"
+    title="Blog"
+    lede="Protocol decisions, product thinking, release notes."
+  />
+  <section class="container-site pb-24">
+    <ul class="grid gap-5 md:grid-cols-2">
+      {
+        posts.map((post) => (
+          <li>
+            <a href={`/blog/${post.id}`} class="card card-hover group flex h-full flex-col p-7">
+              <time
+                datetime={post.data.date.toISOString()}
+                class="font-mono text-2xs uppercase tracking-wider text-fg-muted"
+              >
+                {fmt.format(post.data.date)}
+              </time>
+              <h2 class="headline mt-3 text-2xl">{post.data.title}</h2>
+              <p class="mt-3 text-sm leading-relaxed text-fg-muted">{post.data.description}</p>
+              <span class="mt-auto inline-flex items-center gap-1 pt-6 text-sm font-medium text-accent">
+                Read <Icon name="arrow-right" size={14} />
+              </span>
+            </a>
+          </li>
+        ))
+      }
+    </ul>
+  </section>
 </Base>

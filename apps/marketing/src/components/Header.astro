@@ -1,32 +1,42 @@
 ---
 import { NAV, SITE, isActive } from '../lib/site';
 import { ThemeToggleIsland } from '../islands/ThemeToggleIsland';
+import Icon from './Icon.astro';
 
 const current = Astro.url.pathname.replace(/\/$/, '') || '/';
 ---
 
-<header class="sticky top-0 z-40 border-b border-border bg-surface-0/85 backdrop-blur">
-  <div class="container-prose flex h-14 items-center justify-between gap-4">
+<header
+  class="sticky top-0 z-40 border-b border-border/70 bg-surface-0/75 backdrop-blur-md supports-[backdrop-filter]:bg-surface-0/60"
+>
+  <div class="container-site flex h-16 items-center justify-between gap-4">
     <a
       href="/"
-      class="flex items-center gap-2 font-semibold tracking-tight"
+      class="flex items-center gap-2.5 rounded-md font-semibold tracking-tight focus-visible:outline-2 focus-visible:outline-ring"
       aria-label="Identizen home"
     >
-      <svg width="22" height="22" viewBox="0 0 32 32" aria-hidden="true" class="text-accent">
-        <rect x="2" y="2" width="28" height="28" rx="8" fill="currentColor"></rect>
+      <svg width="26" height="26" viewBox="0 0 32 32" aria-hidden="true" class="text-accent">
+        <defs>
+          <linearGradient id="logo-g" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0" stop-color="currentColor"></stop>
+            <stop offset="1" stop-color="currentColor" stop-opacity="0.75"></stop>
+          </linearGradient>
+        </defs>
+        <rect x="2" y="2" width="28" height="28" rx="8" fill="url(#logo-g)"></rect>
         <path d="M11 9h10M16 9v14M11 23h10" stroke="white" stroke-width="3" stroke-linecap="round"
         ></path>
       </svg>
-      <span>{SITE.name}</span>
+      <span class="text-[1.05rem]">{SITE.name}</span>
     </a>
-    <nav aria-label="Primary" class="hidden items-center gap-1 sm:flex">
+
+    <nav aria-label="Primary" class="hidden items-center gap-0.5 md:flex">
       {
         NAV.map((item) => (
           <a
             href={item.href}
             class:list={[
-              'rounded-md px-3 py-1.5 text-sm transition-colors hover:bg-surface-2',
-              isActive(current, item.href) ? 'text-fg font-medium' : 'text-fg-muted',
+              'rounded-md px-3 py-1.5 text-sm transition-colors hover:bg-surface-2 hover:text-fg focus-visible:outline-2 focus-visible:outline-ring',
+              isActive(current, item.href) ? 'bg-surface-2 font-medium text-fg' : 'text-fg-muted',
             ]}
             aria-current={isActive(current, item.href) ? 'page' : undefined}
             rel={item.external ? 'noopener' : undefined}
@@ -36,30 +46,50 @@ const current = Astro.url.pathname.replace(/\/$/, '') || '/';
         ))
       }
     </nav>
-    <div class="flex items-center gap-1">
+
+    <div class="flex items-center gap-1.5">
       <a
         href={SITE.github}
         rel="noopener"
-        class="rounded-md px-3 py-1.5 text-sm text-fg-muted hover:bg-surface-2"
-        aria-label="Identizen on GitHub">GitHub</a
+        class="hidden h-9 w-9 items-center justify-center rounded-md text-fg-muted hover:bg-surface-2 hover:text-fg focus-visible:outline-2 focus-visible:outline-ring sm:inline-flex"
+        aria-label="Identizen on GitHub"
       >
+        <Icon name="git-branch" size={17} />
+      </a>
       <ThemeToggleIsland client:load />
-      <details class="relative sm:hidden">
+      <a href={`${SITE.docs}/quickstart`} class="btn btn-primary btn-sm ml-1 hidden md:inline-flex">
+        Get started
+      </a>
+      <details class="relative md:hidden">
         <summary
-          class="list-none rounded-md px-3 py-1.5 text-sm text-fg-muted hover:bg-surface-2 cursor-pointer"
+          class="btn btn-ghost btn-sm list-none cursor-pointer [&::-webkit-details-marker]:hidden"
           aria-label="Open menu">Menu</summary
         >
         <nav
           aria-label="Mobile"
-          class="absolute right-0 mt-2 flex w-48 flex-col rounded-lg border border-border bg-surface-0 p-1 shadow-md"
+          class="absolute right-0 mt-2 flex w-52 flex-col rounded-xl border border-border bg-surface-0 p-1.5 shadow-md"
         >
           {
             NAV.map((item) => (
-              <a href={item.href} class="rounded-md px-3 py-2 text-sm hover:bg-surface-2">
+              <a
+                href={item.href}
+                class="rounded-md px-3 py-2 text-sm hover:bg-surface-2"
+                rel={item.external ? 'noopener' : undefined}
+              >
                 {item.label}
               </a>
             ))
           }
+          <a
+            href={SITE.github}
+            rel="noopener"
+            class="rounded-md px-3 py-2 text-sm hover:bg-surface-2"
+          >
+            GitHub
+          </a>
+          <a href={`${SITE.docs}/quickstart`} class="btn btn-primary btn-sm mt-1.5">
+            Get started
+          </a>
         </nav>
       </details>
     </div>
