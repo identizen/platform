@@ -1,5 +1,8 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128" role="img" aria-label="Identizen">
-  <rect width="128" height="128" fill="#3b5bdb"/>
-  <rect x="55" y="38" width="18" height="52" rx="9" fill="#fff"/>
-  <circle cx="64" cy="28" r="6" fill="#fff"/>
-</svg>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100" height="100" role="img" aria-label="Identizen"><rect width="100" height="100" fill="#E0412E"/><g transform="translate(50 50) scale(0.6) translate(-50 -50)" style="color:#F2F1EC">
+  <path fill="none" stroke="#F2F1EC" stroke-width="8" stroke-linecap="round" stroke-linejoin="round" d="M22 15 H72"/>
+  <path fill="none" stroke="#F2F1EC" stroke-width="8" stroke-linecap="round" stroke-linejoin="round" d="M10 31 H90"/>
+  <path fill="none" stroke="#F2F1EC" stroke-width="8" stroke-linecap="round" stroke-linejoin="round" d="M25 47 H66"/>
+  <path fill="none" stroke="#F2F1EC" stroke-width="8" stroke-linecap="round" stroke-linejoin="round" d="M47 12 C46 32 44 54 9 74"/>
+  <rect x="35" y="61" width="42" height="31" rx="5.5" fill="none" stroke="#F2F1EC" stroke-width="8" stroke-linejoin="round"/>
+
+</g></svg>

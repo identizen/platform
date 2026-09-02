@@ -10,6 +10,7 @@ const PAGES = [
   ['/about', 'Identity that belongs to the person holding it.'],
   ['/contact', 'Talk to us.'],
   ['/playground', 'Try it before you write code.'],
+  ['/brand', 'The mark is 君. It means you.'],
   ['/legal/privacy', 'Privacy'],
   ['/legal/terms', 'Terms of service'],
 ] as const;
@@ -86,4 +87,18 @@ test('playground page explains configuration or renders the island', async ({ pa
   const unconfigured = page.getByTestId('playground-unconfigured');
   const island = page.getByRole('radio', { name: 'Continue with Identizen' });
   await expect(unconfigured.or(island)).toBeVisible();
+});
+
+test('brand assets download as SVG from the design system', async ({ page, request }) => {
+  await page.goto('/brand');
+  const links = page.getByTestId('brand-downloads').getByRole('link');
+  expect(await links.count()).toBeGreaterThanOrEqual(9);
+  const href = await links.first().getAttribute('href');
+  expect(href).toBe('/brand/identizen-lockup.svg');
+  const res = await request.get(href!);
+  expect(res.status()).toBe(200);
+  expect(res.headers()['content-type']).toContain('image/svg+xml');
+  expect(await res.text()).toContain('<svg');
+  const mark = await request.get('/brand/alt/kimi-mark-brush.svg');
+  expect(mark.status()).toBe(200);
 });

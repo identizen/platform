@@ -4,6 +4,7 @@ import BrowserMock from './BrowserMock.astro';
 import PhoneMock from './PhoneMock.astro';
 import FaceId from './FaceId.astro';
 import Icon from './Icon.astro';
+import Logo from './Logo.astro';
 
 const CODE = '47';
 const qr = qrSvg('https://app.identizen.com/l/ch_01J9Z2K4M7N8P1Q3R5S7T9V1WX', {
@@ -40,14 +41,7 @@ const qr = qrSvg('https://app.identizen.com/l/ch_01J9Z2K4M7N8P1Q3R5S7T9V1WX', {
           <div
             class="mt-5 flex h-10 items-center justify-center gap-2 rounded-md bg-fg text-sm font-medium text-fg-inverse shadow-sm"
           >
-            <svg width="16" height="16" viewBox="0 0 32 32" class="text-accent">
-              <rect x="2" y="2" width="28" height="28" rx="8" fill="currentColor"></rect>
-              <path
-                d="M11 9h10M16 9v14M11 23h10"
-                stroke="white"
-                stroke-width="3"
-                stroke-linecap="round"></path>
-            </svg>
+            <Logo variant="mark" height={16} />
             Continue with Identizen
           </div>
           <div class="mt-4 flex items-center gap-3 text-2xs text-fg-subtle">

@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100" height="100" role="img" aria-label="Identizen">
+  <path fill="none" stroke="currentColor" stroke-width="8" stroke-linecap="round" stroke-linejoin="round" d="M22 15 H72"/>
+  <path fill="none" stroke="currentColor" stroke-width="8" stroke-linecap="round" stroke-linejoin="round" d="M10 31 H90"/>
+  <path fill="none" stroke="currentColor" stroke-width="8" stroke-linecap="round" stroke-linejoin="round" d="M25 47 H66"/>
+  <path fill="none" stroke="currentColor" stroke-width="8" stroke-linecap="round" stroke-linejoin="round" d="M47 12 C46 32 44 54 9 74"/>
+  <rect x="35" y="61" width="42" height="31" rx="5.5" fill="none" stroke="#E0412E" stroke-width="8" stroke-linejoin="round"/>
+</svg>

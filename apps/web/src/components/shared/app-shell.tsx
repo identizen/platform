@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
 import { Link } from '@tanstack/react-router';
-import { ThemeToggle, cn } from '@identizen/ui';
+import { IdentizenLogo, ThemeToggle, cn } from '@identizen/ui';
 import { Activity, LaptopMinimal, Settings, Smartphone, Shield } from 'lucide-react';
 
 export interface NavItem {
@@ -35,13 +35,8 @@ export function AppShell({ signedIn, handle, children }: AppShellProps) {
       </a>
       <header className="border-b bg-surface-0/80 backdrop-blur">
         <div className="mx-auto flex h-14 max-w-5xl items-center justify-between gap-4 px-4">
-          <Link to="/" className="flex items-center gap-2 font-semibold tracking-tight">
-            <span
-              aria-hidden="true"
-              className="inline-block size-6 rounded-md bg-accent"
-              style={{ maskImage: 'url(/icon.svg)', WebkitMaskImage: 'url(/icon.svg)' }}
-            />
-            Identizen
+          <Link to="/" className="inline-flex items-center text-fg" aria-label="Identizen home">
+            <IdentizenLogo height={22} title={null} />
           </Link>
           {signedIn ? (
             <nav aria-label="Primary" className="hidden md:block">

@@ -27,7 +27,8 @@ export default defineConfig({
     starlight({
       title: 'Identizen',
       description: 'Login with your phone. Standard OIDC on the outside.',
-      logo: { src: './src/assets/logo.svg', replacesTitle: false },
+      logo: { light: './src/assets/logo-light.svg', dark: './src/assets/logo-dark.svg', replacesTitle: true, alt: 'Identizen' },
+      favicon: '/favicon.svg',
       customCss: ['./src/styles/theme.css'],
       components: { Hero: './src/components/Hero.astro' },
       head: [{ tag: 'script', content: themeSync }],

@@ -15,3 +15,5 @@ export { Badge, badgeVariants, type BadgeProps } from './components/ui/badge';
 export { Separator } from './components/ui/separator';
 export { Switch } from './components/ui/switch';
 export { ThemeToggle, type ThemeToggleProps } from './components/theme-toggle';
+export { KimiMark, KimiSeal, IdentizenLogo, BRAND_RED } from './components/brand/logo';
+export type { KimiMarkProps, KimiSealProps, IdentizenLogoProps, SealTone } from './components/brand/logo';

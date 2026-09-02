@@ -1,0 +1,17 @@
+---
+/** The Identizen logo, inlined from the design system's brand SVGs. Takes currentColor. */
+import { BRAND_ASSETS, inlineSvg } from '../lib/brand';
+
+interface Props {
+  /** `lockup` is mark + wordmark; `mark` is 君 alone. */
+  variant?: 'lockup' | 'mark';
+  height?: number;
+  class?: string;
+}
+const { variant = 'lockup', height = 24, class: className } = Astro.props;
+const file = variant === 'mark' ? 'kimi-mark.svg' : 'identizen-lockup.svg';
+const asset = BRAND_ASSETS.find((a) => a.file === file);
+if (!asset) throw new Error(`brand asset ${file} missing`);
+---
+
+<Fragment set:html={inlineSvg(asset.svg, height, className)} />

@@ -47,6 +47,7 @@ export const FOOTER: readonly { heading: string; items: readonly NavItem[] }[] =
     heading: 'Company',
     items: [
       { href: '/about', label: 'About' },
+      { href: '/brand', label: 'Brand' },
       { href: '/contact', label: 'Contact' },
       { href: '/legal/privacy', label: 'Privacy' },
       { href: '/legal/terms', label: 'Terms' },

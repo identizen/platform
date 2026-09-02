@@ -111,8 +111,9 @@
   font-weight: 600;
 }
 @utility display {
+  font-family: var(--font-display);
   font-weight: 600;
-  letter-spacing: -0.03em;
+  letter-spacing: -0.025em;
   line-height: 1.02;
 }
 @utility headline {

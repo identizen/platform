@@ -12,10 +12,12 @@
     ".": "./src/index.ts",
     "./tokens.css": "./src/tokens.css",
     "./theme": "./src/theme.ts",
-    "./components/*": "./src/components/*"
+    "./components/*": "./src/components/*",
+    "./brand/*": "./brand/*"
   },
   "files": [
-    "src"
+    "src",
+    "brand"
   ],
   "scripts": {
     "dev": "vite --config vite.config.ts",
@@ -30,6 +32,7 @@
     "react-dom": "^19.0.0"
   },
   "dependencies": {
+    "@fontsource-variable/bricolage-grotesque": "^5.2.6",
     "@fontsource-variable/inter": "^5.2.6",
     "@radix-ui/react-dialog": "^1.1.15",
     "@radix-ui/react-label": "^2.1.7",
