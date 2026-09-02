@@ -1,0 +1,12 @@
+@import '@identizen/ui/tokens.css';
+
+/* Scan this app's own sources for utilities. */
+@source './';
+
+@layer base {
+  #root {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+}
