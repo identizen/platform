@@ -8,11 +8,11 @@
     "enabled": true,
   },
   "vars": {
-    "INDEX_URL": "https://identizen-index.noundry.workers.dev",
-    "APP_URL": "https://identizen-app.noundry.workers.dev",
+    "INDEX_URL": "https://index.identizen.com",
+    "APP_URL": "https://app.identizen.com",
     "PUSH_PROVIDER": "web",
     "OPEN_SITE_REGISTRATION": "true",
-    "DASHBOARD_CLIENT_IDS": "idz_live_01M1HB3MD5N3QGNN3S4S7AFK18",
+    "DASHBOARD_CLIENT_IDS": "idz_live_01M1HQ9AR0Q1R196G54T9YZ5MY,idz_live_01M1HB3MD5N3QGNN3S4S7AFK18",
   },
   "hyperdrive": [
     {
@@ -97,4 +97,10 @@
       },
     },
   },
+  "routes": [
+    {
+      "pattern": "index.identizen.com",
+      "custom_domain": true,
+    },
+  ],
 }

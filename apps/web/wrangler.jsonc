@@ -6,5 +6,13 @@
     "directory": "./dist",
     "not_found_handling": "single-page-application",
   },
-  "observability": { "enabled": true },
+  "observability": {
+    "enabled": true,
+  },
+  "routes": [
+    {
+      "pattern": "app.identizen.com",
+      "custom_domain": true,
+    },
+  ],
 }
