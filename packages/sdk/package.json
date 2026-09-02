@@ -1,6 +1,6 @@
 {
   "name": "@identizen/sdk",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Identizen SDK: browser login (paired browser, Web Bluetooth, QR, deep link) and server helpers (OIDC, Verification API, webhooks). Standard OIDC on the outside.",
   "license": "Apache-2.0",
   "type": "module",

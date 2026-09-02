@@ -165,7 +165,7 @@ describe('Identizen.startLogin discovery order', () => {
     expect((await session.done).status).toBe('cancelled');
   });
 
-  it('a revoked pairing (401) is forgotten and discovery falls through to BLE, then QR', async () => {
+  it('a revoked pairing (401) is forgotten and discovery falls through to QR with Bluetooth offered, never auto-run', async () => {
     const index = fakeIndex({ paired: 401, ble: 404 });
     const storage = memoryStorage({ key: await browserKey(), pairing: PAIRING });
     const characteristic = {
@@ -182,12 +182,14 @@ describe('Identizen.startLogin discovery order', () => {
     const session = client.startLogin();
     await waitFor(() => session.state.status === 'waiting');
     expect(storage.pairing).toBeNull();
+    expect(bluetooth.requestDevice).not.toHaveBeenCalled();
+    expect(index.calls.map((c) => c.path)).toEqual(['/challenge', '/discover/paired']);
+    expect(session.state.method).toBe('qr');
+    expect(session.state.bluetoothAvailable).toBe(true);
+    // Explicit action: the phone is found but the index does not know its id -> stays on QR.
+    expect(await session.useBluetooth()).toBe(false);
     expect(bluetooth.requestDevice).toHaveBeenCalledOnce();
-    expect(index.calls.map((c) => c.path)).toEqual([
-      '/challenge',
-      '/discover/paired',
-      '/discover/ble',
-    ]);
+    expect(index.calls.at(-1)?.path).toBe('/discover/ble');
     expect(session.state.method).toBe('qr');
     session.cancel();
   });
@@ -207,11 +209,17 @@ describe('Identizen.startLogin discovery order', () => {
     const client = makeClient(index, { bluetooth });
     const session = client.startLogin();
     await waitFor(() => session.state.status === 'waiting');
+    // QR first; Bluetooth only on request (it needs a user gesture and opens a chooser).
+    expect(session.state.method).toBe('qr');
+    expect(session.state.bluetoothAvailable).toBe(true);
+    expect(bluetooth.requestDevice).not.toHaveBeenCalled();
+    expect(await session.useBluetooth()).toBe(true);
     expect(session.state.method).toBe('bluetooth');
     const ble = index.calls.find((c) => c.path === '/discover/ble')?.body as Record<string, string>;
     expect(ble.rotating_id).toMatch(/^[A-Za-z0-9_-]{22}$/);
     expect(gatt.disconnect).toHaveBeenCalled();
     session.cancel();
+    expect(await session.useBluetooth()).toBe(false);
   });
 
   it('user cancels the Bluetooth chooser -> QR', async () => {
@@ -222,6 +230,8 @@ describe('Identizen.startLogin discovery order', () => {
     const client = makeClient(index, { bluetooth });
     const session = client.startLogin();
     await waitFor(() => session.state.status === 'waiting');
+    expect(session.state.method).toBe('qr');
+    expect(await session.useBluetooth()).toBe(false);
     expect(session.state.method).toBe('qr');
     session.cancel();
   });

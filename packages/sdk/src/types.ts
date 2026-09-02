@@ -86,6 +86,8 @@ export interface LoginState {
   method: DiscoveryMethod | null;
   /** True on mobile: the caller should navigate to `deepLink`. */
   useDeepLink: boolean;
+  /** Web Bluetooth is available for this login; call `session.useBluetooth()` from a user gesture. */
+  bluetoothAvailable: boolean;
   /** Set when approved and an OIDC redirect_uri was given. */
   redirect: string | null;
   /** Set on `error`. */
@@ -98,5 +100,11 @@ export interface LoginSession {
   subscribe(cb: (state: LoginState) => void): () => void;
   /** Resolves with the terminal state (approved / denied / expired / error / cancelled). */
   readonly done: Promise<LoginState>;
+  /**
+   * Find the phone over Web Bluetooth (Chromium). Must be called from a user gesture while the
+   * QR is showing; opens the browser's device chooser. Resolves true when the index pushed the
+   * challenge to the chosen phone, false when unavailable, cancelled, or not found.
+   */
+  useBluetooth(): Promise<boolean>;
   cancel(): void;
 }

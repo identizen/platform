@@ -86,6 +86,7 @@ export class Identizen {
       expiresAt: 0,
       method: null,
       useDeepLink: MOBILE_UA.test(this.t.userAgent),
+      bluetoothAvailable: false,
       redirect: null,
       error: null,
     };
@@ -129,6 +130,15 @@ export class Identizen {
         return () => listeners.delete(cb);
       },
       done,
+      useBluetooth: async () => {
+        if (state.status !== 'waiting' || state.method !== 'qr' || !this.t.bluetooth) return false;
+        const ok = await this.tryBluetooth(state.challengeId);
+        if (ok && !isTerminal(state.status)) {
+          state.method = 'bluetooth';
+          emit();
+        }
+        return ok;
+      },
       cancel: () => {
         cancelled = true;
         finish('cancelled');
@@ -226,14 +236,11 @@ export class Identizen {
           state.method = 'paired';
         } else if (state.useDeepLink) {
           state.method = 'deeplink';
-        } else if (
-          discovery.bluetooth &&
-          this.t.bluetooth &&
-          (await this.tryBluetooth(started.challenge_id))
-        ) {
-          state.method = 'bluetooth';
         } else {
+          // Show the QR right away. Web Bluetooth needs a fresh user gesture and opens a chooser,
+          // so it is an explicit action (`session.useBluetooth()`), never an automatic step.
           state.method = 'qr';
+          state.bluetoothAvailable = discovery.bluetooth && this.t.bluetooth !== null;
         }
       }
       if (isCancelled()) return;

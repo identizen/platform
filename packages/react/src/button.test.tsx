@@ -15,6 +15,7 @@ function scriptedSession(initial: Partial<LoginState> = {}) {
     expiresAt: 0,
     method: null,
     useDeepLink: false,
+    bluetoothAvailable: false,
     redirect: null,
     error: null,
     ...initial,
@@ -32,6 +33,7 @@ function scriptedSession(initial: Partial<LoginState> = {}) {
       return () => listeners.delete(cb);
     },
     done,
+    useBluetooth: vi.fn(async () => true),
     cancel: vi.fn(() => session.set({ status: 'cancelled' })),
     set(patch) {
       state = { ...state, ...patch };

@@ -1,6 +1,6 @@
 {
   "name": "@identizen/react",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "React bindings for Identizen: <IdentizenProvider>, <IdentizenButton>, <IdentizenStepUp>, useIdentizen(). One tap, Face ID, in.",
   "license": "Apache-2.0",
   "type": "module",
@@ -45,7 +45,7 @@
     "react-dom": "^18.0.0 || ^19.0.0"
   },
   "dependencies": {
-    "@identizen/sdk": "^0.1.0"
+    "@identizen/sdk": "^0.1.1"
   },
   "devDependencies": {
     "@testing-library/jest-dom": "^6.8.0",

@@ -31,7 +31,7 @@ export function IdentizenButton({
   className,
   panelClassName,
 }: IdentizenButtonProps): React.JSX.Element {
-  const { state, busy, startLogin, cancel, reset } = useIdentizen();
+  const { state, busy, startLogin, cancel, reset, findPhoneOverBluetooth } = useIdentizen();
 
   const start = async () => {
     const final = await startLogin(login);
@@ -69,6 +69,11 @@ export function IdentizenButton({
       ) : null}
       {busy && state.method === 'qr' ? (
         <div data-idz="qr" dangerouslySetInnerHTML={{ __html: state.qrSvg }} />
+      ) : null}
+      {busy && state.method === 'qr' && state.bluetoothAvailable ? (
+        <button type="button" onClick={() => void findPhoneOverBluetooth()} data-idz="bluetooth">
+          Find my phone over Bluetooth
+        </button>
       ) : null}
       {busy && state.method === 'deeplink' ? (
         <a href={state.deepLink} data-idz="deeplink">

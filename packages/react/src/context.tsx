@@ -45,6 +45,8 @@ export interface UseIdentizen {
     sub: string,
     options?: Omit<StartLoginOptions, 'acr' | 'loginHint'>,
   ) => Promise<LoginState>;
+  /** Find the phone over Web Bluetooth; call from a click while the QR is showing. */
+  findPhoneOverBluetooth: () => Promise<boolean>;
   cancel: () => void;
   reset: () => void;
 }
@@ -86,6 +88,10 @@ export function useIdentizen(): UseIdentizen {
     stepUp: React.useCallback(
       (sub, options) => track(client.stepUp(sub, options)),
       [client, track],
+    ),
+    findPhoneOverBluetooth: React.useCallback(
+      () => sessionRef.current?.useBluetooth() ?? Promise.resolve(false),
+      [],
     ),
     cancel: React.useCallback(() => sessionRef.current?.cancel(), []),
     reset: React.useCallback(() => {
