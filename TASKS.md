@@ -21,8 +21,8 @@ Gate command: `npm run gate` = lint + typecheck + unit + e2e (e2e is a no-op unt
 
 ## M2 — Database `[cc]` — tag `v0.2.0`
 
-- [ ] **M2.1** `[cc]` `db/schema.ts` in Drizzle matching plan §3 (incl. `pairings`); generated migration committed. — Gate: migrate up on fresh Postgres in CI; SQL diffed against §3; migrate idempotent.
-- [ ] **M2.2** `[cc]` Typed query module: identities, devices, sites, bindings, pairings, verifications, sessions, audit. — Gate: integration tests for every function incl. revocation transitions and TOFU binding conflict.
+- [x] **M2.1** `[cc]` `db/schema.ts` in Drizzle matching plan §3 (incl. `pairings`); generated migration committed. — Gate: migrate up on fresh Postgres in CI; SQL diffed against §3; migrate idempotent.
+- [x] **M2.2** `[cc]` Typed query module: identities, devices, sites, bindings, pairings, verifications, sessions, audit. — Gate: integration tests for every function incl. revocation transitions and TOFU binding conflict.
 
 ## M3 — Index API `[cc]` — tag `v0.3.0`
 
