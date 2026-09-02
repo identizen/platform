@@ -9,10 +9,10 @@
   },
   "vars": {
     "INDEX_URL": "https://identizen-index.noundry.workers.dev",
-    "APP_URL": "https://identizen-index.noundry.workers.dev",
+    "APP_URL": "https://identizen-app.noundry.workers.dev",
     "PUSH_PROVIDER": "web",
     "OPEN_SITE_REGISTRATION": "true",
-    "DASHBOARD_CLIENT_IDS": "",
+    "DASHBOARD_CLIENT_IDS": "idz_live_01M1HB3MD5N3QGNN3S4S7AFK18",
   },
   "hyperdrive": [
     {

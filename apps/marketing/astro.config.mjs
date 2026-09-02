@@ -11,6 +11,7 @@ export default defineConfig({
   adapter: cloudflare({ imageService: 'compile' }),
   integrations: [react(), sitemap()],
   vite: {
+    resolve: { alias: { 'react-dom/server': 'react-dom/server.edge' } },
     plugins: [tailwindcss()],
     ssr: { noExternal: ['@identizen/ui'] },
   },
