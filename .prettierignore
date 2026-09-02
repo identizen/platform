@@ -11,3 +11,4 @@ package-lock.json
 db/migrations/**/*.sql
 apps/mobile/ios
 apps/mobile/android
+spec/vectors/*.json
