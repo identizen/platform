@@ -26,15 +26,15 @@ Gate command: `npm run gate` = lint + typecheck + unit + e2e (e2e is a no-op unt
 
 ## M3 — Index API `[cc]` — tag `v0.3.0`
 
-- [ ] **M3.1** `[cc]` Hono app skeleton on Workers; Hyperdrive binding; `wrangler dev` + local Postgres. — Gate: health endpoint.
-- [ ] **M3.2** `[cc]` Device registration + `Idz-Signature` auth middleware. — Gate: valid sig passes; replayed timestamp fails; wrong key fails.
-- [ ] **M3.3** `[cc]` Identity registration, handle uniqueness, WebFinger. — Gate: register, resolve, duplicate handle 409.
-- [ ] **M3.4** `[cc]` `ChallengeSession` Durable Object: create, serve signed challenge, accept assertion, notify WebSocket, expire at 60s. — Gate: DO unit tests with Miniflare; expiry uses fake timers.
-- [ ] **M3.5** `[cc]` `/challenge/:id/assert` full verification (device sig → revocation → site sig → TOFU). — Gate: every failure branch returns the right 4xx and writes an audit event.
-- [ ] **M3.6** `[cc]` Push abstraction: `PushSender` with `apns`, `fcm`, `web`, `noop`. Real APNs/FCM wiring `[cc+human]`. — Gate: tests use `noop`.
-- [ ] **M3.7** `[cc]` `/discover/ble`. — Gate: resolves current and ±1 window; unknown → 404; disabled device → 404.
-- [ ] **M3.8** `[cc]` Pairings: issuance on approval, `/discover/paired`, revoke endpoints, cascade on device revoke. — Gate: paired login pushes without discovery; revoked pairing → 401; revoked device → pairings inactive.
-- [ ] **M3 gate** all integration tests against Miniflare + Postgres.
+- [x] **M3.1** `[cc]` Hono app skeleton on Workers; Hyperdrive binding; `wrangler dev` + local Postgres. — Gate: health endpoint.
+- [x] **M3.2** `[cc]` Device registration + `Idz-Signature` auth middleware. — Gate: valid sig passes; replayed timestamp fails; wrong key fails.
+- [x] **M3.3** `[cc]` Identity registration, handle uniqueness, WebFinger. — Gate: register, resolve, duplicate handle 409.
+- [x] **M3.4** `[cc]` `ChallengeSession` Durable Object: create, serve signed challenge, accept assertion, notify WebSocket, expire at 60s. — Gate: DO unit tests with Miniflare; expiry uses fake timers.
+- [x] **M3.5** `[cc]` `/challenge/:id/assert` full verification (device sig → revocation → site sig → TOFU). — Gate: every failure branch returns the right 4xx and writes an audit event.
+- [x] **M3.6** `[cc]` Push abstraction: `PushSender` with `apns`, `fcm`, `web`, `noop`. Real APNs/FCM wiring `[cc+human]`. — Gate: tests use `noop`.
+- [x] **M3.7** `[cc]` `/discover/ble`. — Gate: resolves current and ±1 window; unknown → 404; disabled device → 404.
+- [x] **M3.8** `[cc]` Pairings: issuance on approval, `/discover/paired`, revoke endpoints, cascade on device revoke. — Gate: paired login pushes without discovery; revoked pairing → 401; revoked device → pairings inactive.
+- [x] **M3 gate** all integration tests against Miniflare + Postgres.
 
 ## M4 — OIDC provider `[cc]` — tag `v0.4.0`
 
