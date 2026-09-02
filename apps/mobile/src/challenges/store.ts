@@ -10,7 +10,7 @@ import { KEYS } from '../identity/store';
 export interface PendingChallenge {
   challenge: Challenge;
   receivedAt: number;
-  via: 'push' | 'scan' | 'link' | 'poll';
+  via: 'push' | 'scan' | 'link' | 'poll' | 'bluetooth';
 }
 
 export interface ActivityEntry {

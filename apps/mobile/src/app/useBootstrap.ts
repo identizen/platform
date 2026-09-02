@@ -10,8 +10,10 @@ import {
 } from '@expo-google-fonts/inter';
 import { useRouter } from 'expo-router';
 import { useEffect, useRef, useState } from 'react';
-import { challengeStore } from '../challenges/store';
-import { handleIncomingChallenge } from '../push';
+import { recentlyReadOverBluetooth, stopBleAdvertising } from '../ble/advertiser';
+import { setBleReadHandler, syncBleAdvertising } from '../ble/controller';
+import { challengeStore, type PendingChallenge } from '../challenges/store';
+import { drainInboxOnce, handleIncomingChallenge } from '../push';
 import { listenForPushes, startInboxPolling } from '../push';
 import { hasIdentity } from '../identity/identity';
 import { useTheme } from '../theme/useTheme';
@@ -30,17 +32,23 @@ export function useBootstrap(): { ready: boolean; identity: boolean | null } {
   }, []);
 
   useEffect(() => {
-    const open = (id: string, via: 'push' | 'poll') => {
-      void handleIncomingChallenge(id, via).then(() => {
+    const open = (id: string, via: PendingChallenge['via']) => {
+      // A challenge that lands right after a computer read our id came in over Bluetooth.
+      const tagged = via !== 'push' && recentlyReadOverBluetooth() ? 'bluetooth' : via;
+      void handleIncomingChallenge(id, tagged).then(() => {
         if (challengeStore.find(id))
           routerRef.current.push({ pathname: '/approve/[id]', params: { id } });
       });
     };
     const stopPush = listenForPushes((id) => open(id, 'push'));
     const stopPoll = startInboxPolling((id) => open(id, 'poll'));
+    setBleReadHandler(() => void drainInboxOnce((id) => open(id, 'bluetooth')));
+    void syncBleAdvertising();
     return () => {
       stopPush();
       stopPoll();
+      setBleReadHandler(null);
+      stopBleAdvertising();
     };
   }, []);
 

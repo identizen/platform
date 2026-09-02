@@ -45,6 +45,11 @@ jest.mock('expo-notifications', () => ({
   setNotificationHandler: jest.fn(),
 }));
 
+jest.mock('expo-modules-core', () => ({
+  ...jest.requireActual<Record<string, unknown>>('expo-modules-core'),
+  requireOptionalNativeModule: () => null,
+}));
+
 jest.mock('expo-screen-capture', () => ({
   usePreventScreenCapture: jest.fn(),
   addScreenshotListener: jest.fn(() => ({ remove: jest.fn() })),

@@ -28,10 +28,16 @@ export interface DeviceRecord {
 export interface Settings {
   indexUrl: string;
   biometricRequired: boolean;
+  /** Advertise the rotating id so a nearby computer can find this phone (PROTOCOL.md §6.3). */
+  bluetoothEnabled: boolean;
 }
 
-export const DEFAULT_INDEX_URL = 'https://identizen-index.noundry.workers.dev';
-export const DEFAULT_SETTINGS: Settings = { indexUrl: DEFAULT_INDEX_URL, biometricRequired: true };
+export const DEFAULT_INDEX_URL = 'https://index.identizen.com';
+export const DEFAULT_SETTINGS: Settings = {
+  indexUrl: DEFAULT_INDEX_URL,
+  biometricRequired: true,
+  bluetoothEnabled: true,
+};
 
 const secureOpts = (requireAuthentication: boolean): SecureStore.SecureStoreOptions => ({
   keychainAccessible: SecureStore.WHEN_UNLOCKED_THIS_DEVICE_ONLY,

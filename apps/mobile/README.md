@@ -48,6 +48,32 @@ The bundle is written to `node_modules/.cache/identizen-hermes/`.
 
 ## Native modules (M9)
 
-Secure Enclave key wrapping, BLE peripheral advertising, and the passkey credential-provider extension
-are Swift Expo modules under `modules/` (not yet present). The `hwk` value in `amr` is asserted on
-that promise; the biometric gate and keychain storage already work without them.
+`modules/idz-ble-peripheral` (Swift, CoreBluetooth) advertises the rotating identifier from
+PROTOCOL.md §6.3 and answers GATT reads of it; `src/ble/advertiser.ts` computes the id with
+`@identizen/protocol`, rotates it at each 900 s boundary, and drains the inbox the moment a computer
+reads it. It is a local Expo module, autolinked from `modules/`, with a config plugin that adds the
+Bluetooth usage string and the `bluetooth-peripheral` background mode. Without the native build
+(Expo Go, simulator) the JS falls back to a no-op and the Settings toggle is disabled.
+
+Still to come: Secure Enclave key wrapping (`modules/idz-enclave`) and the passkey credential-provider
+extension. The `hwk` value in `amr` is asserted on that promise; the biometric gate and keychain
+storage already work without them.
+
+### Building the native app (iOS)
+
+Needs a Mac with Xcode 16, an Apple Developer account, and a physical iPhone (the simulator has no
+Bluetooth radio). Web Bluetooth only sees the phone while the app is in the foreground.
+
+```bash
+cd apps/mobile
+npm i -g eas-cli && eas login
+eas build:configure                 # writes extra.eas.projectId into app.json once
+eas device:create                   # register the iPhone for internal distribution
+eas build --platform ios --profile development
+# or, fully local: npx expo prebuild -p ios --clean && npx expo run:ios --device
+```
+
+Verify: install the build, register the phone, then on a Mac open Chrome at
+https://identizen.com/playground, choose **My phone**, click **Continue with Identizen**, then
+**Find my phone over Bluetooth**. The chooser lists **Identizen**; pick it and the approve screen
+opens on the phone within a second, tagged as arriving over Bluetooth.

@@ -3,6 +3,8 @@ import { useCallback, useState } from 'react';
 import { challengeStore, useActivity, usePendingChallenges } from '../src/challenges/store';
 import { getSummary, register, type IdentitySummary } from '../src/identity/identity';
 import { obtainPushToken, syncPushToken } from '../src/push';
+import { useBleStatus } from '../src/ble/advertiser';
+import { syncBleAdvertising } from '../src/ble/controller';
 import { HomeScreen } from '../src/screens/HomeScreen';
 
 const EMPTY: IdentitySummary = {
@@ -19,6 +21,7 @@ export default function Home() {
   const [registering, setRegistering] = useState(false);
   const pending = usePendingChallenges();
   const activity = useActivity();
+  const bluetooth = useBleStatus();
 
   const reload = useCallback(() => {
     challengeStore.pruneExpired();
@@ -31,6 +34,7 @@ export default function Home() {
     try {
       await register(await obtainPushToken());
       await syncPushToken();
+      await syncBleAdvertising();
       reload();
     } catch (err) {
       console.warn('registration failed', err);
@@ -48,6 +52,7 @@ export default function Home() {
       pending={pending}
       activity={activity}
       registering={registering}
+      bluetooth={bluetooth}
       onRegister={() => void doRegister()}
       onOpenChallenge={(id) => router.push({ pathname: '/approve/[id]', params: { id } })}
       onScan={() => router.push('/scan')}

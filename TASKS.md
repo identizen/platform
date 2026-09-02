@@ -79,7 +79,7 @@ Gate command: `npm run gate` = lint + typecheck + unit + e2e (e2e is a no-op unt
 ## M9 — Native modules `[cc+human]` — tag `v0.9.0`
 
 - [ ] **M9.1** `[cc+human]` `modules/idz-enclave` (Swift).
-- [ ] **M9.2** `[cc+human]` `modules/idz-ble-peripheral` (Swift).
+- [ ] **M9.2** `[cc+human]` `modules/idz-ble-peripheral` (Swift). — Code, config plugin, JS advertiser, and Jest contract tests landed; human validates a development build on an iPhone against Chromium (see apps/mobile/README.md).
 - [ ] **M9.3** `[cc+human]` `modules/idz-credential-provider` (Swift) + `spec/PASSKEY-PROVIDER.md`.
 - [ ] **M9.4** `[cc+human]` Android Kotlin twins + Credential Manager provider.
 

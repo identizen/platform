@@ -1,4 +1,5 @@
 import { Pressable, Text, View } from 'react-native';
+import type { BleStatus } from '../ble/advertiser';
 import type { ActivityEntry, PendingChallenge } from '../challenges/store';
 import { Badge, Button, Card, Heading, ListRow, Mono, Muted, Screen } from '../components/ui';
 
@@ -17,6 +18,20 @@ export interface HomeScreenProps {
   onSettings: () => void;
   onRegister: () => void;
   registering?: boolean;
+  bluetooth?: BleStatus;
+}
+
+/** One line for the home card: what a nearby computer would see. */
+export function bluetoothSummary(b: BleStatus): { label: string; tone: 'neutral' | 'success' | 'warning' | 'danger' } {
+  if (!b.supported) return { label: 'Nearby sign-in needs the native build', tone: 'neutral' };
+  if (!b.enabled) return { label: 'Nearby sign-in off', tone: 'neutral' };
+  if (b.authorization === 'denied' || b.authorization === 'restricted')
+    return { label: 'Bluetooth permission denied', tone: 'danger' };
+  if (b.state === 'poweredOff') return { label: 'Bluetooth is off', tone: 'warning' };
+  if (b.state === 'unsupported') return { label: 'No Bluetooth on this device', tone: 'neutral' };
+  if (b.error) return { label: b.error, tone: 'danger' };
+  if (b.advertising) return { label: 'Visible to nearby computers', tone: 'success' };
+  return { label: 'Starting Bluetooth…', tone: 'neutral' };
 }
 
 const KIND_TONE: Record<ActivityEntry['kind'], 'neutral' | 'success' | 'warning' | 'danger'> = {
@@ -53,6 +68,12 @@ export function HomeScreen(p: HomeScreenProps) {
             busy={p.registering ?? false}
             testID="register"
           />
+        ) : null}
+        {p.registered && p.bluetooth ? (
+          <View className="flex-row items-center justify-between" testID="bluetooth-status">
+            <Muted>Bluetooth</Muted>
+            <Badge label={bluetoothSummary(p.bluetooth).label} tone={bluetoothSummary(p.bluetooth).tone} />
+          </View>
         ) : null}
       </Card>
 

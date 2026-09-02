@@ -118,7 +118,7 @@ function fakeIndex() {
   return { fetchImpl, calls, issue };
 }
 
-const settings = { indexUrl: INDEX, biometricRequired: true };
+const settings = { indexUrl: INDEX, biometricRequired: true, bluetoothEnabled: false };
 
 beforeEach(() => {
   challengeStore.reset();

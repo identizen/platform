@@ -15,6 +15,8 @@ import {
   writeSettings,
   type Settings,
 } from '../src/identity/store';
+import { getBleStatus, useBleStatus } from '../src/ble/advertiser';
+import { syncBleAdvertising } from '../src/ble/controller';
 import { SettingsScreen } from '../src/screens/SettingsScreen';
 import { useTheme } from '../src/theme/useTheme';
 
@@ -31,6 +33,7 @@ export default function SettingsRoute() {
   const theme = useTheme();
   const [summary, setSummary] = useState<IdentitySummary>(EMPTY);
   const [settings, setSettings] = useState<Settings | null>(null);
+  const ble = useBleStatus();
 
   useEffect(() => {
     void getSummary().then(setSummary);
@@ -45,6 +48,14 @@ export default function SettingsRoute() {
       registered={summary.registered}
       theme={theme.preference}
       biometricRequired={settings.biometricRequired}
+      bluetoothEnabled={settings.bluetoothEnabled}
+      bluetoothSupported={ble.supported || getBleStatus().supported}
+      onBluetoothEnabled={async (v) => {
+        const next = { ...settings, bluetoothEnabled: v };
+        await writeSettings(next);
+        setSettings(next);
+        await syncBleAdvertising();
+      }}
       onSaveHandle={async (handle) => {
         const r = await api.setHandle(handle);
         await updateLocalHandle(r.handle);

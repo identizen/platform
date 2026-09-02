@@ -21,6 +21,9 @@ export interface SettingsScreenProps {
   registered: boolean;
   theme: ThemePreference;
   biometricRequired: boolean;
+  bluetoothEnabled: boolean;
+  bluetoothSupported: boolean;
+  onBluetoothEnabled: (v: boolean) => Promise<void>;
   onSaveHandle: (handle: string | null) => Promise<void>;
   onSaveIndexUrl: (url: string) => Promise<void>;
   onTheme: (t: ThemePreference) => void;
@@ -120,6 +123,28 @@ export function SettingsScreen(p: SettingsScreenProps) {
             value={p.biometricRequired}
             onValueChange={(v) => void run('bio', () => p.onBiometricRequired(v))}
             testID="biometric-switch"
+          />
+        </View>
+      </Card>
+
+      <Card>
+        <View className="flex-row items-center justify-between">
+          <View className="flex-1 gap-0.5">
+            <Text className="font-medium text-base text-fg dark:text-fg-dark">
+              Nearby sign-in over Bluetooth
+            </Text>
+            <Muted>
+              {p.bluetoothSupported
+                ? 'A computer next to you can find this phone and push the sign-in to it, no code to scan. Nothing identifying is broadcast: the id rotates every 15 minutes and only the index can read it.'
+                : 'Needs the native build of the app; not available in Expo Go or the simulator.'}
+            </Muted>
+          </View>
+          <Switch
+            accessibilityLabel="Nearby sign-in over Bluetooth"
+            value={p.bluetoothEnabled}
+            disabled={!p.bluetoothSupported}
+            onValueChange={(v) => void run('ble', () => p.onBluetoothEnabled(v))}
+            testID="bluetooth-switch"
           />
         </View>
       </Card>

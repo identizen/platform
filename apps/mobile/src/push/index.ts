@@ -8,6 +8,7 @@ import { Platform } from 'react-native';
 import { api } from '../api/client';
 import { readDevice, writeDevice } from '../identity/store';
 import { receiveChallenge } from '../challenges/receive';
+import type { PendingChallenge } from '../challenges/store';
 
 export interface PushRegistration {
   platform: 'apns' | 'fcm' | 'web';
@@ -71,6 +72,21 @@ export function listenForPushes(onChallenge: (challengeId: string) => void): Uns
   };
 }
 
+/**
+ * Drain the inbox once, right now. Used when a nearby computer reads our Bluetooth id: the index is
+ * about to enqueue a challenge, so we do not wait for the next poll tick. No-op for APNs/FCM installs.
+ */
+export async function drainInboxOnce(onChallenge: (challengeId: string) => void): Promise<void> {
+  try {
+    const device = await readDevice();
+    if (device?.deviceId && device.pushMode === 'poll') {
+      for (const id of await api.inbox(device.deviceId)) onChallenge(id);
+    }
+  } catch {
+    /* offline; the regular poll will catch up */
+  }
+}
+
 /** Inbox polling for installs without push. Returns a stop function. */
 export function startInboxPolling(
   onChallenge: (challengeId: string) => void,
@@ -100,7 +116,7 @@ export function startInboxPolling(
 /** Default handler: fetch + verify; the store makes it visible to the UI. */
 export async function handleIncomingChallenge(
   challengeId: string,
-  via: 'push' | 'poll',
+  via: PendingChallenge['via'],
 ): Promise<void> {
   try {
     await receiveChallenge(challengeId, via);

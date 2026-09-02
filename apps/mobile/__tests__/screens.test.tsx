@@ -217,6 +217,9 @@ describe('lists and settings', () => {
         registered
         theme="system"
         biometricRequired
+        bluetoothEnabled
+        bluetoothSupported={false}
+        onBluetoothEnabled={jest.fn()}
         onSaveHandle={onSaveHandle}
         onSaveIndexUrl={jest.fn()}
         onTheme={jest.fn()}

@@ -170,7 +170,7 @@ The phone advertises service UUID `f1d0e1a2-1d2e-4b0c-9c0d-1d3e2f4a5b6c` with a 
 rotating_id = HMAC-SHA256(device_ble_key, UTF8(decimal(floor(now / 900))))[0:16]
 ```
 
-The window is 900 s. The SDK scans, sends `{ rotating_id }` to `POST /discover/ble`, and the index resolves it to a device by evaluating the current window and ±1 neighbouring windows for every active device's `ble_key`. On a match the index pushes the challenge. A passive observer cannot track a device by BLE: identifiers rotate and only the index holds the key.
+The window is 900 s. The advertisement carries the service UUID and the local name `Identizen`; the service exposes one read-only characteristic, `f1d0e1a2-1d2e-4b0c-9c0d-1d3e2f4a5b6d`, whose value is the 16 raw bytes of the current `rotating_id`. The phone answers reads dynamically, so a window change never requires re-advertising. The SDK scans, connects, reads the characteristic, sends `{ rotating_id }` to `POST /discover/ble`, and the index resolves it to a device by evaluating the current window and ±1 neighbouring windows for every active device's `ble_key`. On a match the index pushes the challenge. A passive observer cannot track a device by BLE: identifiers rotate and only the index holds the key.
 
 ### 6.4 Browser pairing (all browsers)
 

@@ -48,7 +48,7 @@ beforeEach(async () => {
   const index = fakeIndex();
   setFetch(index.fetchImpl);
   setApiFetch(index.fetchImpl);
-  await createIdentity({ indexUrl: INDEX, biometricRequired: false });
+  await createIdentity({ indexUrl: INDEX, biometricRequired: false, bluetoothEnabled: false });
   (globalThis as { __calls?: unknown }).__calls = index.calls;
 });
 
