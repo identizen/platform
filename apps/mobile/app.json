@@ -49,7 +49,7 @@
         "expo-camera",
         { "cameraPermission": "Identizen uses the camera to scan sign-in QR codes." }
       ],
-      ["expo-notifications", { "icon": "./assets/icon.png", "color": "#3b5bdb" }]
+      ["expo-notifications", { "icon": "./assets/icon.png", "color": "#C43E2C" }]
     ],
     "experiments": { "typedRoutes": false }
   }

@@ -48,14 +48,14 @@
 
   --color-border: oklch(0.89 0.006 250);
   --color-border-strong: oklch(0.78 0.01 250);
-  --color-ring: oklch(0.6 0.19 262);
+  --color-ring: oklch(0.6 0.17 30);
 
-  /* The one accent: a confident indigo-blue */
-  --color-accent: oklch(0.55 0.21 262);
-  --color-accent-hover: oklch(0.5 0.21 262);
+  /* The one accent: brand vermilion, one step deeper than the seal red so white text passes AA */
+  --color-accent: oklch(0.55 0.19 30);
+  --color-accent-hover: oklch(0.5 0.19 30);
   --color-accent-fg: oklch(0.99 0.002 250);
-  --color-accent-soft: oklch(0.94 0.04 262);
-  --color-accent-soft-fg: oklch(0.4 0.18 262);
+  --color-accent-soft: oklch(0.95 0.035 30);
+  --color-accent-soft-fg: oklch(0.42 0.17 30);
 
   /* Semantic */
   --color-success: oklch(0.6 0.16 155);
@@ -68,10 +68,10 @@
   --color-warning-soft: oklch(0.95 0.06 85);
   --color-warning-soft-fg: oklch(0.42 0.12 70);
 
-  --color-danger: oklch(0.58 0.22 25);
+  --color-danger: oklch(0.55 0.21 15);
   --color-danger-fg: oklch(0.99 0.002 250);
-  --color-danger-soft: oklch(0.94 0.04 25);
-  --color-danger-soft-fg: oklch(0.42 0.18 25);
+  --color-danger-soft: oklch(0.94 0.04 15);
+  --color-danger-soft-fg: oklch(0.42 0.18 15);
 
   /* shadcn semantic aliases, all pointing at tokens above */
   --color-background: var(--color-surface-0);
@@ -116,13 +116,13 @@
 
     --color-border: oklch(0.28 0.014 260);
     --color-border-strong: oklch(0.38 0.016 260);
-    --color-ring: oklch(0.7 0.16 262);
+    --color-ring: oklch(0.72 0.15 30);
 
-    --color-accent: oklch(0.68 0.17 262);
-    --color-accent-hover: oklch(0.74 0.16 262);
-    --color-accent-fg: oklch(0.15 0.03 262);
-    --color-accent-soft: oklch(0.28 0.07 262);
-    --color-accent-soft-fg: oklch(0.85 0.09 262);
+    --color-accent: oklch(0.7 0.17 30);
+    --color-accent-hover: oklch(0.75 0.16 30);
+    --color-accent-fg: oklch(0.16 0.03 30);
+    --color-accent-soft: oklch(0.28 0.07 30);
+    --color-accent-soft-fg: oklch(0.86 0.08 30);
 
     --color-success: oklch(0.7 0.15 155);
     --color-success-fg: oklch(0.15 0.04 155);
@@ -134,10 +134,10 @@
     --color-warning-soft: oklch(0.3 0.07 80);
     --color-warning-soft-fg: oklch(0.88 0.11 85);
 
-    --color-danger: oklch(0.68 0.19 25);
-    --color-danger-fg: oklch(0.14 0.04 25);
-    --color-danger-soft: oklch(0.28 0.08 25);
-    --color-danger-soft-fg: oklch(0.86 0.09 25);
+    --color-danger: oklch(0.7 0.18 15);
+    --color-danger-fg: oklch(0.14 0.04 15);
+    --color-danger-soft: oklch(0.28 0.08 15);
+    --color-danger-soft-fg: oklch(0.86 0.09 15);
 
     --shadow-xs: 0 1px 2px 0 oklch(0 0 0 / 0.3);
     --shadow-sm: 0 1px 3px 0 oklch(0 0 0 / 0.4), 0 1px 2px -1px oklch(0 0 0 / 0.4);
@@ -164,13 +164,13 @@
 
       --color-border: oklch(0.28 0.014 260);
       --color-border-strong: oklch(0.38 0.016 260);
-      --color-ring: oklch(0.7 0.16 262);
+      --color-ring: oklch(0.72 0.15 30);
 
-      --color-accent: oklch(0.68 0.17 262);
-      --color-accent-hover: oklch(0.74 0.16 262);
-      --color-accent-fg: oklch(0.15 0.03 262);
-      --color-accent-soft: oklch(0.28 0.07 262);
-      --color-accent-soft-fg: oklch(0.85 0.09 262);
+      --color-accent: oklch(0.7 0.17 30);
+      --color-accent-hover: oklch(0.75 0.16 30);
+      --color-accent-fg: oklch(0.16 0.03 30);
+      --color-accent-soft: oklch(0.28 0.07 30);
+      --color-accent-soft-fg: oklch(0.86 0.08 30);
 
       --color-success: oklch(0.7 0.15 155);
       --color-success-fg: oklch(0.15 0.04 155);
@@ -182,10 +182,10 @@
       --color-warning-soft: oklch(0.3 0.07 80);
       --color-warning-soft-fg: oklch(0.88 0.11 85);
 
-      --color-danger: oklch(0.68 0.19 25);
-      --color-danger-fg: oklch(0.14 0.04 25);
-      --color-danger-soft: oklch(0.28 0.08 25);
-      --color-danger-soft-fg: oklch(0.86 0.09 25);
+      --color-danger: oklch(0.7 0.18 15);
+      --color-danger-fg: oklch(0.14 0.04 15);
+      --color-danger-soft: oklch(0.28 0.08 15);
+      --color-danger-soft-fg: oklch(0.86 0.09 15);
 
       --shadow-xs: 0 1px 2px 0 oklch(0 0 0 / 0.3);
       --shadow-sm: 0 1px 3px 0 oklch(0 0 0 / 0.4), 0 1px 2px -1px oklch(0 0 0 / 0.4);

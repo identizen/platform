@@ -9,7 +9,7 @@ SemiBold and outlined to paths (SIL OFL), so no font needs to load. The hanko re
 | --- | --- |
 | `kimi-mark.svg` | Inline mark, takes `currentColor`. Headers, favicons on plain grounds. |
 | `kimi-seal.svg` | App icon, social avatar, favicon. Red seal with paper glyph. |
-| `kimi-seal-ink.svg` / `kimi-seal-indigo.svg` | Seal on ink or the product accent, for dark grounds or in-app. |
+| `kimi-seal-ink.svg` | Seal on ink, for dark grounds. |
 | `identizen-wordmark.svg` | Wordmark with the red dot. Pair with `kimi-mark.svg`, never with the red seal. |
 | `identizen-wordmark-plain.svg` | Wordmark, single color. Pair with the red seal. |
 | `identizen-lockup.svg` | Ink mark + wordmark with red dot. Default horizontal lockup. |

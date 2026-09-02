@@ -93,7 +93,7 @@ export interface KimiSealProps {
 const SEAL_FILL: Record<SealTone, string> = {
   red: BRAND_RED,
   ink: '#17171A',
-  accent: 'var(--color-accent, #3B5BDB)',
+  accent: 'var(--color-accent, #C43E2C)',
 };
 
 /** The 君 mark on a rounded seal. */

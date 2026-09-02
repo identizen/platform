@@ -92,7 +92,7 @@ test('playground page explains configuration or renders the island', async ({ pa
 test('brand assets download as SVG from the design system', async ({ page, request }) => {
   await page.goto('/brand');
   const links = page.getByTestId('brand-downloads').getByRole('link');
-  expect(await links.count()).toBeGreaterThanOrEqual(9);
+  expect(await links.count()).toBeGreaterThanOrEqual(8);
   const href = await links.first().getAttribute('href');
   expect(href).toBe('/brand/identizen-lockup.svg');
   const res = await request.get(href!);

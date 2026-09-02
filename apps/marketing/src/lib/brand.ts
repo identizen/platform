@@ -6,7 +6,6 @@ import mark from '@identizen/ui/brand/kimi-mark.svg?raw';
 import markRedBox from '@identizen/ui/brand/kimi-mark-red-kuchi.svg?raw';
 import seal from '@identizen/ui/brand/kimi-seal.svg?raw';
 import sealInk from '@identizen/ui/brand/kimi-seal-ink.svg?raw';
-import sealIndigo from '@identizen/ui/brand/kimi-seal-indigo.svg?raw';
 import markBrush from '@identizen/ui/brand/alt/kimi-mark-brush.svg?raw';
 import markDisplay from '@identizen/ui/brand/alt/kimi-mark-display.svg?raw';
 
@@ -80,13 +79,6 @@ export const BRAND_ASSETS: readonly BrandAsset[] = [
     use: 'For dark grounds where red would shout.',
     svg: sealInk,
     ground: 'paper',
-  },
-  {
-    file: 'kimi-seal-indigo.svg',
-    name: 'Seal, accent',
-    use: 'On the product accent, inside the dashboard and mobile app.',
-    svg: sealIndigo,
-    ground: 'any',
   },
   {
     file: 'alt/kimi-mark-brush.svg',
