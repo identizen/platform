@@ -13,7 +13,7 @@
   "devDependencies": {
     "@axe-core/playwright": "^4.10.2",
     "@identizen/db": "^0.0.0",
-    "@identizen/fake-phone": "^0.0.0",
+    "@identizen/fake-phone": "^0.1.0",
     "@playwright/test": "^1.55.0",
     "drizzle-orm": "^0.44.5",
     "tsx": "^4.20.5",

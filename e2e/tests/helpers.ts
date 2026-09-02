@@ -48,9 +48,7 @@ export const phone = {
       body: JSON.stringify({ policy }),
     });
   },
-  async scan(
-    url: string,
-  ): Promise<{
+  async scan(url: string): Promise<{
     ok: boolean;
     challenge_id: string;
     code: string;
