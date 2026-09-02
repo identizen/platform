@@ -1,0 +1,31 @@
+import { defineWorkersConfig } from '@cloudflare/vitest-pool-workers/config';
+
+export default defineWorkersConfig({
+  test: {
+    include: ['test/**/*.test.ts'],
+    fileParallelism: false,
+    testTimeout: 30_000,
+    hookTimeout: 60_000,
+    globalSetup: ['./test/global-setup.ts'],
+    poolOptions: {
+      workers: {
+        singleWorker: true,
+        isolatedStorage: false,
+        wrangler: { configPath: './wrangler.jsonc' },
+        miniflare: {
+          bindings: {
+            INDEX_URL: 'http://index.test',
+            APP_URL: 'http://app.test',
+            PUSH_PROVIDER: 'noop',
+            OPEN_SITE_REGISTRATION: 'true',
+            INDEX_SIGNING_KEY: '404142434445464748494a4b4c4d4e4f505152535455565758595a5b5c5d5e5f',
+          },
+          hyperdrives: {
+            HYPERDRIVE:
+              process.env.DATABASE_URL ?? 'postgres://identizen:identizen@localhost:5433/identizen',
+          },
+        },
+      },
+    },
+  },
+});

@@ -43,6 +43,7 @@ const defaultExportAllowed = [
   'e2e/site/middleware.ts',
   '**/*.astro',
   '**/*.stories.tsx',
+  '**/test/global-setup.ts',
 ];
 
 export default tseslint.config(
@@ -98,6 +99,7 @@ export default tseslint.config(
       '@typescript-eslint/prefer-nullish-coalescing': 'off',
       '@typescript-eslint/no-deprecated': 'off',
       '@typescript-eslint/no-extraneous-class': 'off',
+      '@typescript-eslint/prefer-optional-chain': 'off',
       // Cross-feature imports must go through the feature's public index.ts.
       'no-restricted-imports': [
         'error',

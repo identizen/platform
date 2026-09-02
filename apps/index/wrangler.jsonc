@@ -1,0 +1,28 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "identizen-index",
+  "main": "src/index.ts",
+  "compatibility_date": "2025-08-01",
+  "compatibility_flags": ["nodejs_compat"],
+  "observability": { "enabled": true },
+  "vars": {
+    "INDEX_URL": "http://localhost:8787",
+    "APP_URL": "http://localhost:4300",
+    "PUSH_PROVIDER": "noop",
+    "OPEN_SITE_REGISTRATION": "true",
+  },
+  "hyperdrive": [
+    {
+      "binding": "HYPERDRIVE",
+      "id": "00000000000000000000000000000000",
+      "localConnectionString": "postgres://identizen:identizen@localhost:5433/identizen",
+    },
+  ],
+  "durable_objects": {
+    "bindings": [
+      { "name": "CHALLENGE_SESSION", "class_name": "ChallengeSession" },
+      { "name": "REQUEST_GUARD", "class_name": "RequestGuard" },
+    ],
+  },
+  "migrations": [{ "tag": "v1", "new_sqlite_classes": ["ChallengeSession", "RequestGuard"] }],
+}

@@ -1,0 +1,11 @@
+# Copy to .dev.vars for `wrangler dev`. Never commit real values.
+# 32-byte hex Ed25519 private key that signs challenges and pairings. Generate with:
+#   node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
+INDEX_SIGNING_KEY=404142434445464748494a4b4c4d4e4f505152535455565758595a5b5c5d5e5f
+# OIDC OP signing keys (JSON array of private JWKs). Generate with `npm run keys -w @identizen/index` (M4).
+# OIDC_SIGNING_KEYS=
+# Optional: close open site registration and require this bearer on POST /sites.
+# OPEN_SITE_REGISTRATION=false
+# SITE_REGISTRATION_TOKEN=
+# Push: noop | fcm | apns | web
+PUSH_PROVIDER=noop
