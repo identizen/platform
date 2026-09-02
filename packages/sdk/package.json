@@ -1,0 +1,60 @@
+{
+  "name": "@identizen/sdk",
+  "version": "0.1.0",
+  "description": "Identizen SDK: browser login (paired browser, Web Bluetooth, QR, deep link) and server helpers (OIDC, Verification API, webhooks). Standard OIDC on the outside.",
+  "license": "Apache-2.0",
+  "type": "module",
+  "sideEffects": false,
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "default": "./dist/index.js"
+    },
+    "./server": {
+      "types": "./dist/server.d.ts",
+      "import": "./dist/server.js",
+      "default": "./dist/server.js"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/identizen/identizen",
+    "directory": "packages/sdk"
+  },
+  "homepage": "https://identizen.com",
+  "keywords": [
+    "identizen",
+    "oidc",
+    "passwordless",
+    "mfa",
+    "login",
+    "sdk"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test:unit": "vitest run"
+  },
+  "dependencies": {
+    "@identizen/protocol": "^0.1.0",
+    "jose": "^6.0.13",
+    "qrcode-generator": "^1.5.2"
+  },
+  "devDependencies": {
+    "jsdom": "^26.1.0",
+    "msw": "^2.10.5",
+    "typescript": "^5.9.2",
+    "vitest": "^3.2.4",
+    "@types/web-bluetooth": "^0.0.21"
+  }
+}
