@@ -6,7 +6,7 @@ export const SITE = {
   url: 'https://identizen.com',
   docs: 'https://docs.identizen.com',
   app: 'https://app.identizen.com',
-  github: 'https://github.com/identizen/identizen',
+  github: 'https://github.com/identizen/platform',
   twitter: '@identizen',
 } as const;
 

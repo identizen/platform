@@ -10,7 +10,7 @@ The index is one Worker plus Postgres. It stores public keys, push tokens, BLE H
 Requirements: a Cloudflare account, `wrangler` logged in, and any Postgres (Neon, RDS, your own) reachable through [Hyperdrive](https://developers.cloudflare.com/hyperdrive/).
 
 ```bash
-git clone https://github.com/identizen/identizen && cd identizen
+git clone https://github.com/identizen/platform && cd identizen
 npm install
 npx wrangler hyperdrive create identizen --connection-string "postgres://…"   # note the id
 ```
