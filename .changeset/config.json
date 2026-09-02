@@ -1,0 +1,21 @@
+{
+  "$schema": "https://unpkg.com/@changesets/config@3.0.0/schema.json",
+  "changelog": "@changesets/cli/changelog",
+  "commit": false,
+  "fixed": [],
+  "linked": [["@identizen/protocol", "@identizen/sdk", "@identizen/react", "identizen"]],
+  "access": "public",
+  "baseBranch": "main",
+  "updateInternalDependencies": "patch",
+  "ignore": [
+    "@identizen/index",
+    "@identizen/marketing",
+    "@identizen/web",
+    "@identizen/docs",
+    "@identizen/mobile",
+    "@identizen/fake-phone",
+    "@identizen/db",
+    "@identizen/e2e",
+    "@identizen/e2e-site"
+  ]
+}

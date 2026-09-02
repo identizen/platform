@@ -1,0 +1,13 @@
+node_modules
+dist
+build
+.turbo
+.astro
+coverage
+playwright-report
+test-results
+*.snap
+package-lock.json
+db/migrations/**/*.sql
+apps/mobile/ios
+apps/mobile/android
