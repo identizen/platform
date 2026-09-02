@@ -1,6 +1,10 @@
 ---
 import Base from '../layouts/Base.astro';
+import PhoneMock from '../components/PhoneMock.astro';
+import Icon from '../components/Icon.astro';
+import Code from '../components/Code.astro';
 import { Playground } from '../islands/Playground';
+import { VirtualPhone } from '../islands/VirtualPhone';
 import { SITE } from '../lib/site';
 
 const indexUrl =
@@ -8,55 +12,126 @@ const indexUrl =
   'https://index.identizen.com';
 const clientId =
   (import.meta.env.PUBLIC_IDENTIZEN_PLAYGROUND_CLIENT_ID as string | undefined) ?? '';
+
+const steps = [
+  {
+    icon: 'zap' as const,
+    title: 'Click the button',
+    text: 'The demo site asks the index for a challenge: a 60-second, single-use request with a two-digit match code.',
+  },
+  {
+    icon: 'qr' as const,
+    title: 'The phone reads it',
+    text: 'The virtual phone scans the QR in this tab. A real phone scans it with the camera, or is found over Bluetooth in Chromium.',
+  },
+  {
+    icon: 'fingerprint' as const,
+    title: 'Approve',
+    text: 'The phone derives a key for this site, signs the assertion, and the index returns an OIDC code. This browser is now paired: next time there is no QR.',
+  },
+];
 ---
 
 <Base
   title="Playground"
-  description="Try an Identizen login against a demo site with your real phone — or with the fake phone from npx identizen dev — before writing any code."
+  description="Try an Identizen login against a demo site with a virtual phone in your browser or your real phone, before writing any code."
 >
-  <div class="grid gap-10 lg:grid-cols-[1fr_1.1fr]">
-    <header>
-      <h1 class="text-4xl font-semibold tracking-tight">Try it before you write code.</h1>
-      <p class="mt-4 text-lg text-fg-muted">
-        This is the real <code class="font-mono text-base">@identizen/react</code> button against the
-        demo site on <span class="font-mono text-base">{new URL(indexUrl).host}</span>. We dogfood
-        the SDK you would install.
+  <section class="bg-glow">
+    <div class="container-site pt-16 pb-10 sm:pt-20">
+      <p class="eyebrow">Playground</p>
+      <h1 class="headline mt-3 text-4xl sm:text-5xl">Try it before you write code.</h1>
+      <p class="mt-4 max-w-2xl text-lg text-fg-muted">
+        A real login against a demo site on <span class="font-mono text-base"
+          >{new URL(indexUrl).host}</span
+        >, driven by the same <code class="font-mono text-base">@identizen/react</code> session you would
+        install. Approve it with the virtual phone on the right, or with your own.
       </p>
-      <ol class="mt-6 space-y-2 text-sm text-fg-muted">
-        <li>1. Install the Identizen app and create an identity (under a minute).</li>
-        <li>2. Click the button. Scan the QR or, on Chromium, pick your phone over Bluetooth.</li>
-        <li>
-          3. Check the match code, approve with Face ID. This browser is now paired; next time there
-          is no QR.
-        </li>
-      </ol>
-      <p class="mt-6 text-sm text-fg-muted">
-        Developer without a phone handy: <code class="font-mono">npx identizen dev</code> runs a fake
-        phone that approves logins. See the <a
-          class="text-accent underline underline-offset-2"
-          href={`${SITE.docs}/quickstart`}>quickstart</a
-        >.
-      </p>
-    </header>
-    <div>
-      {
-        clientId ? (
-          <Playground client:only="react" indexUrl={indexUrl} clientId={clientId} />
-        ) : (
-          <div
-            class="rounded-xl border border-dashed border-border-strong p-6 text-sm text-fg-muted"
-            data-testid="playground-unconfigured"
-          >
-            <p class="font-medium text-fg">Playground not configured for this build.</p>
-            <p class="mt-2">
-              Set <code class="font-mono">PUBLIC_IDENTIZEN_INDEX_URL</code> and{' '}
-              <code class="font-mono">PUBLIC_IDENTIZEN_PLAYGROUND_CLIENT_ID</code> (a public PKCE
-              client registered with the index, redirect URI{' '}
-              <code class="font-mono">/playground</code>) and rebuild.
+    </div>
+  </section>
+
+  <section class="container-site pb-20">
+    <div class="grid items-start gap-10 lg:grid-cols-[1fr_auto] lg:gap-16">
+      <div>
+        {
+          clientId ? (
+            <Playground client:only="react" indexUrl={indexUrl} clientId={clientId} />
+          ) : (
+            <div
+              class="rounded-xl border border-dashed border-border-strong p-6 text-sm text-fg-muted"
+              data-testid="playground-unconfigured"
+            >
+              <p class="font-medium text-fg">Playground not configured for this build.</p>
+              <p class="mt-2">
+                Set <code class="font-mono">PUBLIC_IDENTIZEN_INDEX_URL</code> and{' '}
+                <code class="font-mono">PUBLIC_IDENTIZEN_PLAYGROUND_CLIENT_ID</code> (a public PKCE
+                client registered with the index, redirect URI{' '}
+                <code class="font-mono">/playground</code>) and rebuild.
+              </p>
+            </div>
+          )
+        }
+
+        <ol class="mt-10 grid gap-4 sm:grid-cols-3">
+          {
+            steps.map((s, i) => (
+              <li class="card p-5">
+                <div class="flex items-center gap-3">
+                  <span class="icon-tile">
+                    <Icon name={s.icon} />
+                  </span>
+                  <span class="font-mono text-2xs text-fg-muted">0{i + 1}</span>
+                </div>
+                <p class="mt-4 font-medium">{s.title}</p>
+                <p class="mt-1.5 text-sm leading-relaxed text-fg-muted">{s.text}</p>
+              </li>
+            ))
+          }
+        </ol>
+
+        <div class="mt-10 grid gap-6 md:grid-cols-2">
+          <div>
+            <h2 class="headline text-xl">With your real phone</h2>
+            <p class="mt-2 text-sm leading-relaxed text-fg-muted">
+              Install the Identizen app, create an identity, and pick <em>My phone</em> above. Scan the
+              QR, check the match code, approve with Face ID. Bluetooth discovery needs the real app;
+              the virtual phone always goes through the QR.
             </p>
           </div>
-        )
-      }
+          <div>
+            <h2 class="headline text-xl">From a terminal</h2>
+            <p class="mt-2 text-sm leading-relaxed text-fg-muted">
+              The CLI ships the same phone as a Node process for CI and local development:
+            </p>
+            <Code
+              code={`npx identizen dev --index ${indexUrl}`}
+              lang="sh"
+              title="terminal"
+              class="mt-3"
+            />
+            <p class="mt-2 text-sm text-fg-muted">
+              See the <a class="link" href={`${SITE.docs}/quickstart`}>quickstart</a>.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div class="mx-auto lg:sticky lg:top-24">
+        <PhoneMock interactive class="[--phone-w:17rem]">
+          {
+            clientId ? (
+              <VirtualPhone client:only="react" indexUrl={indexUrl} />
+            ) : (
+              <div class="flex h-full flex-col items-center justify-center px-6 text-center text-sm text-fg-muted">
+                The virtual phone appears when the playground is configured.
+              </div>
+            )
+          }
+        </PhoneMock>
+        <p class="mt-4 max-w-[17rem] text-center text-xs leading-relaxed text-fg-muted">
+          A phone in your browser: it enrolls as a device, verifies the signed challenge, and signs
+          the assertion with a per-site key. Nothing leaves this tab but public keys and signatures.
+        </p>
+      </div>
     </div>
-  </div>
+  </section>
 </Base>

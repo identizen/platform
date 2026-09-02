@@ -1,16 +1,22 @@
 ---
 import Base from '../layouts/Base.astro';
+import Icon from '../components/Icon.astro';
+import { SITE } from '../lib/site';
 ---
 
 <Base title="Not found" noindex>
-  <div class="mx-auto max-w-xl py-20 text-center">
-    <p class="font-mono text-2xs uppercase tracking-wide text-fg-muted">404</p>
-    <h1 class="mt-2 text-3xl font-semibold tracking-tight">That page is not in the index.</h1>
-    <p class="mt-4 text-fg-muted">
-      Try the <a href="/" class="text-accent underline underline-offset-2">home page</a> or the <a
-        href="https://docs.identizen.com"
-        class="text-accent underline underline-offset-2">docs</a
-      >.
-    </p>
-  </div>
+  <section class="bg-glow relative overflow-hidden">
+    <div class="bg-dots absolute inset-0" aria-hidden="true"></div>
+    <div class="container-site relative max-w-xl py-28 text-center sm:py-40">
+      <p class="eyebrow justify-center">404</p>
+      <h1 class="headline mt-3 text-4xl sm:text-5xl">That page is not in the index.</h1>
+      <p class="mt-5 text-lg text-fg-muted">
+        Nothing signed for this address. Try the home page or the docs.
+      </p>
+      <div class="mt-8 flex flex-wrap items-center justify-center gap-3">
+        <a href="/" class="btn btn-primary">Home <Icon name="arrow-right" /></a>
+        <a href={SITE.docs} class="btn btn-secondary">Docs</a>
+      </div>
+    </div>
+  </section>
 </Base>

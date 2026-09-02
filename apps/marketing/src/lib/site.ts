@@ -38,7 +38,7 @@ export const FOOTER: readonly { heading: string; items: readonly NavItem[] }[] =
     heading: 'Resources',
     items: [
       { href: SITE.docs, label: 'Documentation', external: true },
-      { href: `${SITE.docs}/protocol/spec`, label: 'Protocol spec', external: true },
+      { href: `${SITE.docs}/protocol`, label: 'Protocol spec', external: true },
       { href: SITE.github, label: 'GitHub', external: true },
       { href: '/blog', label: 'Blog' },
     ],

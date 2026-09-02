@@ -1,6 +1,7 @@
 ---
 import { getCollection, render } from 'astro:content';
 import Base from '../../layouts/Base.astro';
+import Icon from '../../components/Icon.astro';
 
 export async function getStaticPaths() {
   const posts = await getCollection('blog', ({ data }) => !data.draft);
@@ -13,21 +14,28 @@ const fmt = new Intl.DateTimeFormat('en', { dateStyle: 'long' });
 ---
 
 <Base title={post.data.title} description={post.data.description} type="article">
-  <article class="mx-auto max-w-3xl">
-    <header>
-      <p class="font-mono text-2xs uppercase tracking-wide text-fg-muted">
-        <time datetime={post.data.date.toISOString()}>{fmt.format(post.data.date)}</time> · {
-          post.data.author
-        }
-      </p>
-      <h1 class="mt-2 text-4xl font-semibold tracking-tight text-balance">{post.data.title}</h1>
-      <p class="mt-4 text-lg text-fg-muted">{post.data.description}</p>
+  <article>
+    <header class="bg-glow">
+      <div class="container-site max-w-3xl pt-16 pb-12 sm:pt-24">
+        <a href="/blog" class="link inline-flex items-center gap-1 text-sm">
+          <Icon name="arrow-right" size={14} class="rotate-180" /> All posts
+        </a>
+        <p class="mt-6 font-mono text-2xs uppercase tracking-wider text-fg-muted">
+          <time datetime={post.data.date.toISOString()}>{fmt.format(post.data.date)}</time> · {
+            post.data.author
+          }
+        </p>
+        <h1 class="headline mt-3 text-4xl sm:text-5xl">{post.data.title}</h1>
+        <p class="mt-5 text-lg leading-relaxed text-fg-muted">{post.data.description}</p>
+      </div>
     </header>
-    <div class="prose-idz mt-10">
-      <Content />
+    <div class="container-site max-w-3xl pb-24">
+      <div class="prose-idz prose-lg">
+        <Content />
+      </div>
+      <p class="mt-14 border-t border-border pt-6 text-sm">
+        <a href="/blog" class="link">All posts</a>
+      </p>
     </div>
-    <p class="mt-12 text-sm">
-      <a href="/blog" class="text-accent underline underline-offset-2">← All posts</a>
-    </p>
   </article>
 </Base>

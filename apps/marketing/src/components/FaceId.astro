@@ -1,0 +1,30 @@
+---
+/** Face ID style glyph: corner brackets around a simple face. Decorative. */
+interface Props {
+  class?: string;
+  size?: number;
+}
+const { class: className, size = 40 } = Astro.props;
+---
+
+<svg
+  width={size}
+  height={size}
+  viewBox="0 0 48 48"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="2.5"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+  aria-hidden="true"
+  class={className}
+>
+  <path d="M6 16V10a4 4 0 0 1 4-4h6"></path>
+  <path d="M32 6h6a4 4 0 0 1 4 4v6"></path>
+  <path d="M42 32v6a4 4 0 0 1-4 4h-6"></path>
+  <path d="M16 42h-6a4 4 0 0 1-4-4v-6"></path>
+  <path d="M17 19v3"></path>
+  <path d="M31 19v3"></path>
+  <path d="M24 19v8h-2"></path>
+  <path d="M17 31c2 2.4 4.4 3.5 7 3.5s5-1.1 7-3.5"></path>
+</svg>

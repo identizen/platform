@@ -1,0 +1,140 @@
+---
+/**
+ * A realistic phone frame. Whatever is slotted in becomes the screen.
+ * Width is driven by `--phone-w` (default 15.5rem); height follows a 9:19.5 panel.
+ * Static illustrations get `role="img"`; pass `interactive` when the screen holds real controls.
+ */
+interface Props {
+  class?: string;
+  label?: string;
+  interactive?: boolean;
+}
+const {
+  class: className,
+  label = 'Phone showing the Identizen approval screen',
+  interactive = false,
+} = Astro.props;
+---
+
+<div
+  class:list={['phone', className]}
+  role={interactive ? undefined : 'img'}
+  aria-label={interactive ? undefined : label}
+>
+  <span class="phone-btn phone-btn-mute" aria-hidden="true"></span>
+  <span class="phone-btn phone-btn-vol-up" aria-hidden="true"></span>
+  <span class="phone-btn phone-btn-vol-down" aria-hidden="true"></span>
+  <span class="phone-btn phone-btn-power" aria-hidden="true"></span>
+  <div class="phone-bezel">
+    <div class="phone-screen">
+      <span class="phone-island" aria-hidden="true"></span>
+      <slot />
+    </div>
+  </div>
+</div>
+
+<style>
+  .phone {
+    --phone-w: 15.5rem;
+    --phone-r: calc(var(--phone-w) * 0.19);
+    position: relative;
+    width: var(--phone-w);
+    aspect-ratio: 9 / 19.5;
+    border-radius: var(--phone-r);
+    background: linear-gradient(160deg, #3a3d44 0%, #15171b 35%, #101215 70%, #2a2d33 100%);
+    box-shadow:
+      var(--shadow-device),
+      0 0 0 1px oklch(0 0 0 / 0.55);
+    flex: none;
+  }
+  .phone::before {
+    /* bezel highlight */
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    padding: 1.5px;
+    background: linear-gradient(
+      165deg,
+      oklch(1 0 0 / 0.55),
+      oklch(1 0 0 / 0.08) 25%,
+      oklch(1 0 0 / 0.02) 60%,
+      oklch(1 0 0 / 0.3)
+    );
+    -webkit-mask:
+      linear-gradient(#000 0 0) content-box,
+      linear-gradient(#000 0 0);
+    mask:
+      linear-gradient(#000 0 0) content-box,
+      linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    pointer-events: none;
+    z-index: 2;
+  }
+  .phone-bezel {
+    position: absolute;
+    inset: calc(var(--phone-w) * 0.035);
+    border-radius: calc(var(--phone-r) - var(--phone-w) * 0.035);
+    background: #000;
+    box-shadow: 0 0 0 2px #000;
+  }
+  .phone-screen {
+    position: absolute;
+    inset: calc(var(--phone-w) * 0.012);
+    border-radius: calc(var(--phone-r) - var(--phone-w) * 0.047);
+    background: var(--color-surface-0);
+    color: var(--color-fg);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+  .phone-island {
+    position: absolute;
+    top: calc(var(--phone-w) * 0.045);
+    left: 50%;
+    transform: translateX(-50%);
+    width: calc(var(--phone-w) * 0.31);
+    height: calc(var(--phone-w) * 0.09);
+    border-radius: 999px;
+    background: #000;
+    z-index: 3;
+  }
+  .phone-island::after {
+    content: '';
+    position: absolute;
+    right: calc(var(--phone-w) * 0.03);
+    top: 50%;
+    transform: translateY(-50%);
+    width: calc(var(--phone-w) * 0.035);
+    height: calc(var(--phone-w) * 0.035);
+    border-radius: 999px;
+    background: radial-gradient(circle at 35% 35%, #2b3a55, #06080d 70%);
+  }
+  .phone-btn {
+    position: absolute;
+    width: 3px;
+    border-radius: 2px;
+    background: linear-gradient(90deg, #2c2f35, #0f1114);
+  }
+  .phone-btn-mute {
+    left: -3px;
+    top: 17%;
+    height: 5%;
+  }
+  .phone-btn-vol-up {
+    left: -3px;
+    top: 25%;
+    height: 9%;
+  }
+  .phone-btn-vol-down {
+    left: -3px;
+    top: 36%;
+    height: 9%;
+  }
+  .phone-btn-power {
+    right: -3px;
+    top: 28%;
+    height: 14%;
+  }
+</style>
