@@ -53,11 +53,11 @@ Gate command: `npm run gate` = lint + typecheck + unit + e2e (e2e is a no-op unt
 
 ## M6 — SDK, React, CLI `[cc]` — tag `v0.6.0`
 
-- [ ] **M6.1** `[cc]` `@identizen/sdk` `startLogin()`; WebSocket to DO; discovery order paired → BLE → QR; deep link on mobile UA; pairing on by default. — Gate: unit with mocked transports; e2e via M5.
-- [ ] **M6.2** `[cc]` Server helpers `verify()` + webhook verification; client `enroll()`. — Gate: unit with MSW.
-- [ ] **M6.3** `[cc]` `@identizen/react`: Provider, Button, hook, `<IdentizenStepUp />`; accessible. — Gate: RTL + visual snapshot.
-- [ ] **M6.4** `[cc]` `identizen` CLI: `init`, `dev`, `register-site`. — Gate: `init` on fresh Next.js produces a working login under e2e.
-- [ ] **M6.5** `[cc]` Web Bluetooth discovery behind feature detection. — Gate: unit with mocked `navigator.bluetooth`; real test `[human]`.
+- [x] **M6.1** `[cc]` `@identizen/sdk` `startLogin()`; WebSocket to DO; discovery order paired → BLE → QR; deep link on mobile UA; pairing on by default. — Gate: unit with mocked transports; e2e via M5.
+- [x] **M6.2** `[cc]` Server helpers `verify()` + webhook verification; client `enroll()`. — Gate: unit with MSW.
+- [x] **M6.3** `[cc]` `@identizen/react`: Provider, Button, hook, `<IdentizenStepUp />`; accessible. — Gate: RTL + visual snapshot.
+- [x] **M6.4** `[cc]` `identizen` CLI: `init`, `dev`, `register-site`. — Gate: `init` on fresh Next.js produces a working login under e2e.
+- [x] **M6.5** `[cc]` Web Bluetooth discovery behind feature detection. — Gate: unit with mocked `navigator.bluetooth`; real test `[human]`.
 - [ ] **M6.6** `[cc+human]` DX gate: fresh `create-next-app` to logged-in < 5 min; recorded in `planning/dx-benchmark.md`.
 
 ## M7 — Web surfaces `[cc]` — tag `v0.7.0`
