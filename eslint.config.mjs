@@ -43,7 +43,7 @@ const defaultExportAllowed = [
   'e2e/site/middleware.ts',
   '**/*.astro',
   '**/*.stories.tsx',
-  '**/test/global-setup.ts',
+  '**/global-setup.ts',
 ];
 
 export default tseslint.config(
@@ -143,6 +143,7 @@ export default tseslint.config(
       '@typescript-eslint/no-unsafe-call': 'off',
       '@typescript-eslint/no-unsafe-return': 'off',
       '@typescript-eslint/unbound-method': 'off',
+      '@typescript-eslint/require-await': 'off',
       'max-lines': 'off',
       'no-console': 'off',
     },
