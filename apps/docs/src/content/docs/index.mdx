@@ -1,0 +1,46 @@
+---
+title: Identizen
+description: Login with your phone. Standard OIDC on the outside.
+template: splash
+hero:
+  tagline: The user's phone is the identity provider. Sites integrate a standard OIDC provider. Login is one tap plus Face ID.
+  actions:
+    - text: Quickstart
+      link: /quickstart/
+      icon: right-arrow
+    - text: Add MFA to your existing login
+      link: /add-mfa/
+      variant: minimal
+---
+
+import { Card, CardGrid } from '@astrojs/starlight/components';
+
+<CardGrid stagger>
+  <Card title="Quickstart" icon="rocket">
+    From `create-next-app` to a working login with `npx identizen init` and `npx identizen dev`. No
+    phone needed to develop. [Start here →](/quickstart/)
+  </Card>
+  <Card title="Add MFA to your existing login" icon="approve-check">
+    Keep your login. Push an approval to the user's phone over OIDC step-up or a server-to-server
+    Verification API, with a signed `reason` for transaction approval. [Path B →](/add-mfa/)
+  </Card>
+  <Card title="Reference" icon="open-book">
+    [OIDC](/reference/oidc/), [Verification API](/reference/verification-api/), [SDK and
+    CLI](/reference/sdk/), [Index API](/reference/index-api/), [Errors](/errors/), and the
+    [protocol](/protocol/).
+  </Card>
+</CardGrid>
+
+## The shape of it
+
+```txt
+Browser (site + SDK)          Index / Relay              Phone (Identizen app)
+        │ 1. discover phone          │                            │
+        │ 2. challenge {rp_id, nonce, code, acr, reason?} ── push ─►│
+        │                            │        3. site name, code,  │
+        │                            │           Face ID           │
+        │◄─────── signed assertion ──┼────────────────────────────┤
+        │ 4. index verifies; OIDC provider issues id_token         │
+```
+
+The site domain is inside the signed challenge, so a phished login on a lookalike domain produces a signature the real site will never accept. The index stores public keys, push tokens, revocation state, and audit events; there is nothing in it an attacker can log in with.

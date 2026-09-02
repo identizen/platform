@@ -1,0 +1,157 @@
+---
+title: Add MFA to your existing login
+description: Keep your password, magic link, or SSO. Bind the user's phone once, then push approvals to it for step-up and transaction signing.
+---
+
+Path B is the same product in a second mode: your site keeps its own login and calls Identizen for the factor. There is nothing to store except a per-site `sub`, no SMS, no TOTP secrets, and no big-tech account in the chain.
+
+Two integration styles:
+
+- **OIDC step-up** for browser flows: redirect to `/authorize` with `acr_values=idz:mfa` and `login_hint=<sub>`. Works with any OIDC library you already use.
+- **Verification API** for server-driven flows (a backend job, a CLI, an SSH login, a wire transfer): `POST /v1/verify { sub, reason }`, then poll or take the webhook.
+
+## 1. Enroll: bind a phone to an existing account
+
+The user is already logged in to your site by your own means; that session is the proof of who they are. Send them through a normal Identizen login with `prompt=enroll` and store the returned `sub` on the user record.
+
+```ts title="Server: build the enrollment URL"
+import { createIdentizenServer, pkceChallenge, randomString } from '@identizen/sdk/server';
+
+const identizen = createIdentizenServer({
+  indexUrl: process.env.IDENTIZEN_INDEX_URL ?? 'http://localhost:8787',
+  clientId: process.env.IDENTIZEN_CLIENT_ID ?? '',
+  clientSecret: process.env.IDENTIZEN_CLIENT_SECRET,
+});
+
+export async function enrollmentUrl(): Promise<{
+  url: string;
+  state: string;
+  nonce: string;
+  verifier: string;
+}> {
+  const state = randomString(16);
+  const nonce = randomString(16);
+  const verifier = randomString(32);
+  const url = identizen.authorizationUrl({
+    redirectUri: 'https://app.example.com/api/auth/callback',
+    state,
+    nonce,
+    codeChallenge: await pkceChallenge(verifier),
+    prompt: 'enroll',
+  });
+  return { url, state, nonce, verifier };
+}
+```
+
+In the callback, exchange the code as usual and save `claims.sub` on the current user:
+
+```ts title="Server: callback" fragment="true"
+import { createIdentizenServer } from '@identizen/sdk/server';
+
+const identizen = createIdentizenServer({ indexUrl, clientId, clientSecret });
+const { claims } = await identizen.exchangeCode({ code, redirectUri, codeVerifier, nonce });
+// claims.sub is the per-site identifier to store on the user record
+user.enrolledSub = claims.sub;
+```
+
+In the browser the SDK has the same thing as a method: `identizen.enroll()` (see the [SDK reference](/reference/sdk/)).
+
+## 2. Step-up over OIDC
+
+After your primary auth, when a sensitive action needs the second factor, redirect with `acr_values=idz:mfa` and the bound `sub`. The index pushes straight to the phone (no QR); the user approves with biometrics; you receive an `id_token` with `acr: "idz:mfa"` and `amr` such as `["face","hwk"]`.
+
+```ts title="Server: step-up URL" fragment="true"
+import { createIdentizenServer, pkceChallenge, randomString } from '@identizen/sdk/server';
+
+const identizen = createIdentizenServer({ indexUrl, clientId, clientSecret });
+const verifier = randomString(32);
+const url = identizen.authorizationUrl({
+  redirectUri,
+  state: randomString(16),
+  nonce: randomString(16),
+  codeChallenge: await pkceChallenge(verifier),
+  acr: 'idz:mfa',
+  loginHint: user.enrolledSub,
+});
+```
+
+If the `sub` is not bound to an active device, the index redirects back with `error=login_required`; send the user through enrollment again.
+
+With React, `<IdentizenStepUp>` does the same from the browser and reports the result:
+
+```tsx title="Client: step-up component"
+import { IdentizenProvider, IdentizenStepUp } from '@identizen/react';
+
+export function ConfirmTransfer({ sub }: { sub: string }) {
+  return (
+    <IdentizenProvider indexUrl="https://index.identizen.com" clientId="idz_live_your_client">
+      <IdentizenStepUp
+        sub={sub}
+        reason="Approve wire transfer of $12,000 to Acme?"
+        onApproved={() => console.info('approved on the phone')}
+        onError={(s) => console.warn(s.status)}
+      />
+    </IdentizenProvider>
+  );
+}
+```
+
+## 3. Verification API (transaction signing)
+
+For anything without a browser, or when you want a signed record of exactly what was approved, use the Verification API. `reason` is shown on the phone and its SHA-256 is inside the signed assertion, so you hold non-repudiable evidence of what the user saw.
+
+```ts title="Server: verify a transaction"
+import { createIdentizenServer } from '@identizen/sdk/server';
+
+const identizen = createIdentizenServer({
+  indexUrl: process.env.IDENTIZEN_INDEX_URL ?? 'http://localhost:8787',
+  clientId: process.env.IDENTIZEN_CLIENT_ID ?? '',
+  clientSecret: process.env.IDENTIZEN_CLIENT_SECRET,
+});
+
+export async function approveTransfer(sub: string): Promise<boolean> {
+  const started = await identizen.verify({
+    sub,
+    reason: 'Approve wire transfer of $12,000 to Acme?',
+  });
+  const result = await identizen.waitForVerification(started.verification_id, {
+    timeoutMs: 65_000,
+  });
+  if (result.status !== 'approved' || !result.assertion) return false;
+  // result.assertion.payload.reason_hash === base64url(sha256(reason))
+  return true;
+}
+```
+
+Statuses are `pending`, `approved`, `denied`, and `timeout` (the challenge lives 60 seconds). Details, the raw HTTP shape, and the webhook are in the [Verification API reference](/reference/verification-api/).
+
+### Webhook instead of polling
+
+Register a webhook URL for the site (at registration, or `POST /sites/:client_id/webhook`). The index POSTs a signed JWT (`Content-Type: application/jwt`) when the verification resolves:
+
+```ts title="Server: webhook receiver (Next.js route handler)"
+import { createIdentizenServer } from '@identizen/sdk/server';
+
+const identizen = createIdentizenServer({
+  indexUrl: process.env.IDENTIZEN_INDEX_URL ?? 'http://localhost:8787',
+  clientId: process.env.IDENTIZEN_CLIENT_ID ?? '',
+  clientSecret: process.env.IDENTIZEN_CLIENT_SECRET,
+});
+
+export async function POST(req: Request): Promise<Response> {
+  const event = await identizen.verifyWebhook(await req.text());
+  // event.verification_id, event.status, event.sub, event.assertion
+  console.info(event.verification_id, event.status);
+  return new Response(null, { status: 200 });
+}
+```
+
+## 4. What to store, and what not to
+
+- Store the per-site `sub` on the user. That is all Identizen needs to target the phone.
+- Do not store anything else from Identizen as a secret; there are none.
+- Keep your own account recovery (email, recovery codes) for users who lose the phone and have no second device. Identizen owns the factor, not account recovery, in Path B.
+
+## What the phone shows
+
+Site name, the two-digit match code, the `reason` if you sent one, and the biometric prompt. Nothing else. Number matching means a push the user did not start cannot be approved by accident, and the index rate-limits pushes per device.

@@ -56,6 +56,7 @@ export default tseslint.config(
       '**/.astro/**',
       '**/coverage/**',
       '**/.wrangler/**',
+      '**/.verify/**',
       '**/.next/**',
       '**/playwright-report/**',
       '**/test-results/**',
