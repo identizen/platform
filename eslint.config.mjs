@@ -49,6 +49,7 @@ const defaultExportAllowed = [
 export default tseslint.config(
   {
     ignores: [
+      '.claude/**',
       '**/node_modules/**',
       '**/dist/**',
       '**/build/**',
