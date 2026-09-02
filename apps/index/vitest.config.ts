@@ -1,4 +1,7 @@
+import { readFileSync } from 'node:fs';
 import { defineWorkersConfig } from '@cloudflare/vitest-pool-workers/config';
+
+const oidcKeys = readFileSync(new URL('./test/oidc-keys.json', import.meta.url), 'utf8');
 
 export default defineWorkersConfig({
   test: {
@@ -19,6 +22,7 @@ export default defineWorkersConfig({
             PUSH_PROVIDER: 'noop',
             OPEN_SITE_REGISTRATION: 'true',
             INDEX_SIGNING_KEY: '404142434445464748494a4b4c4d4e4f505152535455565758595a5b5c5d5e5f',
+            OIDC_SIGNING_KEYS: oidcKeys,
           },
           hyperdrives: {
             HYPERDRIVE:

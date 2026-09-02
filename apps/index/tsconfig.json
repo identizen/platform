@@ -5,5 +5,5 @@
     "types": ["@cloudflare/workers-types/2023-07-01", "@cloudflare/vitest-pool-workers"],
     "noEmit": true
   },
-  "include": ["src", "test", "*.ts"]
+  "include": ["src", "test", "scripts", "*.ts"]
 }
