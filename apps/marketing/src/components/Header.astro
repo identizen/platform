@@ -1,0 +1,67 @@
+---
+import { NAV, SITE, isActive } from '../lib/site';
+import { ThemeToggleIsland } from '../islands/ThemeToggleIsland';
+
+const current = Astro.url.pathname.replace(/\/$/, '') || '/';
+---
+
+<header class="sticky top-0 z-40 border-b border-border bg-surface-0/85 backdrop-blur">
+  <div class="container-prose flex h-14 items-center justify-between gap-4">
+    <a
+      href="/"
+      class="flex items-center gap-2 font-semibold tracking-tight"
+      aria-label="Identizen home"
+    >
+      <svg width="22" height="22" viewBox="0 0 32 32" aria-hidden="true" class="text-accent">
+        <rect x="2" y="2" width="28" height="28" rx="8" fill="currentColor"></rect>
+        <path d="M11 9h10M16 9v14M11 23h10" stroke="white" stroke-width="3" stroke-linecap="round"
+        ></path>
+      </svg>
+      <span>{SITE.name}</span>
+    </a>
+    <nav aria-label="Primary" class="hidden items-center gap-1 sm:flex">
+      {
+        NAV.map((item) => (
+          <a
+            href={item.href}
+            class:list={[
+              'rounded-md px-3 py-1.5 text-sm transition-colors hover:bg-surface-2',
+              isActive(current, item.href) ? 'text-fg font-medium' : 'text-fg-muted',
+            ]}
+            aria-current={isActive(current, item.href) ? 'page' : undefined}
+            rel={item.external ? 'noopener' : undefined}
+          >
+            {item.label}
+          </a>
+        ))
+      }
+    </nav>
+    <div class="flex items-center gap-1">
+      <a
+        href={SITE.github}
+        rel="noopener"
+        class="rounded-md px-3 py-1.5 text-sm text-fg-muted hover:bg-surface-2"
+        aria-label="Identizen on GitHub">GitHub</a
+      >
+      <ThemeToggleIsland client:load />
+      <details class="relative sm:hidden">
+        <summary
+          class="list-none rounded-md px-3 py-1.5 text-sm text-fg-muted hover:bg-surface-2 cursor-pointer"
+          aria-label="Open menu">Menu</summary
+        >
+        <nav
+          aria-label="Mobile"
+          class="absolute right-0 mt-2 flex w-48 flex-col rounded-lg border border-border bg-surface-0 p-1 shadow-md"
+        >
+          {
+            NAV.map((item) => (
+              <a href={item.href} class="rounded-md px-3 py-2 text-sm hover:bg-surface-2">
+                {item.label}
+              </a>
+            ))
+          }
+        </nav>
+      </details>
+    </div>
+  </div>
+</header>

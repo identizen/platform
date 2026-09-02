@@ -1,0 +1,62 @@
+---
+import Base from '../layouts/Base.astro';
+import { Playground } from '../islands/Playground';
+import { SITE } from '../lib/site';
+
+const indexUrl =
+  (import.meta.env.PUBLIC_IDENTIZEN_INDEX_URL as string | undefined) ??
+  'https://index.identizen.com';
+const clientId =
+  (import.meta.env.PUBLIC_IDENTIZEN_PLAYGROUND_CLIENT_ID as string | undefined) ?? '';
+---
+
+<Base
+  title="Playground"
+  description="Try an Identizen login against a demo site with your real phone — or with the fake phone from npx identizen dev — before writing any code."
+>
+  <div class="grid gap-10 lg:grid-cols-[1fr_1.1fr]">
+    <header>
+      <h1 class="text-4xl font-semibold tracking-tight">Try it before you write code.</h1>
+      <p class="mt-4 text-lg text-fg-muted">
+        This is the real <code class="font-mono text-base">@identizen/react</code> button against the
+        demo site on <span class="font-mono text-base">{new URL(indexUrl).host}</span>. We dogfood
+        the SDK you would install.
+      </p>
+      <ol class="mt-6 space-y-2 text-sm text-fg-muted">
+        <li>1. Install the Identizen app and create an identity (under a minute).</li>
+        <li>2. Click the button. Scan the QR or, on Chromium, pick your phone over Bluetooth.</li>
+        <li>
+          3. Check the match code, approve with Face ID. This browser is now paired; next time there
+          is no QR.
+        </li>
+      </ol>
+      <p class="mt-6 text-sm text-fg-muted">
+        Developer without a phone handy: <code class="font-mono">npx identizen dev</code> runs a fake
+        phone that approves logins. See the <a
+          class="text-accent underline underline-offset-2"
+          href={`${SITE.docs}/quickstart`}>quickstart</a
+        >.
+      </p>
+    </header>
+    <div>
+      {
+        clientId ? (
+          <Playground client:only="react" indexUrl={indexUrl} clientId={clientId} />
+        ) : (
+          <div
+            class="rounded-xl border border-dashed border-border-strong p-6 text-sm text-fg-muted"
+            data-testid="playground-unconfigured"
+          >
+            <p class="font-medium text-fg">Playground not configured for this build.</p>
+            <p class="mt-2">
+              Set <code class="font-mono">PUBLIC_IDENTIZEN_INDEX_URL</code> and{' '}
+              <code class="font-mono">PUBLIC_IDENTIZEN_PLAYGROUND_CLIENT_ID</code> (a public PKCE
+              client registered with the index, redirect URI{' '}
+              <code class="font-mono">/playground</code>) and rebuild.
+            </p>
+          </div>
+        )
+      }
+    </div>
+  </div>
+</Base>

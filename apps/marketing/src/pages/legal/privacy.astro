@@ -1,0 +1,60 @@
+---
+import Base from '../../layouts/Base.astro';
+---
+
+<Base
+  title="Privacy"
+  description="Draft privacy policy for identizen.com and the Identizen hosted services."
+  noindex
+>
+  <article class="prose-idz mx-auto max-w-3xl">
+    <p
+      class="rounded-md border border-warning-soft bg-warning-soft px-3 py-2 text-sm text-warning-soft-fg"
+    >
+      Draft. Not yet reviewed by counsel; will be replaced before general availability.
+    </p>
+    <h1 class="mt-6 text-4xl font-semibold tracking-tight">Privacy</h1>
+    <p class="mt-4 text-lg text-fg-muted">
+      The short version: we designed the system so that we hold as little as possible, and nothing
+      that can be used to log in as you.
+    </p>
+
+    <h2>What the public index stores</h2>
+    <ul>
+      <li>Public keys for your identity and devices. Never private keys, seeds, or passphrases.</li>
+      <li>A push token per device so we can deliver a challenge id (and only a challenge id).</li>
+      <li>
+        A rotating Bluetooth key per device so a nearby browser can find your phone. It rotates
+        every 15 minutes and is resolvable only by the index.
+      </li>
+      <li>
+        Which sites you have logged in to (as per-site identifiers), so revocation can log you out
+        everywhere.
+      </li>
+      <li>Audit events: logins, approvals, denials, enrollments, revocations, with timestamps.</li>
+      <li>An optional handle, if you choose one.</li>
+    </ul>
+
+    <h2>What sites receive</h2>
+    <p>
+      A stable per-site identifier, an opaque device id, and the authentication method used. No
+      email, no name, no cross-site identifier.
+    </p>
+
+    <h2>What this website collects</h2>
+    <p>
+      Contact-form submissions are sent to us by email and protected by Cloudflare Turnstile. We do
+      not run third-party analytics or advertising scripts.
+    </p>
+
+    <h2>Your choices</h2>
+    <p>
+      Revoke any device, session, or paired browser from the dashboard or the app. Deleting your
+      last device removes your identity from the index; audit records are retained for the period
+      required by law and then deleted.
+    </p>
+
+    <h2>Contact</h2>
+    <p>privacy@identizen.com</p>
+  </article>
+</Base>
