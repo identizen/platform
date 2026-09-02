@@ -15,6 +15,7 @@ export class RequestGuard extends DurableObject<Env> {
   private seen = new Map<string, number>();
   private requests: number[] = [];
   private pushes: number[] = [];
+  private inbox: string[] = [];
 
   /** Returns false if `(timestamp, sig)` was already seen or the device exceeds its rate limit. */
   async check(timestamp: number, sig: string): Promise<boolean> {
@@ -39,8 +40,23 @@ export class RequestGuard extends DurableObject<Env> {
     return true;
   }
 
+  /** Queue a challenge id for a device that polls instead of receiving pushes. */
+  async enqueue(challengeId: string): Promise<void> {
+    this.inbox.push(challengeId);
+    if (this.inbox.length > 50) this.inbox.shift();
+    await this.ctx.storage.setAlarm(Date.now() + WINDOW_MS);
+  }
+
+  /** Return and clear queued challenge ids. */
+  drain(): string[] {
+    const out = this.inbox;
+    this.inbox = [];
+    return out;
+  }
+
   override async alarm(): Promise<void> {
     this.prune(Date.now());
+    this.inbox = [];
     if (this.seen.size > 0 || this.requests.length > 0 || this.pushes.length > 0) {
       await this.ctx.storage.setAlarm(Date.now() + WINDOW_MS);
     }

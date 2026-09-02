@@ -335,7 +335,7 @@ describe('sessions', () => {
       idz: IDZ,
       deviceId: d.id,
       clientId: site.clientId,
-      expiresAt: new Date(Date.now() - 1),
+      expiresAt: new Date(Date.now() - 60_000),
     });
     expect(isSessionLive(s1)).toBe(true);
     expect((await listLiveSessionsForIdentity(h.db, IDZ)).map((s) => s.sid)).toEqual(['s1', 's2']);

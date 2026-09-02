@@ -1,7 +1,6 @@
 {
   "name": "@identizen/fake-phone",
-  "version": "0.0.0",
-  "private": true,
+  "version": "0.1.0",
   "description": "A scriptable Identizen phone for local development and e2e: registers a device + identity, receives challenges, and approves, denies, or ignores them per policy.",
   "license": "Apache-2.0",
   "type": "module",
@@ -33,5 +32,8 @@
     "tsx": "^4.20.5",
     "typescript": "^5.9.2",
     "vitest": "^3.2.4"
+  },
+  "publishConfig": {
+    "access": "public"
   }
 }

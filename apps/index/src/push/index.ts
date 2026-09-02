@@ -1,6 +1,7 @@
 import type { Device } from '@identizen/db';
 import { fromBase64Url, toBase64Url, utf8Encode } from '@identizen/protocol';
 import { SignJWT, importPKCS8 } from 'jose';
+import type { RequestGuard } from '../do/request-guard';
 import type { Env } from '../env';
 
 /** The only payload that transits APNs / FCM / Web Push (PROTOCOL.md section 7). */
@@ -36,9 +37,17 @@ export class NoopPushSender implements PushSender {
  *   is wired in a later milestone; until then it is reported as unsupported rather than faked.
  */
 export class WebPushSender implements PushSender {
-  constructor(private readonly fetchImpl: typeof fetch = (input, init) => fetch(input, init)) {}
+  constructor(
+    private readonly guards: DurableObjectNamespace<RequestGuard> | null = null,
+    private readonly fetchImpl: typeof fetch = (input, init) => fetch(input, init),
+  ) {}
   async send(device: PushTarget, payload: PushPayload): Promise<PushResult> {
     const token = device.pushToken ?? '';
+    if (token === 'poll') {
+      if (!this.guards) return { ok: false, provider: 'web', detail: 'inbox unavailable' };
+      await this.guards.getByName(device.id).enqueue(payload.challenge_id);
+      return { ok: true, provider: 'web', detail: 'queued for polling' };
+    }
     if (/^https?:\/\//.test(token)) {
       try {
         const res = await this.fetchImpl(token, {
@@ -145,6 +154,21 @@ export class FcmPushSender implements PushSender {
   }
 }
 
+/** Queues for polling devices; hands everything else to the fallback. */
+class PollOnlySender implements PushSender {
+  constructor(
+    private readonly guards: DurableObjectNamespace<RequestGuard>,
+    private readonly fallback: PushSender,
+  ) {}
+  async send(device: PushTarget, payload: PushPayload): Promise<PushResult> {
+    if (device.pushToken === 'poll') {
+      await this.guards.getByName(device.id).enqueue(payload.challenge_id);
+      return { ok: true, provider: 'web', detail: 'queued for polling' };
+    }
+    return this.fallback.send(device, payload);
+  }
+}
+
 /** Route by the device's platform; falls back to `noop` when a provider is not configured. */
 export class RoutingPushSender implements PushSender {
   constructor(
@@ -159,8 +183,13 @@ export class RoutingPushSender implements PushSender {
 
 export function createPushSender(env: Env): PushSender {
   const noop = new NoopPushSender();
-  if ((env.PUSH_PROVIDER ?? 'noop') === 'noop') return noop;
-  const senders: Partial<Record<'apns' | 'fcm' | 'web', PushSender>> = { web: new WebPushSender() };
+  if ((env.PUSH_PROVIDER ?? 'noop') === 'noop') {
+    // Even with pushes disabled, polling devices (push_token 'poll') get their inbox.
+    return new RoutingPushSender({ web: new PollOnlySender(env.REQUEST_GUARD, noop) }, noop);
+  }
+  const senders: Partial<Record<'apns' | 'fcm' | 'web', PushSender>> = {
+    web: new WebPushSender(env.REQUEST_GUARD),
+  };
   if (env.APNS_KEY_ID && env.APNS_TEAM_ID && env.APNS_PRIVATE_KEY && env.APNS_TOPIC) {
     senders.apns = new ApnsPushSender({
       keyId: env.APNS_KEY_ID,

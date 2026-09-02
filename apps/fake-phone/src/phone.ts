@@ -58,6 +58,9 @@ export interface FakePhoneOptions {
   handle?: string | null;
   fetchImpl?: typeof fetch;
   onStateChange?: (state: PhoneState) => void;
+  /** Poll the index inbox instead of receiving HTTP pushes (works against hosted indexes). */
+  poll?: boolean;
+  pollIntervalMs?: number;
 }
 
 export interface ApproveResult {
@@ -76,6 +79,9 @@ export class FakePhone {
   private readonly fetchImpl: typeof fetch;
   private readonly onStateChange: ((s: PhoneState) => void) | undefined;
   private readonly waiters = new Set<(c: PendingChallenge) => void>();
+  private readonly poll: boolean;
+  private readonly pollIntervalMs: number;
+  private pollTimer: ReturnType<typeof setTimeout> | null = null;
 
   constructor(opts: FakePhoneOptions) {
     this.indexUrl = opts.indexUrl.replace(/\/+$/, '');
@@ -85,6 +91,8 @@ export class FakePhone {
     this.fetchImpl = opts.fetchImpl ?? fetch;
     this.onStateChange = opts.onStateChange;
     this.state = opts.state ?? FakePhone.freshState(opts.handle ?? null);
+    this.poll = opts.poll ?? false;
+    this.pollIntervalMs = opts.pollIntervalMs ?? 1000;
   }
 
   static freshState(handle: string | null = null): PhoneState {
@@ -138,7 +146,9 @@ export class FakePhone {
         master_sig: signIdentityProof(devicePub, master.privateKey),
         ble_key: toBase64Url(this.bleKey),
         ...(this.state.handle && { handle: this.state.handle }),
-        ...(this.pushUrl && { push_token: `${this.pushUrl}/push`, push_platform: 'web' }),
+        ...(this.poll
+          ? { push_token: 'poll', push_platform: 'web' }
+          : this.pushUrl && { push_token: `${this.pushUrl}/push`, push_platform: 'web' }),
         label: 'Fake phone',
       }),
     });
@@ -158,11 +168,39 @@ export class FakePhone {
     };
     this.onStateChange?.(this.snapshot);
     this.record('registered', { device_id: body.device_id, idz: body.idz });
+    if (this.poll) this.startPolling();
     return this.snapshot;
+  }
+
+  /** Drain the index inbox (challenge ids queued for this device) on an interval. */
+  startPolling(): void {
+    if (this.pollTimer) return;
+    const tick = async () => {
+      this.pollTimer = null;
+      try {
+        if (this.state.deviceId) {
+          const res = await this.signed('GET', `/devices/${this.state.deviceId}/inbox`);
+          if (res.ok) {
+            const { challenge_ids } = (await res.json()) as { challenge_ids: string[] };
+            for (const id of challenge_ids) await this.onPush(id).catch(() => undefined);
+          }
+        }
+      } catch {
+        /* index unreachable; try again */
+      }
+      this.pollTimer = setTimeout(() => void tick(), this.pollIntervalMs);
+    };
+    this.pollTimer = setTimeout(() => void tick(), 0);
+  }
+
+  stopPolling(): void {
+    if (this.pollTimer) clearTimeout(this.pollTimer);
+    this.pollTimer = null;
   }
 
   /** Forget everything and become a brand-new identity. */
   reset(handle: string | null = null): void {
+    this.stopPolling();
     this.state = FakePhone.freshState(handle);
     this.pending.clear();
     this.onStateChange?.(this.snapshot);

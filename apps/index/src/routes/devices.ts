@@ -99,6 +99,15 @@ export function devicesRoutes(): Hono<AppEnv> {
     return c.json({ device_id: updated.id, push_platform: updated.pushPlatform });
   });
 
+  /** Polling devices (push_token 'poll') drain queued challenge ids here. */
+  r.get('/devices/:id/inbox', deviceAuth(), async (c) => {
+    const device = c.get('device');
+    if (device.id !== c.req.param('id'))
+      throw forbidden('wrong_device', 'signature is for a different device');
+    const ids = await c.env.REQUEST_GUARD.getByName(device.id).drain();
+    return c.json({ challenge_ids: ids }, 200, { 'cache-control': 'no-store' });
+  });
+
   /**
    * Revoke a device of the same identity from another enrolled device.
    * Passphrase-proof revocation (no enrolled device left) is `POST /identities/revoke-device` (M7).

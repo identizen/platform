@@ -19,6 +19,7 @@ const policy = (arg('policy', process.env.FAKE_PHONE_POLICY) ?? 'approve') as Po
 const statePath = arg('state', process.env.FAKE_PHONE_STATE);
 const publicUrl = arg('url', process.env.FAKE_PHONE_URL) ?? `http://localhost:${port}`;
 const handle = arg('handle', process.env.FAKE_PHONE_HANDLE) ?? null;
+const poll = process.argv.includes('--poll') || process.env.FAKE_PHONE_POLL === 'true';
 
 let state: PhoneState | null = null;
 if (statePath && existsSync(statePath)) {
@@ -27,10 +28,11 @@ if (statePath && existsSync(statePath)) {
 
 const phone = new FakePhone({
   indexUrl,
-  pushUrl: publicUrl,
+  pushUrl: poll ? null : publicUrl,
   policy,
   state,
   handle,
+  poll,
   onStateChange: (s) => {
     if (!statePath) return;
     mkdirSync(dirname(statePath), { recursive: true });

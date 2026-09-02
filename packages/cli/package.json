@@ -1,0 +1,47 @@
+{
+  "name": "identizen",
+  "version": "0.1.0",
+  "description": "Identizen CLI: `identizen init` registers your site and scaffolds the login routes; `identizen dev` runs a fake phone so you can log in without a device.",
+  "license": "Apache-2.0",
+  "type": "module",
+  "bin": {
+    "identizen": "./dist/cli.js"
+  },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/identizen/identizen",
+    "directory": "packages/cli"
+  },
+  "homepage": "https://identizen.com",
+  "keywords": [
+    "identizen",
+    "cli",
+    "oidc",
+    "passwordless",
+    "login"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test:unit": "vitest run",
+    "dev": "tsx src/cli.ts"
+  },
+  "dependencies": {
+    "@identizen/fake-phone": "^0.1.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.17.0",
+    "tsx": "^4.20.5",
+    "typescript": "^5.9.2",
+    "vitest": "^3.2.4"
+  }
+}
