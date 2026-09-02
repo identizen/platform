@@ -22,3 +22,5 @@ e2e/site/.next/
 *.tsbuildinfo
 e2e/site/.next/
 e2e/.state/
+.dev.vars.dev
+.claude/

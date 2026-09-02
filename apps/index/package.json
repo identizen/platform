@@ -6,13 +6,14 @@
   "license": "Apache-2.0",
   "type": "module",
   "scripts": {
-    "dev": "wrangler dev",
+    "dev": "wrangler dev --env dev",
     "build": "tsc -p tsconfig.json --noEmit",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "test:unit": "vitest run",
     "deploy": "wrangler deploy",
     "types": "wrangler types",
-    "keys": "tsx scripts/gen-oidc-keys.ts"
+    "keys": "tsx scripts/gen-oidc-keys.ts",
+    "dev:e2e": "wrangler dev --env e2e"
   },
   "dependencies": {
     "@identizen/db": "^0.0.0",

@@ -1,0 +1,17 @@
+**/node_modules
+**/dist
+**/.turbo
+**/.wrangler
+**/.next
+**/.astro
+**/coverage
+**/playwright-report
+**/test-results
+**/.dev.vars
+**/.dev.vars.*
+.git
+apps/mobile
+apps/web
+apps/marketing
+apps/docs
+e2e

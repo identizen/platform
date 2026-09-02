@@ -24,7 +24,7 @@ export default defineConfig({
   },
   webServer: [
     {
-      command: 'npm run dev -w @identizen/index -- --env e2e --port 8787',
+      command: 'npm run dev:e2e -w @identizen/index -- --port 8787',
       url: `${INDEX_URL}/health`,
       reuseExistingServer: !process.env.CI,
       timeout: 180_000,

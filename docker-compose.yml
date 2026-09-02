@@ -1,3 +1,5 @@
+# Local development: `docker compose up -d postgres`
+# Self-host:         `docker compose --profile selfhost up` (index + postgres), configured by environment only.
 services:
   postgres:
     image: postgres:16-alpine
@@ -15,5 +17,34 @@ services:
     volumes:
       - pgdata:/var/lib/postgresql/data
 
+  index:
+    profiles: ['selfhost']
+    build:
+      context: .
+      dockerfile: apps/index/Dockerfile
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgres://identizen:identizen@postgres:5432/identizen
+      INDEX_URL: ${INDEX_URL:-http://localhost:8787}
+      APP_URL: ${APP_URL:-http://localhost:8787}
+      INDEX_SIGNING_KEY: ${INDEX_SIGNING_KEY:?set INDEX_SIGNING_KEY (32-byte hex)}
+      OIDC_SIGNING_KEYS: ${OIDC_SIGNING_KEYS:?set OIDC_SIGNING_KEYS (npm run keys -w @identizen/index)}
+      PUSH_PROVIDER: ${PUSH_PROVIDER:-web}
+      OPEN_SITE_REGISTRATION: ${OPEN_SITE_REGISTRATION:-true}
+      SITE_REGISTRATION_TOKEN: ${SITE_REGISTRATION_TOKEN:-}
+      DASHBOARD_CLIENT_IDS: ${DASHBOARD_CLIENT_IDS:-}
+    ports:
+      - '8787:8787'
+    volumes:
+      - dostate:/data
+    healthcheck:
+      test: ['CMD-SHELL', 'wget -qO- http://127.0.0.1:8787/health || exit 1']
+      interval: 10s
+      timeout: 5s
+      retries: 12
+
 volumes:
   pgdata:
+  dostate:

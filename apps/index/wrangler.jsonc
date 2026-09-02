@@ -4,29 +4,70 @@
   "main": "src/index.ts",
   "compatibility_date": "2025-08-01",
   "compatibility_flags": ["nodejs_compat"],
-  "observability": { "enabled": true },
+  "observability": {
+    "enabled": true,
+  },
   "vars": {
-    "INDEX_URL": "http://localhost:8787",
-    "APP_URL": "http://localhost:4300",
-    "PUSH_PROVIDER": "noop",
+    "INDEX_URL": "https://identizen-index.noundry.workers.dev",
+    "APP_URL": "https://identizen-index.noundry.workers.dev",
+    "PUSH_PROVIDER": "web",
     "OPEN_SITE_REGISTRATION": "true",
-    "DASHBOARD_CLIENT_IDS": "*",
+    "DASHBOARD_CLIENT_IDS": "",
   },
   "hyperdrive": [
     {
       "binding": "HYPERDRIVE",
-      "id": "00000000000000000000000000000000",
+      "id": "4a75446a9cd747ec9f5292aebebba432",
       "localConnectionString": "postgres://identizen:identizen@localhost:5433/identizen",
     },
   ],
   "durable_objects": {
     "bindings": [
-      { "name": "CHALLENGE_SESSION", "class_name": "ChallengeSession" },
-      { "name": "REQUEST_GUARD", "class_name": "RequestGuard" },
+      {
+        "name": "CHALLENGE_SESSION",
+        "class_name": "ChallengeSession",
+      },
+      {
+        "name": "REQUEST_GUARD",
+        "class_name": "RequestGuard",
+      },
     ],
   },
-  "migrations": [{ "tag": "v1", "new_sqlite_classes": ["ChallengeSession", "RequestGuard"] }],
+  "migrations": [
+    {
+      "tag": "v1",
+      "new_sqlite_classes": ["ChallengeSession", "RequestGuard"],
+    },
+  ],
   "env": {
+    "dev": {
+      "vars": {
+        "INDEX_URL": "http://localhost:8787",
+        "APP_URL": "http://localhost:4300",
+        "PUSH_PROVIDER": "web",
+        "OPEN_SITE_REGISTRATION": "true",
+        "DASHBOARD_CLIENT_IDS": "*",
+      },
+      "hyperdrive": [
+        {
+          "binding": "HYPERDRIVE",
+          "id": "00000000000000000000000000000000",
+          "localConnectionString": "postgres://identizen:identizen@localhost:5433/identizen",
+        },
+      ],
+      "durable_objects": {
+        "bindings": [
+          {
+            "name": "CHALLENGE_SESSION",
+            "class_name": "ChallengeSession",
+          },
+          {
+            "name": "REQUEST_GUARD",
+            "class_name": "RequestGuard",
+          },
+        ],
+      },
+    },
     "e2e": {
       "vars": {
         "INDEX_URL": "http://localhost:8787",
@@ -44,8 +85,14 @@
       ],
       "durable_objects": {
         "bindings": [
-          { "name": "CHALLENGE_SESSION", "class_name": "ChallengeSession" },
-          { "name": "REQUEST_GUARD", "class_name": "RequestGuard" },
+          {
+            "name": "CHALLENGE_SESSION",
+            "class_name": "ChallengeSession",
+          },
+          {
+            "name": "REQUEST_GUARD",
+            "class_name": "RequestGuard",
+          },
         ],
       },
     },
