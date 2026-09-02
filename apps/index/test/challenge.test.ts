@@ -357,7 +357,7 @@ describe('POST /challenge/:id/assert', () => {
     expect(body.pairing?.payload.device_id).toBe(phone.deviceId);
     expect(body.pairing?.payload.pairing_id).toMatch(/^pr_/);
     expect(body.redirect).toMatch(
-      /^https:\/\/app\.example\.com\/callback\?code=[A-Za-z0-9_-]+&state=xyz$/,
+      /^https:\/\/app\.example\.com\/callback\?code=[A-Za-z0-9_.-]+&state=xyz$/,
     );
     const pairings = await json<{ pairings: { id: string; label: string | null }[] }>(
       await signedFetch(phone, 'GET', '/me/pairings'),
