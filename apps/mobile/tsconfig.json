@@ -1,0 +1,22 @@
+{
+  "extends": "expo/tsconfig.base",
+  "compilerOptions": {
+    "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "noImplicitOverride": true,
+    "exactOptionalPropertyTypes": true,
+    "verbatimModuleSyntax": true,
+    "isolatedModules": true,
+    "moduleResolution": "bundler",
+    "module": "ESNext",
+    "jsx": "react-jsx",
+    "jsxImportSource": "nativewind",
+    "allowJs": true,
+    "skipLibCheck": true,
+    "noEmit": true,
+    "types": ["jest", "node", "nativewind/types"],
+    "paths": { "@/*": ["./*"] }
+  },
+  "include": ["app", "src", "__tests__", "scripts", "*.ts", "*.d.ts"],
+  "exclude": ["node_modules", "ios", "android", ".expo"]
+}
