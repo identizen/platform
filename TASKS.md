@@ -13,11 +13,11 @@ Gate command: `npm run gate` = lint + typecheck + unit + e2e (e2e is a no-op unt
 
 ## M1 — Protocol package `[cc]` — tag `v0.1.0`
 
-- [ ] **M1.1** `[cc]` Seed generation + BIP39 encode/decode, HKDF derivation, Ed25519, `canonicalize()` (JCS). — Gate: BIP39 round-trip; RFC 8785 known-answer tests.
-- [ ] **M1.2** `[cc]` `Challenge`/`Assertion` types + Zod schemas; `signChallenge/verifyChallenge`, `signAssertion/verifyAssertion`. — Gate: sign→verify; tamper any field→fail; expired→fail; wrong rp_id→fail.
-- [ ] **M1.3** `[cc]` Rotating BLE ID function. — Gate: same key+window → same ID; adjacent window differs; ±1 window resolution.
-- [ ] **M1.4** `[cc]` `spec/vectors/*.json` generated from a fixed seed and committed. — Gate: package reproduces vectors byte-for-byte.
-- [ ] **M1 gate** coverage ≥ 95% on `packages/protocol`.
+- [x] **M1.1** `[cc]` Seed generation + BIP39 encode/decode, HKDF derivation, Ed25519, `canonicalize()` (JCS). — Gate: BIP39 round-trip; RFC 8785 known-answer tests.
+- [x] **M1.2** `[cc]` `Challenge`/`Assertion` types + Zod schemas; `signChallenge/verifyChallenge`, `signAssertion/verifyAssertion`. — Gate: sign→verify; tamper any field→fail; expired→fail; wrong rp_id→fail.
+- [x] **M1.3** `[cc]` Rotating BLE ID function. — Gate: same key+window → same ID; adjacent window differs; ±1 window resolution.
+- [x] **M1.4** `[cc]` `spec/vectors/*.json` generated from a fixed seed and committed. — Gate: package reproduces vectors byte-for-byte.
+- [x] **M1 gate** coverage ≥ 95% on `packages/protocol`.
 
 ## M2 — Database `[cc]` — tag `v0.2.0`
 

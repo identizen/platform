@@ -1,0 +1,46 @@
+{
+  "login": {
+    "assertion": {
+      "type": "assertion",
+      "challenge_id": "ch_01K3ZB2N9G0000000000000000",
+      "nonce": "qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqo",
+      "rp_id": "app.example.com",
+      "sub": "BGDc06RdHn33sxWmn9c3UAj26atv784D",
+      "site_pubkey": "RBsYdldIY8dWtxRYQKNJl8Qh-9kklEawjRqftAyZW9Q",
+      "device_id": "dev_01K3ZB2N9G0000000000000001",
+      "iat": 1756560012,
+      "amr": [
+        "face",
+        "hwk"
+      ],
+      "acr": "idz:login",
+      "reason_hash": null
+    },
+    "signing_input": "identizen/v1/assertion\n{\"acr\":\"idz:login\",\"amr\":[\"face\",\"hwk\"],\"challenge_id\":\"ch_01K3ZB2N9G0000000000000000\",\"device_id\":\"dev_01K3ZB2N9G0000000000000001\",\"iat\":1756560012,\"nonce\":\"qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqo\",\"reason_hash\":null,\"rp_id\":\"app.example.com\",\"site_pubkey\":\"RBsYdldIY8dWtxRYQKNJl8Qh-9kklEawjRqftAyZW9Q\",\"sub\":\"BGDc06RdHn33sxWmn9c3UAj26atv784D\",\"type\":\"assertion\"}",
+    "site_sig": "8CZ1JxSFKP5qGkaP8o6jPq_179SghYVB73gnHFVVy9fVaGgEGFh8HVYPRpSWaXOTb8hWL-DgvhCWFmkD8nN9Bg",
+    "device_sig": "z5fkM2JJ8Zd7e6qKNq8IpOZDd6PV-LFwI1zlUivWATSaxES7rAZcR9cP1ZVf6na4_RNoXNMbcQcvekijbzGHBA"
+  },
+  "mfa": {
+    "reason": "Approve wire transfer of $12,000 to Acme?",
+    "reason_hash": "i5AecmeA_x3Zx3Fs7CXingPD4szZInknHJAaUieHWpE",
+    "assertion": {
+      "type": "assertion",
+      "challenge_id": "ch_01K3ZB2N9G0000000000000000",
+      "nonce": "qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqo",
+      "rp_id": "app.example.com",
+      "sub": "BGDc06RdHn33sxWmn9c3UAj26atv784D",
+      "site_pubkey": "RBsYdldIY8dWtxRYQKNJl8Qh-9kklEawjRqftAyZW9Q",
+      "device_id": "dev_01K3ZB2N9G0000000000000001",
+      "iat": 1756560007,
+      "amr": [
+        "fingerprint",
+        "hwk"
+      ],
+      "acr": "idz:mfa",
+      "reason_hash": "i5AecmeA_x3Zx3Fs7CXingPD4szZInknHJAaUieHWpE"
+    },
+    "signing_input": "identizen/v1/assertion\n{\"acr\":\"idz:mfa\",\"amr\":[\"fingerprint\",\"hwk\"],\"challenge_id\":\"ch_01K3ZB2N9G0000000000000000\",\"device_id\":\"dev_01K3ZB2N9G0000000000000001\",\"iat\":1756560007,\"nonce\":\"qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqo\",\"reason_hash\":\"i5AecmeA_x3Zx3Fs7CXingPD4szZInknHJAaUieHWpE\",\"rp_id\":\"app.example.com\",\"site_pubkey\":\"RBsYdldIY8dWtxRYQKNJl8Qh-9kklEawjRqftAyZW9Q\",\"sub\":\"BGDc06RdHn33sxWmn9c3UAj26atv784D\",\"type\":\"assertion\"}",
+    "site_sig": "ZFFIAkp87IJEEgTwf-IAzOeucwSVSeL6UGuVgpxKfXNqbO9OBwifxUFIJbKniODCkijyQf8I8Hzxc9L7ajBnBg",
+    "device_sig": "6d5WG5drxlpq-Y25M4WtuicSQ0QkJiE34ozuvWiczkKXvueXfrksSpMud08wQfPfiprKze4FYJBl6rGck_bBAw"
+  }
+}

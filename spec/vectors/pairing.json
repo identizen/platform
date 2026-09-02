@@ -1,0 +1,12 @@
+{
+  "pairing": {
+    "type": "pairing",
+    "pairing_id": "pr_01K3ZB2N9G0000000000000002",
+    "device_id": "dev_01K3ZB2N9G0000000000000001",
+    "browser_pubkey": "BBERERERERERERERERERERERERERERERERERERERERERIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiI",
+    "issued_at": 1756560000
+  },
+  "signing_input": "identizen/v1/pairing\n{\"browser_pubkey\":\"BBERERERERERERERERERERERERERERERERERERERERERIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiI\",\"device_id\":\"dev_01K3ZB2N9G0000000000000001\",\"issued_at\":1756560000,\"pairing_id\":\"pr_01K3ZB2N9G0000000000000002\",\"type\":\"pairing\"}",
+  "sig": "0GHwo1WfVVQMM7QMURhb326LF0n3idHG-Gc-n73BA_oMD4H7_mMtso_IXG6KQo2SU5HqbQpdHdOfbiuT-hiLDw",
+  "paired_signature_input": "identizen/v1/paired\nch_01K3ZB2N9G0000000000000000"
+}

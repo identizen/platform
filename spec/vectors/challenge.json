@@ -1,0 +1,36 @@
+{
+  "login": {
+    "challenge": {
+      "type": "challenge",
+      "id": "ch_01K3ZB2N9G0000000000000000",
+      "rp_id": "app.example.com",
+      "rp_name": "Example App",
+      "nonce": "qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqo",
+      "code": "47",
+      "iat": 1756560000,
+      "exp": 1756560060,
+      "index": "https://index.identizen.com",
+      "acr": "idz:login",
+      "reason": null
+    },
+    "signing_input": "identizen/v1/challenge\n{\"acr\":\"idz:login\",\"code\":\"47\",\"exp\":1756560060,\"iat\":1756560000,\"id\":\"ch_01K3ZB2N9G0000000000000000\",\"index\":\"https://index.identizen.com\",\"nonce\":\"qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqo\",\"reason\":null,\"rp_id\":\"app.example.com\",\"rp_name\":\"Example App\",\"type\":\"challenge\"}",
+    "sig": "WGdr2YVMew8oDH9rJRXuucxpVPx9VsiIhLeE7JFRQN2neoyFE0Ytwjs5k-qmQCyVvFP7sKvvHBOQyDNGs0coBw"
+  },
+  "mfa": {
+    "challenge": {
+      "type": "challenge",
+      "id": "ch_01K3ZB2N9G0000000000000000",
+      "rp_id": "app.example.com",
+      "rp_name": "Example App",
+      "nonce": "qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqo",
+      "code": "08",
+      "iat": 1756560000,
+      "exp": 1756560060,
+      "index": "https://index.identizen.com",
+      "acr": "idz:mfa",
+      "reason": "Approve wire transfer of $12,000 to Acme?"
+    },
+    "signing_input": "identizen/v1/challenge\n{\"acr\":\"idz:mfa\",\"code\":\"08\",\"exp\":1756560060,\"iat\":1756560000,\"id\":\"ch_01K3ZB2N9G0000000000000000\",\"index\":\"https://index.identizen.com\",\"nonce\":\"qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqo\",\"reason\":\"Approve wire transfer of $12,000 to Acme?\",\"rp_id\":\"app.example.com\",\"rp_name\":\"Example App\",\"type\":\"challenge\"}",
+    "sig": "ZguBUKGTfvHHtSTbYYqYFt9TwMqOjwFYuTkreC7f5--o9Q6iV3nW1qXuGXlPj6wumZ2B4GjV7wyu7hBkcKQUDA"
+  }
+}

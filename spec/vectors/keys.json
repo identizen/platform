@@ -1,0 +1,36 @@
+{
+  "seed_hex": "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f",
+  "mnemonic": "abandon amount liar amount expire adjust cage candy arch gather drum bullet absurd math era live bid rhythm alien crouch range attend journey unaware",
+  "master": {
+    "private_hex": "d3693a37dabbfca03e65e56ce1295b43d951f6ab25e16fd17d93df703a90c5cc",
+    "public_b64url": "XKDdaBgQ2brM_N2Kr6x25Bhsb_-5FUaXWDTR1VRxWbo",
+    "idz": "mHzsrVI0eU9RbR_dERW3cg6gVY7kyz7n"
+  },
+  "sites": [
+    {
+      "rp_id": "app.example.com",
+      "private_hex": "dc62775c673a0de3a7b3778547d397a36e9fc03f503bfbf5e13e3344be75a1e8",
+      "public_b64url": "RBsYdldIY8dWtxRYQKNJl8Qh-9kklEawjRqftAyZW9Q",
+      "sub": "BGDc06RdHn33sxWmn9c3UAj26atv784D"
+    },
+    {
+      "rp_id": "login.example.org",
+      "private_hex": "0dae5317792dca35256ed1393922bd91e5bffb1e86e97b54e414982552e0c097",
+      "public_b64url": "beogIuPIgR9zxNJIsY8AtNMY9wgVmuuOEBQYzd-6T50",
+      "sub": "shYO6CPW4agptKQDtFW_jRTGmrvfHDtM"
+    }
+  ],
+  "device": {
+    "private_hex": "202122232425262728292a2b2c2d2e2f303132333435363738393a3b3c3d3e3f",
+    "public_b64url": "Kay64UG8yvCyLhqU000LxzYeUm0L_hLIl5S8kyKWbdc",
+    "device_id": "dev_01K3ZB2N9G0000000000000001"
+  },
+  "index": {
+    "private_hex": "404142434445464748494a4b4c4d4e4f505152535455565758595a5b5c5d5e5f",
+    "public_b64url": "JUO5L_EJVRFHatyDadtt3JM2ZaEZeN2hQE7hBmypVZ0"
+  },
+  "identity_proof": {
+    "device_id": "dev_01K3ZB2N9G0000000000000001",
+    "master_sig": "rrrqvuv67g6fV__nDTh6xPlqF_nDSpuleBFBvVURi95fHGbdI9Kyp1Um2HbnEmwW8OamO02YyX6_8kd9prKxDw"
+  }
+}

@@ -1,0 +1,7 @@
+{
+  "method": "POST",
+  "path": "/identities",
+  "body": "{\"master_pubkey\":\"XKDdaBgQ2brM_N2Kr6x25Bhsb_-5FUaXWDTR1VRxWbo\"}",
+  "timestamp": 1756560000,
+  "header": "v1,d=dev_01K3ZB2N9G0000000000000001,t=1756560000,s=uLKuc2B5bEBdFfD_-Y7RohHz1xPRCeOZsYr3hlL3ACIQprglUNQjCImpQkLZkwdC7kVutLqZ0j9iUL-wCGkZCg"
+}

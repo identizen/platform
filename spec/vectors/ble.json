@@ -1,0 +1,22 @@
+{
+  "ble_key_hex": "606162636465666768696a6b6c6d6e6f707172737475767778797a7b7c7d7e7f",
+  "now": 1756560000,
+  "window": 1951733,
+  "ids": [
+    {
+      "window": 1951732,
+      "id_hex": "6e34a4cbbc0b9cc1f028ef0de23e6a6d",
+      "id_b64url": "bjSky7wLnMHwKO8N4j5qbQ"
+    },
+    {
+      "window": 1951733,
+      "id_hex": "19964b3bbfed1132e7ad0447ec2cf48b",
+      "id_b64url": "GZZLO7_tETLnrQRH7Cz0iw"
+    },
+    {
+      "window": 1951734,
+      "id_hex": "67993db1be730156822421d212b8536d",
+      "id_b64url": "Z5k9sb5zAVaCJCHSErhTbQ"
+    }
+  ]
+}

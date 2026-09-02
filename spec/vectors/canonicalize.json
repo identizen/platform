@@ -1,0 +1,41 @@
+{
+  "cases": [
+    {
+      "input": {
+        "b": 2,
+        "a": 1
+      },
+      "output": "{\"a\":1,\"b\":2}"
+    },
+    {
+      "input": {
+        "nested": {
+          "z": [
+            1,
+            2.5,
+            null
+          ],
+          "y": "str"
+        },
+        "x": true
+      },
+      "output": "{\"nested\":{\"y\":\"str\",\"z\":[1,2.5,null]},\"x\":true}"
+    },
+    {
+      "input": {
+        "unicode": "café €",
+        "escaped": "a\"b\\c\n"
+      },
+      "output": "{\"escaped\":\"a\\\"b\\\\c\\n\",\"unicode\":\"café €\"}"
+    },
+    {
+      "input": {
+        "big": 1e+30,
+        "small": 1e-7,
+        "int": 42,
+        "neg": -1.5
+      },
+      "output": "{\"big\":1e+30,\"int\":42,\"neg\":-1.5,\"small\":1e-7}"
+    }
+  ]
+}
