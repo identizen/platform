@@ -20,12 +20,14 @@
     "typecheck": "turbo run typecheck",
     "test:unit": "turbo run test:unit",
     "e2e": "turbo run e2e",
-    "gate": "npm run lint && npm run typecheck && npm run test:unit && npm run e2e",
+    "gate": "npm run lint && npm run typecheck && npm run test:unit && npm run e2e && npm run audit",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "changeset": "changeset",
     "version-packages": "changeset version",
-    "release": "turbo run build --filter=./packages/* && changeset publish"
+    "release": "turbo run build --filter=./packages/* && changeset publish",
+    "audit": "npm audit --omit=dev --audit-level=critical",
+    "sbom": "npm sbom --sbom-format=cyclonedx --omit=dev > sbom.cdx.json"
   },
   "devDependencies": {
     "@changesets/cli": "^2.29.5",

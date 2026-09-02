@@ -20,6 +20,7 @@ apps/mobile/android/
 apps/mobile/.expo/
 e2e/site/.next/
 *.tsbuildinfo
+sbom.cdx.json
 e2e/site/.next/
 e2e/.state/
 .dev.vars.dev

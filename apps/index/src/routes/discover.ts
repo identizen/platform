@@ -11,6 +11,7 @@ import { z } from 'zod';
 import type { AppEnv } from '../app';
 import { ApiError, notFound, unauthorized } from '../lib/errors';
 import { pushChallenge } from '../services/challenge';
+import { ipRateLimit } from '../middleware/rate-limit';
 
 const BleSchema = z
   .object({ challenge_id: z.string().min(1), rotating_id: z.string().regex(/^[A-Za-z0-9_-]{22}$/) })
@@ -28,7 +29,7 @@ export function discoverRoutes(): Hono<AppEnv> {
   const r = new Hono<AppEnv>();
 
   /** Resolve a rotating BLE id (current window +/- 1) and push the challenge. */
-  r.post('/discover/ble', async (c) => {
+  r.post('/discover/ble', ipRateLimit(), async (c) => {
     const services = c.get('services');
     const body = BleSchema.parse(await c.req.json());
     const stub = c.env.CHALLENGE_SESSION.getByName(body.challenge_id);
@@ -48,7 +49,7 @@ export function discoverRoutes(): Hono<AppEnv> {
   });
 
   /** Paired browser: verify the ECDSA signature over the challenge id and push straight to the phone. */
-  r.post('/discover/paired', async (c) => {
+  r.post('/discover/paired', ipRateLimit(), async (c) => {
     const services = c.get('services');
     const body = PairedSchema.parse(await c.req.json());
     const stub = c.env.CHALLENGE_SESSION.getByName(body.challenge_id);

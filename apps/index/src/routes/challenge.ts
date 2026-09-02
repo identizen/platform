@@ -6,6 +6,7 @@ import type { AppEnv } from '../app';
 import { forbidden, notFound } from '../lib/errors';
 import { browserLabel } from '../lib/util';
 import { deviceAuth } from '../middleware/idz-signature';
+import { ipRateLimit } from '../middleware/rate-limit';
 import { processAssertion } from '../services/assert';
 import { completeApproval, onSessionDenied } from '../services/sessions';
 import { startChallenge } from '../services/challenge';
@@ -37,7 +38,7 @@ export function challengeRoutes(): Hono<AppEnv> {
    * Start a login (the JSON twin of `/authorize`; the SDK and `/authorize` both use it).
    * Returns the ids the browser needs; the phone fetches the signed challenge itself.
    */
-  r.post('/challenge', async (c) => {
+  r.post('/challenge', ipRateLimit(), async (c) => {
     const services = c.get('services');
     const body = StartSchema.parse(await c.req.json());
     const result = await startChallenge(

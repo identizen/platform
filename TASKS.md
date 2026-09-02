@@ -91,9 +91,9 @@ Gate command: `npm run gate` = lint + typecheck + unit + e2e (e2e is a no-op unt
 
 ## M10 — Hardening `[cc+human]` — tag `v0.10.0`
 
-- [ ] **M10.1** `[cc]` `spec/THREAT-MODEL.md`.
-- [ ] **M10.2** `[cc]` Rate limits on challenge issuance and `/discover/ble`; abuse tests.
-- [ ] **M10.3** `[cc]` Dependency audit, SBOM, audit gate.
+- [x] **M10.1** `[cc]` `spec/THREAT-MODEL.md`.
+- [x] **M10.2** `[cc]` Rate limits on challenge issuance and `/discover/ble`; abuse tests.
+- [x] **M10.3** `[cc]` Dependency audit, SBOM, audit gate.
 - [ ] **M10.4** `[cc+human]` k6 load test of the DO path.
 - [ ] **M10.5** `[human]` TestFlight, APNs live, universal links live.
 - [ ] **M10.6** `[human]` External security review.

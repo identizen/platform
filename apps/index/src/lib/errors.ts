@@ -26,6 +26,7 @@ export const forbidden = (code: string, msg: string): ApiError => new ApiError(4
 export const notFound = (code: string, msg: string): ApiError => new ApiError(404, code, msg);
 export const conflict = (code: string, msg: string): ApiError => new ApiError(409, code, msg);
 export const gone = (code: string, msg: string): ApiError => new ApiError(410, code, msg);
+export const tooMany = (code: string, msg: string): ApiError => new ApiError(429, code, msg);
 
 export function errorToResponse(err: unknown, c: Context): Response {
   if (err instanceof ApiError) return c.json(err.toBody(), err.status as 400);

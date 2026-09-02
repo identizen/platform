@@ -16,6 +16,9 @@ export interface Env {
   /** "true" allows unauthenticated POST /sites (dev / self-host). Otherwise SITE_REGISTRATION_TOKEN is required. */
   OPEN_SITE_REGISTRATION?: string;
   SITE_REGISTRATION_TOKEN?: string;
+  /** Per-minute abuse limits (M10.2); defaults in middleware/rate-limit.ts. */
+  RATE_LIMIT_CHALLENGES_PER_CLIENT?: string;
+  RATE_LIMIT_REQUESTS_PER_IP?: string;
   /** Comma-separated client ids allowed to call /me with a bearer token; "*" allows any (dev only). */
   DASHBOARD_CLIENT_IDS?: string;
   /** Push provider credentials (optional). */

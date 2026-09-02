@@ -21,6 +21,7 @@ import type { OidcParams, SessionState } from '../do/challenge-session';
 import type { Env } from '../env';
 import { ApiError, badRequest, notFound } from '../lib/errors';
 import type { Services } from '../lib/services';
+import { checkClientRate } from '../middleware/rate-limit';
 
 export interface StartChallengeInput {
   clientId: string;
@@ -45,11 +46,18 @@ export interface StartChallengeResult {
 export async function startChallenge(
   services: Services,
   input: StartChallengeInput,
-  env: Pick<Env, 'CHALLENGE_SESSION'>,
+  env: Pick<
+    Env,
+    | 'CHALLENGE_SESSION'
+    | 'REQUEST_GUARD'
+    | 'RATE_LIMIT_CHALLENGES_PER_CLIENT'
+    | 'RATE_LIMIT_REQUESTS_PER_IP'
+  >,
 ): Promise<StartChallengeResult> {
   const { db, indexKey, indexUrl, now } = services;
   const site = await getSite(db, input.clientId);
   if (!site) throw notFound('unknown_client', `no site with client_id ${input.clientId}`);
+  await checkClientRate(env, site.clientId);
 
   let target: Device | null = null;
   if (input.acr === 'idz:mfa' || input.loginHint) {

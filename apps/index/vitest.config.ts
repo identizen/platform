@@ -22,6 +22,8 @@ export default defineWorkersConfig({
             PUSH_PROVIDER: 'noop',
             OPEN_SITE_REGISTRATION: 'true',
             DASHBOARD_CLIENT_IDS: '*',
+            RATE_LIMIT_CHALLENGES_PER_CLIENT: '40',
+            RATE_LIMIT_REQUESTS_PER_IP: '12',
             INDEX_SIGNING_KEY: '404142434445464748494a4b4c4d4e4f505152535455565758595a5b5c5d5e5f',
             OIDC_SIGNING_KEYS: oidcKeys,
           },

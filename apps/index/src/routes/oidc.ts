@@ -29,6 +29,7 @@ import {
   ACCESS_TOKEN_TTL_SECONDS,
 } from '../oidc/tokens';
 import { startChallenge } from '../services/challenge';
+import { ipRateLimit } from '../middleware/rate-limit';
 import { buildRedirect } from '../services/sessions';
 
 export const SESSION_TTL_SECONDS = 30 * 24 * 60 * 60;
@@ -87,7 +88,7 @@ export function oidcRoutes(): Hono<AppEnv> {
    * - `acr_values=idz:mfa&login_hint=<sub>`: step-up, pushes to the bound device.
    * - `prompt=enroll`: discovery flow whose resulting `sub` the site stores as the binding.
    */
-  r.get('/authorize', async (c) => {
+  r.get('/authorize', ipRateLimit(), async (c) => {
     const services = c.get('services');
     const q = c.req.query();
     const site = q.client_id ? await getSite(services.db, q.client_id) : null;

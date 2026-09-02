@@ -44,6 +44,13 @@ jobs:
         run: npm run build
       - name: Gate
         run: npm run gate
+      - name: SBOM
+        run: npm run sbom
+      - name: Upload SBOM
+        uses: actions/upload-artifact@v4
+        with:
+          name: sbom
+          path: sbom.cdx.json
       - name: Upload Playwright reports
         if: failure()
         uses: actions/upload-artifact@v4

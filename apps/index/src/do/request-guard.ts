@@ -40,6 +40,25 @@ export class RequestGuard extends DurableObject<Env> {
     return true;
   }
 
+  private buckets = new Map<string, number[]>();
+
+  /**
+   * Generic sliding-window limiter: at most `limit` events per minute for `bucket`.
+   * The DO instance name scopes it (e.g. `client:<id>`, `ip:<addr>`).
+   */
+  async allowRate(bucket: string, limit: number): Promise<boolean> {
+    const now = Date.now();
+    const events = (this.buckets.get(bucket) ?? []).filter((t) => now - t < 60_000);
+    if (events.length >= limit) {
+      this.buckets.set(bucket, events);
+      return false;
+    }
+    events.push(now);
+    this.buckets.set(bucket, events);
+    await this.ctx.storage.setAlarm(now + WINDOW_MS);
+    return true;
+  }
+
   /** Queue a challenge id for a device that polls instead of receiving pushes. */
   async enqueue(challengeId: string): Promise<void> {
     this.inbox.push(challengeId);
@@ -57,6 +76,7 @@ export class RequestGuard extends DurableObject<Env> {
   override async alarm(): Promise<void> {
     this.prune(Date.now());
     this.inbox = [];
+    this.buckets.clear();
     if (this.seen.size > 0 || this.requests.length > 0 || this.pushes.length > 0) {
       await this.ctx.storage.setAlarm(Date.now() + WINDOW_MS);
     }
