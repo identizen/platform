@@ -93,7 +93,7 @@ export function meRoutes(): Hono<AppEnv> {
       clientId: revoked.clientId,
       detail: { sid },
     });
-    c.executionCtx.waitUntil(fireBackchannelLogout(services, [revoked], c.env));
+    services.defer(fireBackchannelLogout(services, [revoked], c.env));
     return c.json({ sid, revoked_at: revoked.revokedAt });
   });
 

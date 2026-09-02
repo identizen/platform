@@ -38,12 +38,12 @@ Gate command: `npm run gate` = lint + typecheck + unit + e2e (e2e is a no-op unt
 
 ## M4 — OIDC provider `[cc]` — tag `v0.4.0`
 
-- [ ] **M4.1** `[cc]` Discovery + JWKS with key rotation (two active keys). — Gate: conforms to discovery schema.
-- [ ] **M4.2** `[cc]` `/authorize` with PKCE, state, nonce; ties to a ChallengeSession; issues code on `approved`. — Gate: full code flow with a scripted assertion.
-- [ ] **M4.3** `[cc]` `/token`, `/userinfo`, id_token claims per PRD 8.3. — Gate: id_token validates with `jose` against JWKS; claims exact.
-- [ ] **M4.4** `[cc]` Step-up and enrollment: `acr_values=idz:mfa` + `login_hint`; `prompt=enroll`. — Gate: step-up on unbound sub → `login_required`; enroll then step-up succeeds; `acr`/`amr` exact.
-- [ ] **M4.5** `[cc]` Verification API: `/v1/verify`, poll, webhook with signed JWT + retry; `reason` shown and signed. — Gate: approved/denied/timeout; webhook signature validates; reason tamper → fail.
-- [ ] **M4.6** `[cc]` Sessions + back-channel logout. — Gate: mock site receives valid logout JWT within 1s.
+- [x] **M4.1** `[cc]` Discovery + JWKS with key rotation (two active keys). — Gate: conforms to discovery schema.
+- [x] **M4.2** `[cc]` `/authorize` with PKCE, state, nonce; ties to a ChallengeSession; issues code on `approved`. — Gate: full code flow with a scripted assertion.
+- [x] **M4.3** `[cc]` `/token`, `/userinfo`, id_token claims per PRD 8.3. — Gate: id_token validates with `jose` against JWKS; claims exact.
+- [x] **M4.4** `[cc]` Step-up and enrollment: `acr_values=idz:mfa` + `login_hint`; `prompt=enroll`. — Gate: step-up on unbound sub → `login_required`; enroll then step-up succeeds; `acr`/`amr` exact.
+- [x] **M4.5** `[cc]` Verification API: `/v1/verify`, poll, webhook with signed JWT + retry; `reason` shown and signed. — Gate: approved/denied/timeout; webhook signature validates; reason tamper → fail.
+- [x] **M4.6** `[cc]` Sessions + back-channel logout. — Gate: mock site receives valid logout JWT within 1s.
 - [ ] **M4.7** `[cc+human]` OIDC conformance Basic OP profile via the certification suite in Docker. — Gate: Basic OP profile passes (human confirms).
 
 ## M5 — Fake phone + e2e harness `[cc]` — tag `v0.5.0`

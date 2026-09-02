@@ -118,7 +118,7 @@ export function devicesRoutes(): Hono<AppEnv> {
       deviceId: target,
       detail: { by: caller.id },
     });
-    c.executionCtx.waitUntil(fireBackchannelLogout(c.get('services'), change.revokedSessions, env));
+    c.get('services').defer(fireBackchannelLogout(c.get('services'), change.revokedSessions, env));
     return c.json({
       device_id: target,
       status: change.device.status,
