@@ -54,7 +54,12 @@ export async function requireSiteSecret(
 ): Promise<Site> {
   const site = await getSite(db, clientId);
   if (!site) throw notFound('unknown_client', 'no such site');
-  const secret = bearer(c.req.header('authorization'));
+  const auth = c.req.header('authorization');
+  let secret = bearer(auth);
+  if (!secret && auth?.toLowerCase().startsWith('basic ')) {
+    const decoded = atob(auth.slice(6));
+    secret = decodeURIComponent(decoded.slice(decoded.indexOf(':') + 1));
+  }
   if (!secret || !site.clientSecretHash || !safeEqual(hashSecret(secret), site.clientSecretHash)) {
     throw unauthorized('invalid_client', 'client secret is missing or wrong');
   }
