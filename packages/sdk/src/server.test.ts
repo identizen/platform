@@ -2,8 +2,8 @@ import { http, HttpResponse } from 'msw';
 import { setupServer } from 'msw/node';
 import { SignJWT, exportJWK, generateKeyPair } from 'jose';
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest';
-import { IdentizenError } from './errors';
-import { IdentizenServer, createIdentizenServer } from './server';
+import { IdentizenError } from './errors.js';
+import { IdentizenServer, createIdentizenServer } from './server.js';
 
 const INDEX = 'https://index.test';
 const CLIENT = 'idz_test_site';

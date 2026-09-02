@@ -3,8 +3,13 @@
  * verification, the Verification API (Path B), and webhook / back-channel logout verification.
  */
 import { createRemoteJWKSet, customFetch, jwtVerify, type JWTPayload } from 'jose';
-import { IdentizenError, errorFromResponse } from './errors';
-import { authorizationUrl, pkceChallenge, randomString, type AuthorizationRequest } from './oidc';
+import { IdentizenError, errorFromResponse } from './errors.js';
+import {
+  authorizationUrl,
+  pkceChallenge,
+  randomString,
+  type AuthorizationRequest,
+} from './oidc.js';
 
 export { authorizationUrl, pkceChallenge, randomString, IdentizenError };
 export type { AuthorizationRequest };

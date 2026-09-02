@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { canonicalize } from './canonicalize';
+import { canonicalize } from './canonicalize.js';
 
 // Characters are built from code points so the source file stays ASCII-only.
 const cp = (...codes: number[]): string => String.fromCodePoint(...codes);

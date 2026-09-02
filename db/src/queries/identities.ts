@@ -1,7 +1,7 @@
 import { eq } from 'drizzle-orm';
-import type { Db } from '../client';
-import { HandleTakenError, NotFoundError, isUniqueViolation, pgErrorField } from '../errors';
-import { identities, type Identity, type IdentityKind } from '../../schema';
+import type { Db } from '../client.js';
+import { HandleTakenError, NotFoundError, isUniqueViolation, pgErrorField } from '../errors.js';
+import { identities, type Identity, type IdentityKind } from '../../schema.js';
 
 export interface CreateIdentityInput {
   idz: string;

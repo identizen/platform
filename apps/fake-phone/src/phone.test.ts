@@ -9,7 +9,7 @@ import {
   challengeId as newChallengeId,
   randomBytes,
 } from '@identizen/protocol';
-import { FakePhone } from './phone';
+import { FakePhone } from './phone.js';
 
 const indexKey = keyPairFromPrivateKey(fromHex('40'.repeat(32)));
 const INDEX = 'http://index.test';

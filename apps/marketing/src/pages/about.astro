@@ -1,0 +1,59 @@
+---
+import Base from '../layouts/Base.astro';
+import { SITE } from '../lib/site';
+---
+
+<Base
+  title="About"
+  description="Identizen is built in the open by people who think the phone in your pocket is a better identity provider than a password database or a big-tech account."
+>
+  <article class="prose-idz max-w-3xl">
+    <h1 class="text-4xl font-semibold tracking-tight">
+      Identity that belongs to the person holding it.
+    </h1>
+    <p class="mt-4 text-lg text-fg-muted">
+      We are a small team with a specific complaint: every login on the internet is a shared secret,
+      and every shared secret leaks.
+    </p>
+
+    <h2>What we believe</h2>
+    <ul>
+      <li>
+        <strong>The phone is the identity.</strong> The key pair on the device is the user. It is never
+        a code generator or a companion to something else.
+      </li>
+      <li>
+        <strong>The index is a phonebook, not a vault.</strong> Anything we host must be safe to leak.
+      </li>
+      <li>
+        <strong>Standard on the outside.</strong> Sites see OIDC. Browsers see WebAuthn. Nothing proprietary
+        at the integration boundary.
+      </li>
+      <li>
+        <strong>DX is the product.</strong> If integration takes more than five minutes, it is a bug.
+      </li>
+      <li>
+        <strong>Everything ships open.</strong> Apache-2.0. The enterprise tier is hosting, control, and
+        support.
+      </li>
+    </ul>
+
+    <h2>How the company works</h2>
+    <p>
+      Identizen the company hosts the public index, the dashboard, and the docs, and sells the org
+      tier: a hosted org index, fleet management, SSO bridging, audit, compliance packaging, and a
+      support contract. Professional services cover migrations and custom adapters. The protocol,
+      the app, the index, and the SDKs are one repository under one license, and self-hosters are
+      first-class.
+    </p>
+
+    <h2>Governance</h2>
+    <p>
+      Benevolent dictator for now; a lightweight RFC process for spec changes once there are
+      external implementers, plus a conformance suite so third-party indexes and apps can prove
+      interop.
+    </p>
+
+    <p><a href={SITE.github} rel="noopener">The code</a> · <a href="/contact">Talk to us</a></p>
+  </article>
+</Base>

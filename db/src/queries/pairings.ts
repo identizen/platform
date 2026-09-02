@@ -1,7 +1,7 @@
 import { and, eq, sql } from 'drizzle-orm';
-import type { Db } from '../client';
-import { InvalidTransitionError, NotFoundError } from '../errors';
-import { devices, pairings, type Device, type PairingRow } from '../../schema';
+import type { Db } from '../client.js';
+import { InvalidTransitionError, NotFoundError } from '../errors.js';
+import { devices, pairings, type Device, type PairingRow } from '../../schema.js';
 
 export interface CreatePairingInput {
   id: string;

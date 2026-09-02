@@ -1,6 +1,6 @@
 import * as React from 'react';
 import type { LoginState } from '@identizen/sdk';
-import { useIdentizen } from './context';
+import { useIdentizen } from './context.js';
 
 export interface IdentizenStepUpProps {
   /** The per-site sub bound at enrollment. */

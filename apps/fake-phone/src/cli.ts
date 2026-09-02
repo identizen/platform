@@ -5,8 +5,8 @@
  */
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname } from 'node:path';
-import { FakePhone, type PhoneState, type Policy } from './phone';
-import { startPhoneServer } from './server';
+import { FakePhone, type PhoneState, type Policy } from './phone.js';
+import { startPhoneServer } from './server.js';
 
 function arg(name: string, fallback: string | undefined): string | undefined {
   const i = process.argv.indexOf(`--${name}`);

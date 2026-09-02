@@ -1,8 +1,8 @@
 import { and, eq } from 'drizzle-orm';
 import { bytesEqual } from '@identizen/protocol';
-import type { Db } from '../client';
-import { BindingConflictError } from '../errors';
-import { siteBindings, type SiteBinding } from '../../schema';
+import type { Db } from '../client.js';
+import { BindingConflictError } from '../errors.js';
+import { siteBindings, type SiteBinding } from '../../schema.js';
 
 export interface BindInput {
   rpId: string;

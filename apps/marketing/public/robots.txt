@@ -1,0 +1,6 @@
+User-agent: *
+Allow: /
+Disallow: /api/
+Disallow: /legal/
+
+Sitemap: https://identizen.com/sitemap-index.xml

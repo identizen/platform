@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { bytesEqual, fromHex } from './encoding';
+import { bytesEqual, fromHex } from './encoding.js';
 import {
   BLE_ID_BYTES,
   BLE_SERVICE_UUID,
@@ -10,7 +10,7 @@ import {
   rotatingBleId,
   rotatingBleIdForWindow,
   rotatingBleIdString,
-} from './ble';
+} from './ble.js';
 
 const key = fromHex('60'.repeat(32));
 const other = fromHex('61'.repeat(32));

@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
-import { fromHex, toBase64Url } from './encoding';
-import { deriveSiteKey, generateKeyPair, keyPairFromPrivateKey } from './keys';
-import { challengeId, deviceId, pairingId } from './ids';
+import { fromHex, toBase64Url } from './encoding.js';
+import { deriveSiteKey, generateKeyPair, keyPairFromPrivateKey } from './keys.js';
+import { challengeId, deviceId, pairingId } from './ids.js';
 import {
   createAssertion,
   createChallenge,
@@ -20,8 +20,8 @@ import {
   verifyPairing,
   verifyPayload,
   verifyRequestSignature,
-} from './sign';
-import type { Assertion, Challenge, SignedAssertion } from './schemas';
+} from './sign.js';
+import type { Assertion, Challenge, SignedAssertion } from './schemas.js';
 
 const seed = fromHex('000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f');
 const indexKey = keyPairFromPrivateKey(

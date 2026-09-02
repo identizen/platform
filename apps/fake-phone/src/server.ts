@@ -1,7 +1,7 @@
 import { Hono } from 'hono';
 import { serve, type ServerType } from '@hono/node-server';
-import type { FakePhone, Policy } from './phone';
-import { renderUi } from './ui';
+import type { FakePhone, Policy } from './phone.js';
+import { renderUi } from './ui.js';
 
 export interface PhoneServerOptions {
   phone: FakePhone;

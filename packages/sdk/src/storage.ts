@@ -1,4 +1,4 @@
-import type { PairingStorage, StoredPairing } from './types';
+import type { PairingStorage, StoredPairing } from './types.js';
 
 const DB_NAME = 'identizen';
 const STORE = 'kv';

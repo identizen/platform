@@ -1,0 +1,128 @@
+---
+import Base from '../layouts/Base.astro';
+
+const siteKey = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY as string | undefined;
+---
+
+<Base
+  title="Contact"
+  description="Talk to the Identizen team about the enterprise tier, migrations, or anything else."
+>
+  <div class="grid gap-12 lg:grid-cols-[1fr_1.2fr]">
+    <header>
+      <h1 class="text-4xl font-semibold tracking-tight">Talk to us.</h1>
+      <p class="mt-4 text-lg text-fg-muted">
+        Enterprise pilots, migrations from an existing IdP, security questions, or a bug you want to
+        walk through.
+      </p>
+      <p class="mt-6 text-sm text-fg-muted">
+        Prefer email? <a
+          class="text-accent underline underline-offset-2"
+          href="mailto:hello@identizen.com">hello@identizen.com</a
+        >
+      </p>
+      <p class="mt-2 text-sm text-fg-muted">
+        Security reports: <a
+          class="text-accent underline underline-offset-2"
+          href="mailto:security@identizen.com">security@identizen.com</a
+        >
+      </p>
+    </header>
+
+    <form
+      id="contact"
+      method="post"
+      action="/api/contact"
+      novalidate
+      class="grid gap-5 rounded-2xl border border-border bg-surface-1 p-6 sm:p-8"
+    >
+      <div class="grid gap-1.5">
+        <label for="name" class="text-sm font-medium">Name</label>
+        <input
+          id="name"
+          name="name"
+          autocomplete="name"
+          required
+          minlength="2"
+          class="h-10 rounded-md border border-input bg-surface-0 px-3 text-sm"
+        />
+        <p class="text-xs text-danger" data-error-for="name" aria-live="polite"></p>
+      </div>
+      <div class="grid gap-1.5">
+        <label for="email" class="text-sm font-medium">Email</label>
+        <input
+          id="email"
+          name="email"
+          type="email"
+          autocomplete="email"
+          required
+          class="h-10 rounded-md border border-input bg-surface-0 px-3 text-sm"
+        />
+        <p class="text-xs text-danger" data-error-for="email" aria-live="polite"></p>
+      </div>
+      <div class="grid gap-1.5">
+        <label for="message" class="text-sm font-medium">Message</label>
+        <textarea
+          id="message"
+          name="message"
+          rows="5"
+          required
+          minlength="10"
+          class="rounded-md border border-input bg-surface-0 px-3 py-2 text-sm"></textarea>
+        <p class="text-xs text-danger" data-error-for="message" aria-live="polite"></p>
+      </div>
+      {siteKey ? <div class="cf-turnstile" data-sitekey={siteKey} data-theme="auto" /> : null}
+      <button
+        type="submit"
+        class="inline-flex h-11 items-center justify-center rounded-lg bg-accent px-6 font-medium text-accent-fg hover:bg-accent-hover"
+        >Send</button
+      >
+      <p id="contact-status" role="status" aria-live="polite" class="text-sm text-fg-muted"></p>
+    </form>
+  </div>
+  {
+    siteKey ? (
+      <script is:inline src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer />
+    ) : null
+  }
+  <script>
+    import { validateContact } from '../lib/contact';
+
+    const form = document.getElementById('contact') as HTMLFormElement;
+    const status = document.getElementById('contact-status') as HTMLElement;
+    const show = (errors: Record<string, string | undefined>) => {
+      for (const el of form.querySelectorAll<HTMLElement>('[data-error-for]')) {
+        const key = el.dataset.errorFor ?? '';
+        el.textContent = errors[key] ?? '';
+        const input = form.elements.namedItem(key) as HTMLElement | null;
+        input?.setAttribute('aria-invalid', errors[key] ? 'true' : 'false');
+      }
+    };
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const data = Object.fromEntries(new FormData(form).entries());
+      const token = data['cf-turnstile-response'];
+      const result = validateContact({ ...data, token });
+      show(result.errors);
+      if (!result.ok) {
+        status.textContent = 'Please fix the highlighted fields.';
+        return;
+      }
+      status.textContent = 'Sending…';
+      try {
+        const res = await fetch('/api/contact', {
+          method: 'POST',
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify(result.value),
+        });
+        const body = (await res.json()) as { ok: boolean; error?: string };
+        status.textContent = body.ok
+          ? 'Thanks — we will reply by email.'
+          : `Could not send: ${body.error ?? res.status}`;
+        if (body.ok) form.reset();
+      } catch {
+        status.textContent = 'Could not send. Email hello@identizen.com instead.';
+      }
+    });
+  </script>
+</Base>

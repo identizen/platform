@@ -1,6 +1,6 @@
 import { and, eq, isNotNull, sql } from 'drizzle-orm';
-import type { Db } from '../client';
-import { InvalidTransitionError, NotFoundError } from '../errors';
+import type { Db } from '../client.js';
+import { InvalidTransitionError, NotFoundError } from '../errors.js';
 import {
   devices,
   pairings,
@@ -9,7 +9,7 @@ import {
   type DeviceStatus,
   type PushPlatform,
   type Session,
-} from '../../schema';
+} from '../../schema.js';
 
 export interface CreateDeviceInput {
   id: string;
@@ -57,9 +57,7 @@ export async function listDevicesForIdentity(db: Db, idz: string): Promise<Devic
 /** Active devices that advertise over BLE. Used by `/discover/ble` resolution. */
 export async function listActiveBleDevices(
   db: Db,
-): Promise<
-  (Pick<Device, 'id' | 'idz' | 'pushToken' | 'pushPlatform'> & { bleKey: Uint8Array })[]
-> {
+): Promise<(Pick<Device, 'id' | 'idz' | 'pushToken' | 'pushPlatform'> & { bleKey: Uint8Array })[]> {
   const rows = await db
     .select({
       id: devices.id,

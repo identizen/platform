@@ -5,7 +5,7 @@
  */
 import { hmac } from '@noble/hashes/hmac';
 import { sha256 } from '@noble/hashes/sha256';
-import { bytesEqual, toBase64Url, utf8Encode } from './encoding';
+import { bytesEqual, toBase64Url, utf8Encode } from './encoding.js';
 
 export const BLE_SERVICE_UUID = 'f1d0e1a2-1d2e-4b0c-9c0d-1d3e2f4a5b6c';
 export const BLE_WINDOW_SECONDS = 900;

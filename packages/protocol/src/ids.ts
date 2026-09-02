@@ -1,7 +1,7 @@
 /**
  * ULIDs and prefixed identifiers (PROTOCOL.md section 9).
  */
-import { randomBytes } from './encoding';
+import { randomBytes } from './encoding.js';
 
 const CROCKFORD = '0123456789ABCDEFGHJKMNPQRSTVWXYZ';
 export const ULID_RE = /^[0-9A-HJKMNP-TV-Z]{26}$/;

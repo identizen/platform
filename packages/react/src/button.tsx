@@ -1,6 +1,6 @@
 import * as React from 'react';
 import type { LoginState, StartLoginOptions } from '@identizen/sdk';
-import { useIdentizen } from './context';
+import { useIdentizen } from './context.js';
 
 export interface IdentizenButtonProps {
   /** Called with the terminal state when the phone approved. Navigate to `state.redirect` for OIDC. */

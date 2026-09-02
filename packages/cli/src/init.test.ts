@@ -2,11 +2,11 @@ import { existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync, mkdirSync
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { init } from './commands/init';
-import { readIndexUrl } from './commands/dev';
-import { parseArgs, flag, boolFlag } from './lib/args';
-import { upsertEnv } from './lib/env';
-import { detectProject } from './lib/detect';
+import { init } from './commands/init.js';
+import { readIndexUrl } from './commands/dev.js';
+import { parseArgs, flag, boolFlag } from './lib/args.js';
+import { upsertEnv } from './lib/env.js';
+import { detectProject } from './lib/detect.js';
 
 let dir: string;
 const calls: { url: string; body: Record<string, unknown> }[] = [];

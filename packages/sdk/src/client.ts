@@ -1,8 +1,8 @@
 import { pairedSignatureBytes } from '@identizen/protocol';
-import { readRotatingIdViaBluetooth } from './ble';
-import { IdentizenError, errorFromResponse } from './errors';
-import { qrSvg } from './qr';
-import { browserStorage } from './storage';
+import { readRotatingIdViaBluetooth } from './ble.js';
+import { IdentizenError, errorFromResponse } from './errors.js';
+import { qrSvg } from './qr.js';
+import { browserStorage } from './storage.js';
 import type {
   DiscoveryOptions,
   IdentizenConfig,
@@ -11,7 +11,7 @@ import type {
   StartLoginOptions,
   StoredPairing,
   Transports,
-} from './types';
+} from './types.js';
 
 const MOBILE_UA = /Android|iPhone|iPad|iPod/i;
 
@@ -363,16 +363,14 @@ export class Identizen {
     try {
       let key = await this.t.storage.getKey();
       if (!key) {
-        key = (await this.t.crypto.subtle.generateKey(
+        key = await this.t.crypto.subtle.generateKey(
           { name: 'ECDSA', namedCurve: 'P-256' },
           false,
           ['sign', 'verify'],
-        ));
+        );
         await this.t.storage.setKey(key);
       }
-      const raw = new Uint8Array(
-        (await this.t.crypto.subtle.exportKey('raw', key.publicKey)),
-      );
+      const raw = new Uint8Array(await this.t.crypto.subtle.exportKey('raw', key.publicKey));
       return b64url(raw);
     } catch {
       return null;

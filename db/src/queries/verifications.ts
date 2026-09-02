@@ -1,7 +1,7 @@
 import { and, eq, lt, sql } from 'drizzle-orm';
-import type { Db } from '../client';
-import { InvalidTransitionError, NotFoundError } from '../errors';
-import { verifications, type Verification, type VerificationStatus } from '../../schema';
+import type { Db } from '../client.js';
+import { InvalidTransitionError, NotFoundError } from '../errors.js';
+import { verifications, type Verification, type VerificationStatus } from '../../schema.js';
 
 export interface CreateVerificationInput {
   id: string;

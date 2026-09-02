@@ -1,4 +1,4 @@
-export { FakePhone } from './phone';
+export { FakePhone } from './phone.js';
 export type {
   ApproveResult,
   FakePhoneOptions,
@@ -6,5 +6,5 @@ export type {
   PendingChallenge,
   PhoneState,
   Policy,
-} from './phone';
-export { createPhoneApp, startPhoneServer, type PhoneServerOptions } from './server';
+} from './phone.js';
+export { createPhoneApp, startPhoneServer, type PhoneServerOptions } from './server.js';

@@ -1,7 +1,7 @@
 import { eq } from 'drizzle-orm';
-import type { Db } from '../client';
-import { ConflictError, NotFoundError, isUniqueViolation } from '../errors';
-import { sites, type Site } from '../../schema';
+import type { Db } from '../client.js';
+import { ConflictError, NotFoundError, isUniqueViolation } from '../errors.js';
+import { sites, type Site } from '../../schema.js';
 
 export interface CreateSiteInput {
   clientId: string;

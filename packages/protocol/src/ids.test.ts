@@ -9,7 +9,7 @@ import {
   prefixedId,
   ulid,
   verificationId,
-} from './ids';
+} from './ids.js';
 
 describe('ulid', () => {
   it('is 26 Crockford base32 chars with a monotonic time prefix', () => {

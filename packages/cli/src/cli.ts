@@ -1,8 +1,8 @@
 #!/usr/bin/env node
-import { dev } from './commands/dev';
-import { init } from './commands/init';
-import { registerSiteCommand } from './commands/register-site';
-import { boolFlag, flag, parseArgs } from './lib/args';
+import { dev } from './commands/dev.js';
+import { init } from './commands/init.js';
+import { registerSiteCommand } from './commands/register-site.js';
+import { boolFlag, flag, parseArgs } from './lib/args.js';
 
 const HELP = `identizen — login with your phone
 

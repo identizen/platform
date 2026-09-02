@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { Identizen } from './client';
-import { memoryStorage } from './storage';
-import type { StoredPairing } from './types';
+import { Identizen } from './client.js';
+import { memoryStorage } from './storage.js';
+import type { StoredPairing } from './types.js';
 
 const INDEX = 'http://index.test';
 const CHALLENGE = {
@@ -57,10 +57,10 @@ class FakeWebSocket {
 }
 
 async function browserKey(): Promise<CryptoKeyPair> {
-  return (await crypto.subtle.generateKey({ name: 'ECDSA', namedCurve: 'P-256' }, false, [
+  return await crypto.subtle.generateKey({ name: 'ECDSA', namedCurve: 'P-256' }, false, [
     'sign',
     'verify',
-  ]));
+  ]);
 }
 
 const PAIRING: StoredPairing = {

@@ -1,10 +1,10 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
-import { detectProject, type Framework } from '../lib/detect';
-import { upsertEnv } from '../lib/env';
-import { registerSite, type RegisteredSite } from '../lib/index-client';
-import { expressTemplate } from '../templates/express';
-import { nextTemplate, type TemplateFile } from '../templates/next';
+import { detectProject, type Framework } from '../lib/detect.js';
+import { upsertEnv } from '../lib/env.js';
+import { registerSite, type RegisteredSite } from '../lib/index-client.js';
+import { expressTemplate } from '../templates/express.js';
+import { nextTemplate, type TemplateFile } from '../templates/next.js';
 
 export interface InitOptions {
   dir: string;

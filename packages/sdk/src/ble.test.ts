@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import { BLE_SERVICE_UUID } from '@identizen/protocol';
-import { BLE_ROTATING_ID_CHARACTERISTIC, readRotatingIdViaBluetooth } from './ble';
+import { BLE_ROTATING_ID_CHARACTERISTIC, readRotatingIdViaBluetooth } from './ble.js';
 
 function fakeBluetooth(
   bytes: number[] | null,

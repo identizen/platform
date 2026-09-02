@@ -3,7 +3,7 @@
  */
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { generateVectors, vectorFileText } from '../src/vectors';
+import { generateVectors, vectorFileText } from '../src/vectors.js';
 
 const outDir = join(import.meta.dirname, '..', '..', '..', 'spec', 'vectors');
 mkdirSync(outDir, { recursive: true });

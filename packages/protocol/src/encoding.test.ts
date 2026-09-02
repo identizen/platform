@@ -9,7 +9,7 @@ import {
   toHex,
   utf8Decode,
   utf8Encode,
-} from './encoding';
+} from './encoding.js';
 
 describe('base64url', () => {
   it('round-trips all lengths mod 3', () => {

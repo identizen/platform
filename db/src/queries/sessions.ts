@@ -1,7 +1,7 @@
 import { and, eq, gt, isNull, sql } from 'drizzle-orm';
-import type { Db } from '../client';
-import { NotFoundError } from '../errors';
-import { sessions, type Session } from '../../schema';
+import type { Db } from '../client.js';
+import { NotFoundError } from '../errors.js';
+import { sessions, type Session } from '../../schema.js';
 
 export interface CreateSessionInput {
   sid: string;

@@ -1,4 +1,4 @@
-import { registerSite, type RegisteredSite } from '../lib/index-client';
+import { registerSite, type RegisteredSite } from '../lib/index-client.js';
 
 export interface RegisterSiteOptions {
   indexUrl: string;

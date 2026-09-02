@@ -3,9 +3,9 @@ export {
   useIdentizen,
   type IdentizenProviderProps,
   type UseIdentizen,
-} from './context';
-export { IdentizenButton, type IdentizenButtonProps } from './button';
-export { IdentizenStepUp, type IdentizenStepUpProps } from './step-up';
+} from './context.js';
+export { IdentizenButton, type IdentizenButtonProps } from './button.js';
+export { IdentizenStepUp, type IdentizenStepUpProps } from './step-up.js';
 export type {
   LoginSession,
   LoginState,

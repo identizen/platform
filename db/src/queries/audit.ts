@@ -1,6 +1,6 @@
 import { desc, eq } from 'drizzle-orm';
-import type { Db } from '../client';
-import { auditEvents, type AuditEvent } from '../../schema';
+import type { Db } from '../client.js';
+import { auditEvents, type AuditEvent } from '../../schema.js';
 
 /** Audit event kinds. Add here, not ad hoc, so dashboards can enumerate them. */
 export const AUDIT_KINDS = [

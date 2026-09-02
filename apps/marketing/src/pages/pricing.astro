@@ -1,0 +1,105 @@
+---
+import Base from '../layouts/Base.astro';
+import { SITE } from '../lib/site';
+
+const faq = [
+  [
+    'Is the open-source version crippled?',
+    'No. The enterprise tier is hosting, control, and support — not withheld features. Everything a customer pays for can be reproduced by a capable team running the OSS.',
+  ],
+  [
+    'What counts as an active device?',
+    'A device enrolled in your org index that completed at least one login or approval in the billing month. Personal identities on the public index are free.',
+  ],
+  [
+    'Can we run the index ourselves and still buy support?',
+    'Yes. Support contracts and professional services are available for self-hosters; the hosted org index is optional.',
+  ],
+  [
+    'Do you ever hold a private key?',
+    'Never. The org can enroll, disable, and re-enroll devices. It cannot log in as a user, and neither can we.',
+  ],
+];
+---
+
+<Base
+  title="Pricing"
+  description="Identizen is open source and free to self-host. The enterprise tier adds a hosted org index, fleet console, SSO bridging, audit, and an SLA, priced per active device."
+>
+  <header class="max-w-2xl">
+    <h1 class="text-4xl font-semibold tracking-tight">Free to run. Paid to not have to.</h1>
+    <p class="mt-4 text-lg text-fg-muted">
+      Everything ships open. You pay for hosting, control, and a phone number that answers.
+    </p>
+  </header>
+
+  <div class="mt-12 grid gap-6 lg:grid-cols-2">
+    <section aria-labelledby="oss" class="rounded-2xl border border-border bg-surface-1 p-8">
+      <h2 id="oss" class="text-xl font-semibold">Open source</h2>
+      <p class="mt-1 text-sm text-fg-muted">Apache-2.0, one monorepo</p>
+      <p class="mt-6 text-4xl font-semibold tracking-tight">$0</p>
+      <ul class="mt-6 space-y-2 text-sm text-fg-muted">
+        <li>· Protocol, phone app, index/relay, OIDC provider, SDKs, CLI, dashboard</li>
+        <li>· Path A login and Path B MFA, Verification API, back-channel logout</li>
+        <li>· Personal identities on the public index at no cost</li>
+        <li>· Self-host with one Worker deploy or one container; federate over WebFinger</li>
+        <li>· Community support on GitHub</li>
+      </ul>
+      <a
+        href={SITE.github}
+        rel="noopener"
+        class="mt-8 inline-flex h-11 items-center rounded-lg border border-border-strong px-6 font-medium hover:bg-surface-0"
+        >Get the code</a
+      >
+    </section>
+
+    <section
+      aria-labelledby="ent"
+      class="rounded-2xl border border-accent bg-surface-0 p-8 shadow-md"
+    >
+      <h2 id="ent" class="text-xl font-semibold">Enterprise</h2>
+      <p class="mt-1 text-sm text-fg-muted">The Duo playbook, without the SMS</p>
+      <p class="mt-6 text-4xl font-semibold tracking-tight">
+        Per active device<span class="text-base font-normal text-fg-muted"> / month</span>
+      </p>
+      <p class="mt-1 text-sm text-fg-muted">
+        Free tier for your first devices, so hosted and self-hosted start in the same place.
+      </p>
+      <ul class="mt-6 space-y-2 text-sm text-fg-muted">
+        <li>· Hosted org index with SLA, or a supported self-host</li>
+        <li>· Device fleet console: enroll, disable, re-enroll, attestation status</li>
+        <li>· Instant revocation with back-channel logout to every connected site</li>
+        <li>· SSO bridging into Okta, Entra ID, Google Workspace; SCIM in</li>
+        <li>· Policy: require attestation, biometric class, geo/time rules</li>
+        <li>· Exportable, SIEM-friendly audit; SOC 2 report, DPA, data residency</li>
+      </ul>
+      <a
+        href="/contact"
+        class="mt-8 inline-flex h-11 items-center rounded-lg bg-accent px-6 font-medium text-accent-fg hover:bg-accent-hover"
+        >Talk to us</a
+      >
+    </section>
+  </div>
+
+  <section aria-labelledby="ps" class="mt-12 rounded-2xl border border-border p-8">
+    <h2 id="ps" class="text-xl font-semibold">Professional services</h2>
+    <p class="mt-2 max-w-2xl text-sm leading-relaxed text-fg-muted">
+      Implementation, migration from an existing IdP, custom SDK work, on-site rollout. Quoted
+      separately.
+    </p>
+  </section>
+
+  <section aria-labelledby="faq" class="mt-16 max-w-3xl">
+    <h2 id="faq" class="text-2xl font-semibold tracking-tight">Questions</h2>
+    <dl class="mt-6 divide-y divide-border">
+      {
+        faq.map(([q, a]) => (
+          <div class="py-5">
+            <dt class="font-medium">{q}</dt>
+            <dd class="mt-2 text-sm leading-relaxed text-fg-muted">{a}</dd>
+          </div>
+        ))
+      }
+    </dl>
+  </section>
+</Base>

@@ -4,9 +4,9 @@
  * Every signature is Ed25519 over `"identizen/v1/" + type + "\n" + canonicalize(payload)`.
  */
 import { sha256 } from '@noble/hashes/sha256';
-import { canonicalize } from './canonicalize';
-import { fromBase64Url, toBase64Url, utf8Encode } from './encoding';
-import { ed25519Sign, ed25519Verify, siteSub } from './keys';
+import { canonicalize } from './canonicalize.js';
+import { fromBase64Url, toBase64Url, utf8Encode } from './encoding.js';
+import { ed25519Sign, ed25519Verify, siteSub } from './keys.js';
 import {
   AssertionSchema,
   CHALLENGE_TTL_SECONDS,
@@ -24,7 +24,7 @@ import {
   type SignedAssertion,
   type SignedChallenge,
   type SignedPairing,
-} from './schemas';
+} from './schemas.js';
 
 export const SIGNING_PREFIX = 'identizen/v1/';
 

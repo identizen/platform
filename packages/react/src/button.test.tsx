@@ -2,7 +2,7 @@ import { render, screen, act, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 import type { Identizen, LoginSession, LoginState } from '@identizen/sdk';
-import { IdentizenProvider, IdentizenButton, IdentizenStepUp, useIdentizen } from './index';
+import { IdentizenProvider, IdentizenButton, IdentizenStepUp, useIdentizen } from './index.js';
 
 /** A scriptable LoginSession: tests drive state transitions. */
 function scriptedSession(initial: Partial<LoginState> = {}) {

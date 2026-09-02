@@ -2,7 +2,7 @@ import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { spawn, type ChildProcess } from 'node:child_process';
 import { FakePhone, startPhoneServer, type Policy } from '@identizen/fake-phone';
-import { indexHealthy } from '../lib/index-client';
+import { indexHealthy } from '../lib/index-client.js';
 
 export interface DevOptions {
   dir: string;

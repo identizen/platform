@@ -1,10 +1,10 @@
 import { readFileSync, readdirSync } from 'node:fs';
 import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
-import { fromBase64Url, fromHex } from './encoding';
-import { keyPairFromPrivateKey, mnemonicToSeed } from './keys';
-import { verifyAssertion, verifyChallenge, verifyPairing } from './sign';
-import { VECTOR_INDEX_KEY_HEX, VECTOR_NOW, generateVectors, vectorFileText } from './vectors';
+import { fromBase64Url, fromHex } from './encoding.js';
+import { keyPairFromPrivateKey, mnemonicToSeed } from './keys.js';
+import { verifyAssertion, verifyChallenge, verifyPairing } from './sign.js';
+import { VECTOR_INDEX_KEY_HEX, VECTOR_NOW, generateVectors, vectorFileText } from './vectors.js';
 
 const vectorsDir = join(import.meta.dirname, '..', '..', '..', 'spec', 'vectors');
 

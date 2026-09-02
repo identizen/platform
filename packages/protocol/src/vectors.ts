@@ -5,8 +5,8 @@
  * interop contract: the mobile app (Hermes) and any third-party implementation must
  * reproduce them byte for byte.
  */
-import { canonicalize } from './canonicalize';
-import { fromHex, toBase64Url, toHex } from './encoding';
+import { canonicalize } from './canonicalize.js';
+import { fromHex, toBase64Url, toHex } from './encoding.js';
 import {
   deriveMasterKey,
   deriveSiteKey,
@@ -14,8 +14,8 @@ import {
   keyPairFromPrivateKey,
   seedToMnemonic,
   siteSub,
-} from './keys';
-import { bleWindow, rotatingBleIdForWindow } from './ble';
+} from './keys.js';
+import { bleWindow, rotatingBleIdForWindow } from './ble.js';
 import {
   createAssertion,
   createChallenge,
@@ -26,7 +26,7 @@ import {
   signPairing,
   signRequest,
   signingBytes,
-} from './sign';
+} from './sign.js';
 
 export const VECTOR_SEED_HEX = '000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f';
 export const VECTOR_DEVICE_KEY_HEX =

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { fromHex, toBase64Url } from './encoding';
+import { fromHex, toBase64Url } from './encoding.js';
 import {
   BIP39_WORDLIST,
   deriveMasterKey,
@@ -15,7 +15,7 @@ import {
   publicKeyId,
   seedToMnemonic,
   siteSub,
-} from './keys';
+} from './keys.js';
 
 describe('seed and BIP39', () => {
   it('generates a 32-byte seed and round-trips through 24 words', () => {

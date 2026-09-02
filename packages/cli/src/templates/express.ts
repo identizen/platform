@@ -1,4 +1,4 @@
-import type { TemplateFile } from './next';
+import type { TemplateFile } from './next.js';
 
 /** Express router scaffolded by `identizen init`. Mount with `app.use(identizenRouter())`. */
 export function expressTemplate(opts: { typescript: boolean }): TemplateFile[] {

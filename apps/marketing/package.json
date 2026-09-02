@@ -1,0 +1,43 @@
+{
+  "name": "@identizen/marketing",
+  "version": "0.0.0",
+  "private": true,
+  "description": "identizen.com — marketing site (Astro static, Tailwind v4 tokens, React islands only where needed).",
+  "license": "Apache-2.0",
+  "type": "module",
+  "scripts": {
+    "dev": "astro dev --port 4320",
+    "build": "astro build",
+    "preview": "astro preview --port 4321",
+    "typecheck": "astro check",
+    "test:unit": "vitest run",
+    "e2e": "playwright test",
+    "lighthouse": "lhci autorun",
+    "deploy": "wrangler deploy"
+  },
+  "dependencies": {
+    "@astrojs/cloudflare": "^12.6.3",
+    "@astrojs/react": "^4.3.0",
+    "@astrojs/sitemap": "^3.4.2",
+    "@identizen/react": "^0.1.0",
+    "@identizen/sdk": "^0.1.0",
+    "@identizen/ui": "^0.0.0",
+    "@tailwindcss/vite": "^4.1.12",
+    "astro": "^5.13.5",
+    "react": "^19.1.1",
+    "react-dom": "^19.1.1",
+    "tailwindcss": "^4.1.12"
+  },
+  "devDependencies": {
+    "@astrojs/check": "^0.9.4",
+    "@axe-core/playwright": "^4.10.2",
+    "@lhci/cli": "^0.15.1",
+    "@playwright/test": "^1.55.0",
+    "@types/react": "^19.1.10",
+    "@types/react-dom": "^19.1.7",
+    "prettier-plugin-astro": "^0.14.1",
+    "typescript": "^5.9.2",
+    "vitest": "^3.2.4",
+    "wrangler": "^4.34.0"
+  }
+}

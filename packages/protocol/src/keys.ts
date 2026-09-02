@@ -10,7 +10,7 @@ import { sha256 } from '@noble/hashes/sha256';
 import { hkdf } from '@noble/hashes/hkdf';
 import { entropyToMnemonic, mnemonicToEntropy, validateMnemonic } from '@scure/bip39';
 import { wordlist as english } from '@scure/bip39/wordlists/english';
-import { concatBytes, randomBytes, toBase64Url, utf8Encode } from './encoding';
+import { concatBytes, randomBytes, toBase64Url, utf8Encode } from './encoding.js';
 
 ed.etc.sha512Sync = (...m) => sha512(concatBytes(...m));
 
