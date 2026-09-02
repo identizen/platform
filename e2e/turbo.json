@@ -1,0 +1,16 @@
+{
+  "$schema": "https://turbo.build/schema.json",
+  "extends": ["//"],
+  "tasks": {
+    "e2e": {
+      "cache": false,
+      "dependsOn": [
+        "^build",
+        "@identizen/ui#e2e",
+        "@identizen/web#e2e",
+        "@identizen/marketing#e2e",
+        "@identizen/docs#e2e"
+      ]
+    }
+  }
+}

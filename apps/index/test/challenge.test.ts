@@ -332,14 +332,12 @@ describe('POST /challenge/:id/assert', () => {
   it('issues a pairing when the browser supplied a key, and returns an OIDC redirect when asked', async () => {
     const site = await registerSite();
     const phone = await registerPhone();
-    const browserKey = (await crypto.subtle.generateKey(
+    const browserKey = await crypto.subtle.generateKey(
       { name: 'ECDSA', namedCurve: 'P-256' },
       false,
       ['sign', 'verify'],
-    )) as CryptoKeyPair;
-    const raw = new Uint8Array(
-      (await crypto.subtle.exportKey('raw', browserKey.publicKey)) as ArrayBuffer,
     );
+    const raw = new Uint8Array(await crypto.subtle.exportKey('raw', browserKey.publicKey));
     const { toBase64Url } = await import('@identizen/protocol');
     const started = await startChallenge({
       client_id: site.client_id,

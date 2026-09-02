@@ -95,7 +95,7 @@ export async function verifyBrowserSignature(
   try {
     const key = await crypto.subtle.importKey(
       'raw',
-      rawPubkey,
+      new Uint8Array(rawPubkey),
       { name: 'ECDSA', namedCurve: 'P-256' },
       false,
       ['verify'],
@@ -103,8 +103,8 @@ export async function verifyBrowserSignature(
     return await crypto.subtle.verify(
       { name: 'ECDSA', hash: 'SHA-256' },
       key,
-      fromBase64Url(sigB64),
-      pairedSignatureBytes(challengeId),
+      new Uint8Array(fromBase64Url(sigB64)),
+      new Uint8Array(pairedSignatureBytes(challengeId)),
     );
   } catch {
     return false;

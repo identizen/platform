@@ -69,11 +69,11 @@ Gate command: `npm run gate` = lint + typecheck + unit + e2e (e2e is a no-op unt
 
 ## M8 — Expo app, JS side `[cc]` — tag `v0.8.0`
 
-- [ ] **M8.1** `[cc]` Expo + expo-router + NativeWind using `packages/ui` tokens; Inter; light/dark. Screens: onboarding, passphrase + 3-word re-entry, restore, home, approve (login/MFA/transaction), devices, pairings, settings.
-- [ ] **M8.2** `[cc]` Key storage via `expo-secure-store`; biometric gate via `expo-local-authentication`.
-- [ ] **M8.3** `[cc]` Deep link `app.identizen.com/l/:id` → fetch challenge, verify index sig, approve → assert → callback.
-- [ ] **M8.4** `[cc]` QR scanning; push receive → fetch challenge.
-- [ ] **M8.5** `[cc]` Jest + RNTL screens; protocol vectors on Hermes. — Gate: app reproduces `spec/vectors` on Hermes.
+- [x] **M8.1** `[cc]` Expo + expo-router + NativeWind using `packages/ui` tokens; Inter; light/dark. Screens: onboarding, passphrase + 3-word re-entry, restore, home, approve (login/MFA/transaction), devices, pairings, settings.
+- [x] **M8.2** `[cc]` Key storage via `expo-secure-store`; biometric gate via `expo-local-authentication`.
+- [x] **M8.3** `[cc]` Deep link `app.identizen.com/l/:id` → fetch challenge, verify index sig, approve → assert → callback.
+- [x] **M8.4** `[cc]` QR scanning; push receive → fetch challenge.
+- [x] **M8.5** `[cc]` Jest + RNTL screens; protocol vectors on Hermes. — Gate: app reproduces `spec/vectors` on Hermes.
 - [ ] **M8.6** `[cc+human]` Maestro Simulator e2e.
 
 ## M9 — Native modules `[cc+human]` — tag `v0.9.0`

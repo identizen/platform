@@ -103,20 +103,18 @@ describe('POST /discover/ble', () => {
 
 describe('POST /discover/paired', () => {
   async function browserKeyPair() {
-    const key = (await crypto.subtle.generateKey({ name: 'ECDSA', namedCurve: 'P-256' }, false, [
+    const key = await crypto.subtle.generateKey({ name: 'ECDSA', namedCurve: 'P-256' }, false, [
       'sign',
       'verify',
-    ])) as CryptoKeyPair;
-    const raw = new Uint8Array(
-      (await crypto.subtle.exportKey('raw', key.publicKey)) as ArrayBuffer,
-    );
+    ]);
+    const raw = new Uint8Array(await crypto.subtle.exportKey('raw', key.publicKey));
     const sign = async (cid: string) =>
       toBase64Url(
         new Uint8Array(
           await crypto.subtle.sign(
             { name: 'ECDSA', hash: 'SHA-256' },
             key.privateKey,
-            pairedSignatureBytes(cid),
+            new Uint8Array(pairedSignatureBytes(cid)),
           ),
         ),
       );
