@@ -49,6 +49,8 @@ export interface SessionState {
   pairing: SignedPairing | null;
   /** OIDC authorization code, once issued (M4). */
   code: string | null;
+  /** Redirect for the waiting browser after approval (code + state), or null. */
+  redirect: string | null;
   codeUsed: boolean;
   resolvedAt: number | null;
 }
@@ -90,6 +92,7 @@ export class ChallengeSession extends DurableObject<Env> {
       assertion: null,
       pairing: null,
       code: null,
+      redirect: null,
       codeUsed: false,
       resolvedAt: null,
       signed: init.signed,
@@ -137,6 +140,7 @@ export class ChallengeSession extends DurableObject<Env> {
     s.assertion = assertion;
     s.pairing = pairing;
     s.code = code;
+    s.redirect = redirect;
     s.resolvedAt = Date.now();
     await this.save(s);
     this.broadcast({ type: 'approved', challenge_id: s.challengeId, pairing, redirect });
@@ -231,7 +235,12 @@ export class ChallengeSession extends DurableObject<Env> {
 
   private terminalEvent(s: Stored): SessionEvent {
     if (s.status === 'approved') {
-      return { type: 'approved', challenge_id: s.challengeId, pairing: s.pairing, redirect: null };
+      return {
+        type: 'approved',
+        challenge_id: s.challengeId,
+        pairing: s.pairing,
+        redirect: s.redirect,
+      };
     }
     if (s.status === 'denied') return { type: 'denied', challenge_id: s.challengeId };
     return { type: 'expired', challenge_id: s.challengeId };

@@ -25,4 +25,27 @@
     ],
   },
   "migrations": [{ "tag": "v1", "new_sqlite_classes": ["ChallengeSession", "RequestGuard"] }],
+  "env": {
+    "e2e": {
+      "vars": {
+        "INDEX_URL": "http://localhost:8787",
+        "APP_URL": "http://localhost:8787",
+        "PUSH_PROVIDER": "web",
+        "OPEN_SITE_REGISTRATION": "true",
+      },
+      "hyperdrive": [
+        {
+          "binding": "HYPERDRIVE",
+          "id": "00000000000000000000000000000000",
+          "localConnectionString": "postgres://identizen:identizen@localhost:5433/identizen",
+        },
+      ],
+      "durable_objects": {
+        "bindings": [
+          { "name": "CHALLENGE_SESSION", "class_name": "ChallengeSession" },
+          { "name": "REQUEST_GUARD", "class_name": "RequestGuard" },
+        ],
+      },
+    },
+  },
 }

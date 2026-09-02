@@ -1,0 +1,22 @@
+{
+  "name": "@identizen/e2e",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Playwright end-to-end suite: sample site + local index + fake phone.",
+  "license": "Apache-2.0",
+  "type": "module",
+  "scripts": {
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "e2e": "playwright test",
+    "e2e:ui": "playwright test --ui"
+  },
+  "devDependencies": {
+    "@axe-core/playwright": "^4.10.2",
+    "@identizen/db": "^0.0.0",
+    "@identizen/fake-phone": "^0.0.0",
+    "@playwright/test": "^1.55.0",
+    "drizzle-orm": "^0.44.5",
+    "tsx": "^4.20.5",
+    "typescript": "^5.9.2"
+  }
+}

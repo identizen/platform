@@ -20,3 +20,5 @@ apps/mobile/android/
 apps/mobile/.expo/
 e2e/site/.next/
 *.tsbuildinfo
+e2e/site/.next/
+e2e/.state/

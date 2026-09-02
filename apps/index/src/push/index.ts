@@ -36,7 +36,7 @@ export class NoopPushSender implements PushSender {
  *   is wired in a later milestone; until then it is reported as unsupported rather than faked.
  */
 export class WebPushSender implements PushSender {
-  constructor(private readonly fetchImpl: typeof fetch = fetch) {}
+  constructor(private readonly fetchImpl: typeof fetch = (input, init) => fetch(input, init)) {}
   async send(device: PushTarget, payload: PushPayload): Promise<PushResult> {
     const token = device.pushToken ?? '';
     if (/^https?:\/\//.test(token)) {
@@ -65,7 +65,7 @@ export class ApnsPushSender implements PushSender {
       topic: string;
       sandbox: boolean;
     },
-    private readonly fetchImpl: typeof fetch = fetch,
+    private readonly fetchImpl: typeof fetch = (input, init) => fetch(input, init),
   ) {}
   async send(device: PushTarget, payload: PushPayload): Promise<PushResult> {
     if (!device.pushToken) return { ok: false, provider: 'apns', detail: 'no token' };
@@ -102,7 +102,7 @@ export class ApnsPushSender implements PushSender {
 export class FcmPushSender implements PushSender {
   constructor(
     private readonly cfg: { projectId: string; clientEmail: string; privateKeyPem: string },
-    private readonly fetchImpl: typeof fetch = fetch,
+    private readonly fetchImpl: typeof fetch = (input, init) => fetch(input, init),
   ) {}
   async send(device: PushTarget, payload: PushPayload): Promise<PushResult> {
     if (!device.pushToken) return { ok: false, provider: 'fcm', detail: 'no token' };

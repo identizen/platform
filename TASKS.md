@@ -48,8 +48,8 @@ Gate command: `npm run gate` = lint + typecheck + unit + e2e (e2e is a no-op unt
 
 ## M5 — Fake phone + e2e harness `[cc]` — tag `v0.5.0`
 
-- [ ] **M5.1** `[cc]` `apps/fake-phone`: registers device+identity, receives challenges, auto-approves/denies/ignores per config; browser UI variant.
-- [ ] **M5.2** `[cc]` Playwright e2e: sample site + local index + fake phone → login, logout, revoke-device-kills-session, pairing reuse, revoke-pairing forces QR; Path B enroll → step-up → `acr: idz:mfa`; Verification API round-trip with reason. — Gate: e2e green in CI.
+- [x] **M5.1** `[cc]` `apps/fake-phone`: registers device+identity, receives challenges, auto-approves/denies/ignores per config; browser UI variant.
+- [x] **M5.2** `[cc]` Playwright e2e: sample site + local index + fake phone → login, logout, revoke-device-kills-session, pairing reuse, revoke-pairing forces QR; Path B enroll → step-up → `acr: idz:mfa`; Verification API round-trip with reason. — Gate: e2e green in CI.
 
 ## M6 — SDK, React, CLI `[cc]` — tag `v0.6.0`
 

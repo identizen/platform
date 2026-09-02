@@ -1,0 +1,3 @@
+# Test-only keys for the e2e suite (wrangler dev --env e2e). Not secrets.
+INDEX_SIGNING_KEY=404142434445464748494a4b4c4d4e4f505152535455565758595a5b5c5d5e5f
+OIDC_SIGNING_KEYS=[{"kty":"EC","x":"vAG7yaI0DprWnfrtzWC6pVyGBzm59PfgUALktYu8_0c","y":"ilx-jXmk7pC_CKv1tUXMyHm1L_nUs79gRLe6LWk6sqU","crv":"P-256","d":"P2y7lnYWFMy2GO12VGE-cIrmpU9oRqHGGcCnoCd1uW8","kid":"test-key-1","alg":"ES256","use":"sig"},{"kty":"EC","x":"nXs9-Vvl2jGXOa5zkh-z_duhtvz99hMaaT8nfoBMZLI","y":"B8MTc8uEL3GDbIsTkZ12gOXtrwuSvO33ZGqcPHv6ltk","crv":"P-256","d":"b571kG0FbElrQGRsF0wkPD3_RnbLjOcTJpH881bQzE4","kid":"test-key-2","alg":"ES256","use":"sig"}]

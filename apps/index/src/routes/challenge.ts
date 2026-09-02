@@ -101,6 +101,7 @@ export function challengeRoutes(): Hono<AppEnv> {
       challenge_id: state.challengeId,
       status: state.status,
       pairing: state.pairing,
+      redirect: state.status === 'approved' ? state.redirect : null,
     });
   });
 
