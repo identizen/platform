@@ -13,13 +13,14 @@
     "test:unit": "jest --ci",
     "test:hermes": "node scripts/hermes-vectors.mjs",
     "build": "tsc -p tsconfig.json --noEmit",
-    "eas-build-post-install": "npm --prefix ../../packages/protocol run build"
+    "eas-build-post-install": "node scripts/build-info.mjs && npm --prefix ../../packages/protocol run build"
   },
   "dependencies": {
     "@expo-google-fonts/inter": "^0.4.2",
     "@identizen/protocol": "^0.1.0",
     "@react-native-async-storage/async-storage": "2.2.0",
     "expo": "~57.0.19",
+    "expo-application": "~57.0.2",
     "expo-camera": "~57.0.4",
     "expo-constants": "~57.0.17",
     "expo-dev-client": "~57.0.18",

@@ -4,7 +4,7 @@ import { join } from 'node:path';
 import type { Challenge } from '@identizen/protocol';
 import { HomeScreen } from '../src/screens/HomeScreen';
 import { ListScreen } from '../src/screens/ListScreen';
-import { SettingsScreen } from '../src/screens/SettingsScreen';
+import { SettingsScreen, formatAbout } from '../src/screens/SettingsScreen';
 import { tokens } from '../src/theme/tokens';
 
 const challenge: Challenge = {
@@ -65,10 +65,21 @@ describe('top bar navigation', () => {
         onBiometricRequired={jest.fn()}
         onShowPhrase={jest.fn()}
         onForget={jest.fn()}
+        about={{
+          version: '0.1.0',
+          build: '4',
+          builtAt: '2026-09-03T14:34:00Z',
+          commit: '2d84922abc',
+        }}
       />,
     );
     expect(screen.queryByText('Back')).toBeNull();
     expect(screen.getByTestId('forget')).toBeOnTheScreen();
+    expect(screen.getByTestId('about-line')).toHaveTextContent(/^Identizen 0\.1\.0 \(4\) · built /);
+    expect(screen.getByTestId('about-line')).toHaveTextContent(/· 2d84922$/);
+    expect(formatAbout({ version: null, build: null, builtAt: null, commit: null })).toBe(
+      'development build',
+    );
   });
 });
 

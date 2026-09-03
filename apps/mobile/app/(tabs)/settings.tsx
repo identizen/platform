@@ -1,6 +1,8 @@
+import * as Application from 'expo-application';
 import { useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { api } from '../../src/api/client';
+import { BUILD_INFO } from '../../src/build-info';
 import { authenticate } from '../../src/biometrics';
 import {
   forgetIdentity,
@@ -43,6 +45,12 @@ export default function SettingsRoute() {
 
   return (
     <SettingsScreen
+      about={{
+        version: Application.nativeApplicationVersion,
+        build: Application.nativeBuildVersion,
+        builtAt: BUILD_INFO.builtAt,
+        commit: BUILD_INFO.commit,
+      }}
       indexUrl={summary.indexUrl}
       handle={summary.handle}
       registered={summary.registered}

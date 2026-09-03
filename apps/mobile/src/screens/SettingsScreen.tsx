@@ -31,6 +31,31 @@ export interface SettingsScreenProps {
   onShowPhrase: () => Promise<void>;
   onForget: () => Promise<void>;
   onBack?: () => void;
+  /** Shown at the foot of the page so a tester can tell builds apart. */
+  about: AboutInfo;
+}
+
+export interface AboutInfo {
+  version: string | null;
+  build: string | null;
+  builtAt: string | null;
+  commit: string | null;
+}
+
+/** "0.1.0 (4) · built 3 Sep 2026, 10:34 · 2d84922", or "development build" for a local run. */
+export function formatAbout(a: AboutInfo): string {
+  const parts: string[] = [];
+  if (a.version) parts.push(a.build ? `${a.version} (${a.build})` : a.version);
+  if (a.builtAt) {
+    const d = new Date(a.builtAt);
+    parts.push(
+      `built ${d.toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' })}, ${d.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })}`,
+    );
+  } else {
+    parts.push('development build');
+  }
+  if (a.commit) parts.push(a.commit.slice(0, 7));
+  return parts.join(' · ');
 }
 
 export function SettingsScreen(p: SettingsScreenProps) {
@@ -210,6 +235,15 @@ export function SettingsScreen(p: SettingsScreenProps) {
           />
         )}
       </Card>
+
+      <View className="items-center pt-2">
+        <Text
+          className="font-mono text-xs text-fg-subtle dark:text-fg-subtle-dark"
+          testID="about-line"
+        >
+          Identizen {formatAbout(p.about)}
+        </Text>
+      </View>
     </Screen>
   );
 }

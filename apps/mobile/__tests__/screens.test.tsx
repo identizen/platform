@@ -226,6 +226,12 @@ describe('lists and settings', () => {
         onBiometricRequired={jest.fn()}
         onShowPhrase={jest.fn()}
         onForget={jest.fn()}
+        about={{
+          version: '0.1.0',
+          build: '4',
+          builtAt: '2026-09-03T14:34:00Z',
+          commit: '2d84922abc',
+        }}
         onBack={jest.fn()}
       />,
     );

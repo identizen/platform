@@ -71,14 +71,40 @@ h1{font-size:1.5rem;letter-spacing:-.02em}
 p{color:var(--muted)}
 a.btn{display:block;text-align:center;background:var(--accent);color:#fff;text-decoration:none;font-weight:600;padding:1rem;border-radius:.75rem;margin:2rem 0 1rem}
 code{font:.9em ui-monospace,Menlo,monospace}
+dl{display:grid;grid-template-columns:auto 1fr;gap:.25rem 1rem;margin:1.5rem 0;font-size:.9375rem}
+dt{color:var(--muted)}dd{margin:0}
+ol{padding-left:1.25rem;color:var(--muted)}
+#steps{display:none}#steps.on{display:block}
+#steps li{margin:.5rem 0}#steps li.done{color:var(--fg)}
+.hidden{display:none}
 </style>
 </head>
 <body>
 <main>
 <h1>Install Identizen</h1>
-<p>Internal build ${esc(build.appVersion)} (${esc(build.appBuildVersion)}), iOS, for registered test devices only. Open this page in Safari.</p>
-<a class="btn" href="${link}">Install Identizen</a>
-<p>iOS asks to confirm, then the icon appears on your home screen. If nothing happens, delete the existing Identizen app and try again. Built from <code>${esc(String(build.gitCommitHash).slice(0, 7))}</code>.</p>
+<p>Internal iOS build for registered test devices. Open this page in Safari.</p>
+<dl>
+  <dt>Version</dt><dd>${esc(build.appVersion)} (${esc(build.appBuildVersion)})</dd>
+  <dt>Built</dt><dd><time datetime="${esc(build.completedAt)}">${esc(new Date(build.completedAt).toUTCString())}</time></dd>
+  <dt>Commit</dt><dd><code>${esc(String(build.gitCommitHash).slice(0, 7))}</code></dd>
+</dl>
+<a class="btn" id="install" href="${link}">Install Identizen ${esc(build.appVersion)} (${esc(build.appBuildVersion)})</a>
+<ol id="steps" aria-live="polite">
+  <li id="s1">Waiting for iOS to ask "app.identizen.com would like to install Identizen". Tap <strong>Install</strong>.</li>
+  <li id="s2">Go to the home screen: the Identizen icon is dimmed while it downloads, then fills in. That is the install completing; Safari cannot see it.</li>
+  <li id="s3">Open Identizen and check Settings: the last line should read <code>${esc(build.appVersion)} (${esc(build.appBuildVersion)})</code>.</li>
+</ol>
+<p id="nothing" class="hidden">Nothing happened? iOS ignores an install when the same version and build are already on the phone, and when this device is not in the provisioning profile. Delete the existing Identizen app and tap again.</p>
+<script>
+(function(){
+  var a=document.getElementById('install'),steps=document.getElementById('steps'),nothing=document.getElementById('nothing');
+  a.addEventListener('click',function(){
+    a.textContent='Install started… look for the iOS prompt';a.style.opacity='.7';steps.classList.add('on');
+    setTimeout(function(){document.getElementById('s1').classList.add('done');},1500);
+    setTimeout(function(){nothing.classList.remove('hidden');},12000);
+  });
+})();
+</script>
 </main>
 </body>
 </html>
