@@ -1,0 +1,13 @@
+{
+  "applinks": {
+    "details": [
+      {
+        "appIDs": ["V4V4T4UVGC.com.identizen.app"],
+        "components": [{ "/": "/l/*", "comment": "Sign-in and approval links open the Identizen app" }]
+      }
+    ]
+  },
+  "webcredentials": {
+    "apps": ["V4V4T4UVGC.com.identizen.app"]
+  }
+}

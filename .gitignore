@@ -25,3 +25,6 @@ e2e/site/.next/
 e2e/.state/
 .dev.vars.dev
 .claude/
+
+# Public build-time values for the hosted dashboard (index URL, public client id); no secrets.
+!apps/web/.env.production
