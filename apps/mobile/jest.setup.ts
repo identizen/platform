@@ -36,10 +36,18 @@ jest.mock('expo-local-authentication', () => ({
   AuthenticationType: { FINGERPRINT: 1, FACIAL_RECOGNITION: 2, IRIS: 3 },
 }));
 
+jest.mock('expo-constants', () => ({
+  __esModule: true,
+  default: {
+    expoConfig: { extra: { eas: { projectId: '63862275-0cdd-4bbe-a849-1bec679d8cbf' } } },
+  },
+}));
+
 jest.mock('expo-notifications', () => ({
   getPermissionsAsync: jest.fn(() => Promise.resolve({ status: 'undetermined', granted: false })),
   requestPermissionsAsync: jest.fn(() => Promise.resolve({ status: 'denied', granted: false })),
   getDevicePushTokenAsync: jest.fn(() => Promise.reject(new Error('no push in tests'))),
+  getExpoPushTokenAsync: jest.fn(() => Promise.reject(new Error('no expo push in tests'))),
   addNotificationReceivedListener: jest.fn(() => ({ remove: jest.fn() })),
   addNotificationResponseReceivedListener: jest.fn(() => ({ remove: jest.fn() })),
   setNotificationHandler: jest.fn(),

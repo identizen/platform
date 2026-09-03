@@ -3,6 +3,7 @@
  * the signed challenge itself. When notifications are unavailable (Expo Go, simulator, denied
  * permission) the install registers `push_token: 'poll'` and drains its inbox on an interval.
  */
+import Constants from 'expo-constants';
 import * as Notifications from 'expo-notifications';
 import { AppState, Platform } from 'react-native';
 import { api } from '../api/client';
@@ -15,18 +16,42 @@ export interface PushRegistration {
   token: string;
 }
 
-/** Ask for permission and read the raw device token (APNs on iOS, FCM on Android). */
+const POLL: PushRegistration = { platform: 'web', token: 'poll' };
+
+/** The EAS project id from app.json; Expo push tokens are scoped to it. */
+export function easProjectId(): string | null {
+  const extra = Constants.expoConfig?.extra as { eas?: { projectId?: unknown } } | undefined;
+  const id = extra?.eas?.projectId;
+  return typeof id === 'string' && id.length > 0 ? id : null;
+}
+
+/**
+ * Ask for permission and obtain a push token. Preferred: an Expo push token, which the index
+ * relays through Expo's push service (it speaks APNs and FCM for us; see the index's
+ * ExpoPushSender). Fallback: the raw APNs / FCM device token, for an index that talks to Apple
+ * or Google directly. Either way the platform records where the phone lives.
+ */
 export async function obtainPushToken(): Promise<PushRegistration> {
   try {
     const current = await Notifications.getPermissionsAsync();
     const status = current.granted ? current : await Notifications.requestPermissionsAsync();
-    if (!status.granted) return { platform: 'web', token: 'poll' };
+    if (!status.granted) return POLL;
+    const platform = Platform.OS === 'ios' ? 'apns' : 'fcm';
+    const projectId = easProjectId();
+    if (projectId) {
+      try {
+        const expo = await Notifications.getExpoPushTokenAsync({ projectId });
+        if (typeof expo.data === 'string' && expo.data.length > 0)
+          return { platform, token: expo.data };
+      } catch {
+        /* no Expo token (offline, or not an EAS build); fall through to the device token */
+      }
+    }
     const token = await Notifications.getDevicePushTokenAsync();
-    if (typeof token.data !== 'string' || token.data.length === 0)
-      return { platform: 'web', token: 'poll' };
-    return { platform: Platform.OS === 'ios' ? 'apns' : 'fcm', token: token.data };
+    if (typeof token.data !== 'string' || token.data.length === 0) return POLL;
+    return { platform, token: token.data };
   } catch {
-    return { platform: 'web', token: 'poll' };
+    return POLL;
   }
 }
 

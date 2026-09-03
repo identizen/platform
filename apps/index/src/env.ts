@@ -11,8 +11,14 @@ export interface Env {
   INDEX_SIGNING_KEY: string;
   /** JSON array of OIDC signing keys (JWK, private). Two active keys for rotation. Set in M4. */
   OIDC_SIGNING_KEYS?: string;
-  /** noop | fcm | apns | web */
+  /** noop, or anything else to enable real senders (web inbox, Expo relay, APNs/FCM when configured). */
   PUSH_PROVIDER?: string;
+  /**
+   * Optional Expo access token (https://expo.dev/settings/access-tokens) sent as a bearer to the
+   * Expo push service. Expo push tokens (`ExponentPushToken[...]`) are relayed there regardless
+   * of the platform they were registered under.
+   */
+  EXPO_ACCESS_TOKEN?: string;
   /** "true" allows unauthenticated POST /sites (dev / self-host). Otherwise SITE_REGISTRATION_TOKEN is required. */
   OPEN_SITE_REGISTRATION?: string;
   SITE_REGISTRATION_TOKEN?: string;

@@ -169,18 +169,71 @@ class PollOnlySender implements PushSender {
   }
 }
 
+/** `ExponentPushToken[...]`: an Expo push token, relayed through Expo's push service. */
+export function isExpoPushToken(token: string | null | undefined): boolean {
+  return typeof token === 'string' && /^Expo(nent)?PushToken\[[^\]]+\]$/.test(token);
+}
+
+/**
+ * Expo push service (https://docs.expo.dev/push-notifications/sending-notifications/). It talks
+ * APNs and FCM on our behalf over plain HTTPS, which matters on Workers: APNs' own provider API
+ * requires HTTP/2 end to end, and Worker subrequests are HTTP/1.1. The payload is still only
+ * `{ challenge_id }`; Expo relays it and stores nothing else about the user.
+ */
+export class ExpoPushSender implements PushSender {
+  constructor(
+    private readonly accessToken: string | null = null,
+    private readonly fetchImpl: typeof fetch = (input, init) => fetch(input, init),
+  ) {}
+  async send(device: PushTarget, payload: PushPayload): Promise<PushResult> {
+    if (!isExpoPushToken(device.pushToken))
+      return { ok: false, provider: 'expo', detail: 'not an Expo push token' };
+    try {
+      const res = await this.fetchImpl('https://exp.host/--/api/v2/push/send', {
+        method: 'POST',
+        headers: {
+          'content-type': 'application/json',
+          accept: 'application/json',
+          ...(this.accessToken && { authorization: `Bearer ${this.accessToken}` }),
+        },
+        body: JSON.stringify({
+          to: device.pushToken,
+          title: 'Identizen',
+          body: 'Approve sign-in',
+          data: payload,
+          sound: 'default',
+          priority: 'high',
+          channelId: 'sign-in',
+          categoryId: 'sign-in',
+        }),
+      });
+      if (!res.ok) return { ok: false, provider: 'expo', detail: `status ${res.status}` };
+      const body = await res.json<{ data?: { status?: string; message?: string } }>();
+      const ticket = body.data;
+      if (ticket?.status !== 'ok')
+        return { ok: false, provider: 'expo', detail: ticket?.message ?? 'ticket not ok' };
+      return { ok: true, provider: 'expo' };
+    } catch (err) {
+      return { ok: false, provider: 'expo', detail: String(err) };
+    }
+  }
+}
+
 /**
  * Route by the device's platform. A platform with no configured provider (e.g. an APNs token on
  * an index without APNs keys) is reported as a failed push, never a silent success: the caller
  * has already queued the challenge in the device's inbox, and the log should say why the phone
- * was not woken. `fallback` only serves devices that registered no platform at all.
+ * was not woken. `fallback` only serves devices that registered no platform at all. Expo push
+ * tokens go to the Expo relay whatever platform they were registered under.
  */
 export class RoutingPushSender implements PushSender {
   constructor(
-    private readonly senders: Partial<Record<'apns' | 'fcm' | 'web', PushSender>>,
+    private readonly senders: Partial<Record<'apns' | 'fcm' | 'web' | 'expo', PushSender>>,
     private readonly fallback: PushSender,
   ) {}
   send(device: PushTarget, payload: PushPayload): Promise<PushResult> {
+    if (isExpoPushToken(device.pushToken) && this.senders.expo)
+      return this.senders.expo.send(device, payload);
     if (!device.pushPlatform) return this.fallback.send(device, payload);
     const sender = this.senders[device.pushPlatform];
     if (!sender) {
@@ -200,8 +253,9 @@ export function createPushSender(env: Env): PushSender {
     // Even with pushes disabled, polling devices (push_token 'poll') get their inbox.
     return new RoutingPushSender({ web: new PollOnlySender(env.REQUEST_GUARD, noop) }, noop);
   }
-  const senders: Partial<Record<'apns' | 'fcm' | 'web', PushSender>> = {
+  const senders: Partial<Record<'apns' | 'fcm' | 'web' | 'expo', PushSender>> = {
     web: new WebPushSender(env.REQUEST_GUARD),
+    expo: new ExpoPushSender(env.EXPO_ACCESS_TOKEN ?? null),
   };
   if (env.APNS_KEY_ID && env.APNS_TEAM_ID && env.APNS_PRIVATE_KEY && env.APNS_TOPIC) {
     senders.apns = new ApnsPushSender({

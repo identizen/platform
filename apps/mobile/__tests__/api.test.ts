@@ -103,4 +103,23 @@ describe('api', () => {
     });
     expect((await readDevice())?.pushMode).toMatch(/apns|fcm/);
   });
+
+  it('prefers an Expo push token (relayed by the index) over the raw device token', async () => {
+    await register({ platform: 'web', token: 'poll' });
+    jest
+      .mocked(Notifications.getPermissionsAsync)
+      .mockResolvedValueOnce({ status: 'granted', granted: true } as never);
+    jest
+      .mocked(Notifications.getExpoPushTokenAsync)
+      .mockResolvedValueOnce({ type: 'expo', data: 'ExponentPushToken[abc]' });
+    await syncPushToken();
+    const push = calls().find((c) => c.path.endsWith('/push-token'));
+    expect(jest.mocked(Notifications.getExpoPushTokenAsync)).toHaveBeenCalledWith({
+      projectId: expect.any(String),
+    });
+    expect(push?.body).toMatchObject({
+      push_token: 'ExponentPushToken[abc]',
+      push_platform: expect.stringMatching(/apns|fcm/),
+    });
+  });
 });

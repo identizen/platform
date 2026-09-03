@@ -13,7 +13,7 @@ import { useEffect, useRef, useState } from 'react';
 import { recentlyReadOverBluetooth, stopBleAdvertising } from '../ble/advertiser';
 import { setBleReadHandler, syncBleAdvertising } from '../ble/controller';
 import { challengeStore, type PendingChallenge } from '../challenges/store';
-import { drainInboxOnce, handleIncomingChallenge } from '../push';
+import { drainInboxOnce, handleIncomingChallenge, syncPushToken } from '../push';
 import { listenForPushes, startInboxPolling } from '../push';
 import { hasIdentity } from '../identity/identity';
 import { useTheme } from '../theme/useTheme';
@@ -29,6 +29,8 @@ export function useBootstrap(): { ready: boolean; identity: boolean | null } {
   useEffect(() => {
     void challengeStore.load();
     void hasIdentity().then(setIdentity);
+    // Tokens rotate and the preferred kind can change between builds (raw APNs -> Expo relay).
+    void syncPushToken();
   }, []);
 
   useEffect(() => {

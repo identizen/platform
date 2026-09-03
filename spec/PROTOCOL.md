@@ -204,6 +204,8 @@ The push payload is `{ "challenge_id": "ch_…" }` and nothing else. The phone f
 
 Delivery of record is the device **inbox**: whenever the index targets a device (step-up, verification, BLE or paired discovery) it queues the `challenge_id` in that device's inbox, and the phone drains `GET /devices/:id/inbox` (device-authenticated, see section 8) while it is in the foreground. A provider push is an accelerator: an index with no APNs / FCM credentials, or a failed push, still delivers through the inbox. Inbox entries expire with the challenge.
 
+Transport: an index sends through the Expo push service when the phone registered an Expo push token (`ExponentPushToken[...]`, obtained by the app for its EAS project) and directly through APNs / FCM when it registered a raw device token and the index holds the provider credentials. Either way the relay sees only the `challenge_id`.
+
 ## 8. Device-authenticated requests (`Idz-Signature`)
 
 Device and identity endpoints authenticate with a signed request header instead of bearer tokens:
