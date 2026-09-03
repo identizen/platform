@@ -1,0 +1,25 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "jtmerlin-demo",
+  "compatibility_date": "2025-08-01",
+  "assets": {
+    "directory": "./dist",
+    "not_found_handling": "single-page-application",
+  },
+  "observability": {
+    "enabled": true,
+  },
+  // jtmerlin.com must be an active zone on this account before this route attaches.
+  // Until then the Worker answers at https://jtmerlin-demo.noundry.workers.dev.
+  "workers_dev": true,
+  "routes": [
+    {
+      "pattern": "jtmerlin.com",
+      "custom_domain": true,
+    },
+    {
+      "pattern": "www.jtmerlin.com",
+      "custom_domain": true,
+    },
+  ],
+}

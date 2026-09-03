@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="color-scheme" content="light dark" />
+    <meta
+      name="description"
+      content="JT Merlin Bank is a fictional bank built to show how Identizen, an open-source identity provider, powers passwordless login and transaction approval."
+    />
+    <meta name="robots" content="index, follow" />
+    <link rel="icon" href="/icon.svg" type="image/svg+xml" />
+    <title>JT Merlin Bank · Identizen demo</title>
+    <script>
+      (function () {
+        try {
+          var t = localStorage.getItem('idz:theme');
+          if (t === 'light' || t === 'dark') document.documentElement.setAttribute('data-theme', t);
+        } catch (e) {}
+      })();
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

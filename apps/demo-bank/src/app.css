@@ -1,0 +1,72 @@
+@import '@identizen/ui/tokens.css';
+
+/* Scan this app's own sources for utilities. */
+@source './';
+
+/*
+ * JT Merlin's own accent: a deep bank green, applied through the design-system tokens only.
+ * Everything that is Identizen's (the "powered by" mark, the approval panel) keeps the
+ * Identizen vermilion via the `--color-idz-*` aliases below.
+ */
+@theme {
+  --color-idz: oklch(0.55 0.19 30);
+  --color-idz-soft: oklch(0.95 0.035 30);
+  --color-idz-soft-fg: oklch(0.42 0.17 30);
+  --color-bank: oklch(0.42 0.11 165);
+  --color-bank-deep: oklch(0.3 0.09 170);
+  --color-bank-fg: oklch(0.99 0.002 250);
+  --color-bank-soft: oklch(0.95 0.03 165);
+  --color-bank-soft-fg: oklch(0.36 0.1 165);
+}
+
+@layer base {
+  :root {
+    --color-accent: oklch(0.42 0.11 165);
+    --color-accent-hover: oklch(0.37 0.11 165);
+    --color-accent-fg: oklch(0.99 0.002 250);
+    --color-accent-soft: oklch(0.95 0.03 165);
+    --color-accent-soft-fg: oklch(0.36 0.1 165);
+    --color-ring: oklch(0.55 0.11 165);
+    --color-primary: var(--color-accent);
+    --color-primary-foreground: var(--color-accent-fg);
+  }
+  :root[data-theme='dark'] {
+    --color-accent: oklch(0.72 0.12 165);
+    --color-accent-hover: oklch(0.78 0.11 165);
+    --color-accent-fg: oklch(0.18 0.04 165);
+    --color-accent-soft: oklch(0.28 0.05 165);
+    --color-accent-soft-fg: oklch(0.86 0.08 165);
+    --color-ring: oklch(0.72 0.12 165);
+    --color-idz: oklch(0.7 0.17 30);
+    --color-idz-soft: oklch(0.28 0.07 30);
+    --color-idz-soft-fg: oklch(0.86 0.08 30);
+    --color-bank-soft: oklch(0.28 0.05 165);
+    --color-bank-soft-fg: oklch(0.86 0.08 165);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme='light']) {
+      --color-accent: oklch(0.72 0.12 165);
+      --color-accent-hover: oklch(0.78 0.11 165);
+      --color-accent-fg: oklch(0.18 0.04 165);
+      --color-accent-soft: oklch(0.28 0.05 165);
+      --color-accent-soft-fg: oklch(0.86 0.08 165);
+      --color-ring: oklch(0.72 0.12 165);
+      --color-idz: oklch(0.7 0.17 30);
+      --color-idz-soft: oklch(0.28 0.07 30);
+      --color-idz-soft-fg: oklch(0.86 0.08 30);
+      --color-bank-soft: oklch(0.28 0.05 165);
+      --color-bank-soft-fg: oklch(0.86 0.08 165);
+    }
+  }
+
+  #root {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* Tabular figures everywhere a number lines up with another number. */
+  .tnum {
+    font-variant-numeric: tabular-nums;
+  }
+}
