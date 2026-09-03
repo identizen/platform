@@ -1,5 +1,5 @@
 import type { APIRoute } from 'astro';
-import { sendContactMail, validateContact, verifyTurnstile } from '../../lib/contact';
+import { looksLikeBot, sendContactMail, validateContact, verifyTurnstile } from '../../lib/contact';
 
 export const prerender = false;
 
@@ -33,6 +33,8 @@ export const POST: APIRoute = async ({ request, locals, clientAddress }) => {
   } catch {
     return Response.json({ ok: false, error: 'bad_request' }, { status: 400 });
   }
+  // Bots get the same answer as people, and nothing is sent.
+  if (looksLikeBot(raw)) return Response.json({ ok: true, sent: false });
   const result = validateContact({ ...raw, token: raw.token ?? raw['cf-turnstile-response'] });
   if (!result.ok)
     return Response.json({ ok: false, error: 'invalid', errors: result.errors }, { status: 400 });
@@ -49,7 +51,7 @@ export const POST: APIRoute = async ({ request, locals, clientAddress }) => {
   try {
     const sent = await sendContactMail({
       apiKey: e.RESEND_API_KEY,
-      to: e.CONTACT_TO ?? 'hello@identizen.com',
+      to: e.CONTACT_TO ?? 'contact@identizen.com',
       from: e.CONTACT_FROM ?? 'Identizen <contact@identizen.com>',
       contact: result.value,
     });

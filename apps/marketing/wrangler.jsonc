@@ -13,7 +13,7 @@
   },
   "vars": {
     "PUBLIC_IDENTIZEN_INDEX_URL": "https://index.identizen.com",
-    "CONTACT_TO": "hello@identizen.com",
+    "CONTACT_TO": "contact@identizen.com",
   },
   "routes": [
     {

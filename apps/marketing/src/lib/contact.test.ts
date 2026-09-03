@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import { sendContactMail, validateContact, verifyTurnstile } from './contact';
+import { looksLikeBot, sendContactMail, validateContact, verifyTurnstile } from './contact';
 import { isActive } from './site';
 
 describe('validateContact', () => {
@@ -60,5 +60,19 @@ describe('isActive', () => {
     expect(isActive('/', '/')).toBe(true);
     expect(isActive('/pricing', '/')).toBe(false);
     expect(isActive('/docs', 'https://docs.identizen.com')).toBe(false);
+  });
+});
+
+describe('looksLikeBot', () => {
+  it('flags a filled honeypot and a too-fast submission, and nothing else', () => {
+    const now = 1_000_000;
+    const human = { name: 'Ada', email: 'ada@example.com', message: 'Hello there, ten chars.' };
+    expect(looksLikeBot({ ...human, company: '', rendered_at: String(now - 20_000) }, now)).toBe(
+      false,
+    );
+    expect(looksLikeBot({ ...human, company: 'Acme Corp' }, now)).toBe(true);
+    expect(looksLikeBot({ ...human, rendered_at: String(now - 500) }, now)).toBe(true);
+    // No timing field at all (an old page or a JS-less submission) is not treated as a bot.
+    expect(looksLikeBot(human, now)).toBe(false);
   });
 });

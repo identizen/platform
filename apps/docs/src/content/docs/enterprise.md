@@ -1,11 +1,7 @@
 ---
 title: Enterprise
-description: Org identities, fleet console, instant revocation, SSO bridging, SCIM, audit. What exists today and what is on the roadmap.
+description: Org identities, fleet console, instant revocation, SSO bridging, SCIM, audit. What the index does today and what is on the roadmap.
 ---
-
-:::note[Roadmap]
-The enterprise tier is PRD Phase 3. This page separates what the open-source index does today from what is planned, so nobody builds on a feature that is not there yet.
-:::
 
 ## Available today
 
@@ -16,14 +12,14 @@ The enterprise tier is PRD Phase 3. This page separates what the open-source ind
 - **Self-hosting.** A regulated org can run the entire index inside its own boundary with no Identizen-operated service in the path ([self-hosting](/self-hosting/)).
 - **Closed registration.** `SITE_REGISTRATION_TOKEN` gates which sites may register with an index.
 
-## Planned (Phase 3)
+## On the roadmap
 
 | Capability           | Notes                                                                                                                                                              |
 | -------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | Org enrollment       | Admin-issued enrollment links (email, MDM, help-desk QR); device attests; admin approves or auto-approves by policy. No user-held recovery — the admin re-enrolls. |
-| Fleet console        | Enroll, disable, re-enroll, last-seen, attestation status. Built on the same React app as the dashboard (`console.identizen.com`).                                 |
+| Fleet console        | Enroll, disable, re-enroll, last-seen, attestation status.                                                                                                         |
 | Policy               | Require attestation, biometric class, geo/time rules.                                                                                                              |
-| SSO bridging         | Identizen as an OIDC/SAML IdP into Okta, Entra ID, Google Workspace, or directly into SaaS apps.                                                                   |
+| SSO bridging         | Identizen as an OIDC/SAML identity provider into your existing IdP, or directly into SaaS apps.                                                                    |
 | SCIM                 | User lifecycle from the HR system.                                                                                                                                 |
 | Workforce-only login | A per-site flag requiring an org identity.                                                                                                                         |
 | Compliance packaging | SOC 2 report, DPA, pen-test summary, EU/US data residency.                                                                                                         |

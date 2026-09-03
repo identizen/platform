@@ -1,62 +1,130 @@
 ---
 import Base from '../../layouts/Base.astro';
+const effective = 'September 3, 2026';
 ---
 
 <Base
-  title="Privacy"
-  description="Draft privacy policy for identizen.com and the Identizen hosted services."
-  noindex
+  title="Privacy Policy"
+  description="What Identizen stores, what sites receive, what this website collects, and how to exercise your rights."
 >
   <div class="container-site max-w-3xl py-16 sm:py-24">
     <article class="prose-idz">
-      <p
-        class="rounded-md border border-warning-soft bg-warning-soft px-3 py-2 text-sm text-warning-soft-fg"
-      >
-        Draft. Not yet reviewed by counsel; will be replaced before general availability.
-      </p>
-      <h1 class="mt-6 text-4xl font-semibold tracking-tight">Privacy</h1>
+      <p class="eyebrow">Legal</p>
+      <h1 class="mt-2 text-4xl font-semibold tracking-tight">Privacy Policy</h1>
+      <p class="mt-2 text-sm text-fg-muted">Effective {effective}</p>
       <p class="mt-4 text-lg text-fg-muted">
-        The short version: we designed the system so that we hold as little as possible, and nothing
-        that can be used to log in as you.
+        The short version: the system is designed so that we hold as little as possible, and nothing
+        that can be used to log in as you. This policy covers the Identizen iOS app, the public
+        index at index.identizen.com, the dashboard at app.identizen.com, and this website.
       </p>
 
       <h2>What the public index stores</h2>
+      <p>
+        The index is a directory and relay. When you register a phone it stores, for that phone:
+      </p>
       <ul>
         <li>
-          Public keys for your identity and devices. Never private keys, seeds, or passphrases.
-        </li>
-        <li>A push token per device so we can deliver a challenge id (and only a challenge id).</li>
-        <li>
-          A rotating Bluetooth key per device so a nearby browser can find your phone. It rotates
-          every 15 minutes and is resolvable only by the index.
+          <strong>Public keys</strong> for your identity and for the device. Never private keys, the recovery
+          phrase, or anything that can sign on your behalf.
         </li>
         <li>
-          Which sites you have logged in to (as per-site identifiers), so revocation can log you out
-          everywhere.
+          <strong>A push token</strong> so a sign-in request can reach the phone. The only thing ever
+          sent through a push service is an opaque request id.
         </li>
         <li>
-          Audit events: logins, approvals, denials, enrollments, revocations, with timestamps.
+          <strong>A Bluetooth key</strong> used to derive an identifier that rotates every 15 minutes.
+          Only the index can resolve it; nothing identifying is broadcast.
         </li>
-        <li>An optional handle, if you choose one.</li>
+        <li>
+          <strong>Per-site identifiers.</strong> Each site you sign in to gets its own identifier for
+          you. The index keeps the mapping so revoking a device can sign you out everywhere.
+        </li>
+        <li>
+          <strong>Paired browsers:</strong> a public key for each browser you paired, the browser's user-agent
+          string, and the IP address it connected from, so you can recognise and unpair it.
+        </li>
+        <li>
+          <strong>Sessions</strong> at each site: an opaque session id and its expiry, so you can end
+          them from your phone.
+        </li>
+        <li>
+          <strong>Activity records:</strong> sign-ins, approvals, denials, enrolments, pairings, and revocations,
+          with timestamps, the site involved, and, for approvals, the short description the site attached
+          to the request (for example the amount and payee of a transfer).
+        </li>
+        <li>
+          <strong>An optional handle</strong>, only if you choose one in Settings. Handles are
+          public and resolvable through WebFinger.
+        </li>
       </ul>
+      <p>
+        The index does not store your name, email address, phone number, contacts, photos, or
+        location. The camera is used only to read a sign-in code, and no image leaves the phone.
+      </p>
 
       <h2>What sites receive</h2>
       <p>
-        A stable per-site identifier, an opaque device id, and the authentication method used. No
-        email, no name, no cross-site identifier.
+        A site that you sign in to receives a stable identifier that is specific to that site, an
+        opaque device identifier, a session id, and how the approval was authenticated (for example
+        Face ID). If you have set a handle and the site asks for it, the handle is included. Sites
+        do not receive an email address, a name, or any identifier that can be matched across sites.
       </p>
 
-      <h2>What this website collects</h2>
+      <h2>What this website and the dashboard collect</h2>
       <p>
-        Contact-form submissions are sent to us by email and protected by Cloudflare Turnstile. We
-        do not run third-party analytics or advertising scripts.
+        This website does not run analytics or advertising scripts. Contact-form submissions are
+        protected by Cloudflare Turnstile and sent to us by email. The dashboard keeps your session
+        in your browser only. Our hosting providers keep standard request logs (IP address, user
+        agent, URL, time) for a short period for security and operations.
       </p>
 
-      <h2>Your choices</h2>
+      <h2>Who processes data on our behalf</h2>
+      <ul>
+        <li>Cloudflare, Inc., which hosts the index, dashboard, and websites.</li>
+        <li>Neon, Inc., which hosts the index database in the United States (AWS us-east-1).</li>
+        <li>
+          Apple Inc. and Expo (650 Industries, Inc.), which deliver push notifications. The
+          notification payload is an opaque request id only.
+        </li>
+      </ul>
+      <p>We do not sell personal data and do not share it with anyone for advertising.</p>
+
+      <h2>Retention</h2>
       <p>
-        Revoke any device, session, or paired browser from the dashboard or the app. Deleting your
-        last device removes your identity from the index; audit records are retained for the period
-        required by law and then deleted.
+        Records are kept while your identity is registered. Revoking a device disables it
+        immediately; revoking your last device disables the identity. Disabled records are kept so
+        that revocation stays effective and can be audited, and are deleted on request (see below).
+        Hosting request logs are deleted automatically within days.
+      </p>
+
+      <h2>Your choices and rights</h2>
+      <ul>
+        <li>
+          Revoke any device, session, or paired browser at any time from the app or the dashboard.
+        </li>
+        <li>Turn nearby sign-in over Bluetooth off in the app's Settings.</li>
+        <li>Remove your identity from a phone at any time ("Forget identity" in Settings).</li>
+        <li>
+          Ask us to export or delete everything the index holds about an identity by writing to the
+          address below. We will need you to prove control of the identity, which you do by signing
+          a request from your phone.
+        </li>
+      </ul>
+      <p>
+        Depending on where you live, you may have additional rights under laws such as the GDPR or
+        the CCPA, including the right to access, correct, delete, or restrict processing of your
+        data, and the right to complain to a supervisory authority. We honour these for everyone.
+      </p>
+
+      <h2>Children</h2>
+      <p>
+        The services are not directed at children under 13, and we do not knowingly register them.
+      </p>
+
+      <h2>Changes</h2>
+      <p>
+        We will post changes to this page and update the effective date. Material changes to what
+        the index stores will also be announced in the app before they take effect.
       </p>
 
       <h2>Contact</h2>

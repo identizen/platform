@@ -7,9 +7,7 @@ import { CHALLENGE_EVENT } from './useVirtualPhone';
 export type Mode = 'virtual' | 'phone';
 
 function Mark(): React.JSX.Element {
-  return (
-    <KimiMark size={16} title={null} />
-  );
+  return <KimiMark size={16} title={null} />;
 }
 
 interface LoginProps {

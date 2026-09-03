@@ -1,55 +1,106 @@
 ---
 import Base from '../../layouts/Base.astro';
+const effective = 'September 3, 2026';
 ---
 
-<Base title="Terms" description="Draft terms of service for the Identizen hosted services." noindex>
+<Base
+  title="Terms of Service"
+  description="Terms for the Identizen hosted services: the public index, the dashboard, the iOS app, and the documentation."
+>
   <div class="container-site max-w-3xl py-16 sm:py-24">
     <article class="prose-idz">
-      <p
-        class="rounded-md border border-warning-soft bg-warning-soft px-3 py-2 text-sm text-warning-soft-fg"
-      >
-        Draft. Not yet reviewed by counsel; will be replaced before general availability.
-      </p>
-      <h1 class="mt-6 text-4xl font-semibold tracking-tight">Terms of service</h1>
+      <p class="eyebrow">Legal</p>
+      <h1 class="mt-2 text-4xl font-semibold tracking-tight">Terms of Service</h1>
+      <p class="mt-2 text-sm text-fg-muted">Effective {effective}</p>
       <p class="mt-4 text-lg text-fg-muted">
-        These terms cover the services Identizen hosts: the public index, the dashboard, and the
-        documentation. The software itself is licensed separately under Apache-2.0.
+        These terms cover the services Identizen operates: the public index at index.identizen.com,
+        the dashboard at app.identizen.com, the Identizen app, and this website and its
+        documentation. By using them you agree to these terms.
       </p>
 
       <h2>The software</h2>
       <p>
-        Everything in the Identizen repository is provided under the Apache License 2.0, as is,
-        without warranty. Self-hosted deployments are governed by that license alone, not by these
-        terms.
+        The Identizen software is open source under the Apache License 2.0 and is provided as is,
+        without warranty. A deployment you run yourself is governed by that license alone, not by
+        these terms.
       </p>
 
       <h2>The hosted services</h2>
       <ul>
         <li>
-          The public index is offered free of charge for personal identities, without an
-          availability guarantee.
+          The public index is offered free of charge for personal identities. We aim to keep it
+          available but do not guarantee availability, and we may change or discontinue it with
+          reasonable notice posted on this site and in the app.
+        </li>
+        <li>
+          Sites may register with the public index to accept Identizen sign-ins. Site operators are
+          responsible for their own users, content, and compliance.
         </li>
         <li>
           Enterprise customers receive the availability, support, and data-processing commitments in
-          their order form and DPA, which take precedence over these terms.
-        </li>
-        <li>
-          Do not use the services to attack, spam, or impersonate. We may disable sites or devices
-          that do.
+          their order form and data-processing agreement, which take precedence over these terms
+          where they conflict.
         </li>
       </ul>
 
+      <h2>Acceptable use</h2>
+      <p>You agree not to use the services to:</p>
+      <ul>
+        <li>attack, probe, or overload the services or any site that uses them;</li>
+        <li>
+          impersonate another person or site, or send sign-in requests to people who did not ask for
+          them;
+        </li>
+        <li>register sites for phishing, fraud, or the distribution of malware;</li>
+        <li>circumvent rate limits, revocation, or any other security control.</li>
+      </ul>
+      <p>We may disable sites, devices, or identities that we reasonably believe are doing so.</p>
+
       <h2>Your identity</h2>
       <p>
-        Your private keys and recovery passphrase are yours alone. We cannot recover a lost
-        passphrase for a personal identity and cannot log in as you. Site owners keep their own
+        Your private keys and recovery phrase exist only on your devices and in your own records. We
+        cannot recover a lost recovery phrase for a personal identity and cannot sign in as you. You
+        are responsible for keeping your phone and recovery phrase secure. Sites keep their own
         account-recovery paths.
+      </p>
+
+      <h2>The app</h2>
+      <p>
+        The Identizen app is licensed to you for use on Apple devices you own or control, under
+        Apple's standard licensed application end user license agreement in addition to these terms.
+        Apple is not responsible for the app or its content and has no obligation to provide support
+        for it.
+      </p>
+
+      <h2>Privacy</h2>
+      <p>
+        How we handle data is described in the <a href="/legal/privacy/">Privacy Policy</a>, which
+        forms part of these terms.
+      </p>
+
+      <h2>Disclaimer and limitation of liability</h2>
+      <p>
+        The hosted services are provided "as is" and "as available", without warranties of any kind,
+        express or implied, including merchantability, fitness for a particular purpose, and
+        non-infringement. To the fullest extent permitted by law, we are not liable for any
+        indirect, incidental, special, consequential, or punitive damages, or for any loss of data,
+        profits, or business, arising from your use of the services. Our total liability for any
+        claim relating to the free services is limited to one hundred US dollars. Some jurisdictions
+        do not allow these limitations, in which case they apply to the extent permitted.
+      </p>
+
+      <h2>Termination</h2>
+      <p>
+        You can stop using the services at any time and remove your identity from your devices. We
+        may suspend or terminate access for breach of these terms. Sections that by their nature
+        should survive termination do so.
       </p>
 
       <h2>Changes</h2>
       <p>
-        We will post material changes here and, for enterprise customers, notify the account
-        contact.
+        We will post material changes here with a new effective date and, for enterprise customers,
+        notify the account contact. Continued use after the effective date is acceptance of the
+        changed terms.
       </p>
 
       <h2>Contact</h2>

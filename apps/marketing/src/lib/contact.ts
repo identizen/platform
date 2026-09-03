@@ -31,6 +31,25 @@ export function validateContact(raw: Record<string, unknown>): ContactValidation
   return { ok: Object.keys(errors).length === 0, errors, value };
 }
 
+/** Hidden field bots fill and people never see; and the time the form was rendered. */
+export const HONEYPOT_FIELD = 'company';
+export const RENDERED_AT_FIELD = 'rendered_at';
+/** Nobody reads the page and writes a message in under this many milliseconds. */
+export const MIN_FILL_MS = 2500;
+
+/**
+ * True when a submission looks automated: the honeypot has a value, or the form was submitted
+ * too soon after it was rendered. Callers should answer such requests with a normal-looking
+ * success and send nothing.
+ */
+export function looksLikeBot(raw: Record<string, unknown>, now: number = Date.now()): boolean {
+  const honey = raw[HONEYPOT_FIELD];
+  if (typeof honey === 'string' && honey.trim().length > 0) return true;
+  const rendered = Number(raw[RENDERED_AT_FIELD]);
+  if (Number.isFinite(rendered) && rendered > 0 && now - rendered < MIN_FILL_MS) return true;
+  return false;
+}
+
 export interface TurnstileResult {
   success: boolean;
   'error-codes'?: string[];

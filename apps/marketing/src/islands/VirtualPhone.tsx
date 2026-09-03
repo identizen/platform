@@ -31,9 +31,7 @@ function FaceIdGlyph({ size = 28 }: { size?: number }): React.JSX.Element {
 }
 
 function Mark(): React.JSX.Element {
-  return (
-    <KimiMark size={16} title={null} />
-  );
+  return <KimiMark size={16} title={null} />;
 }
 
 /**
