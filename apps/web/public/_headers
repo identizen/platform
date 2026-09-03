@@ -3,6 +3,6 @@
   Content-Type: application/json
 
 # Over-the-air install manifest for internal iOS builds (see apps/mobile/scripts/install-manifest.mjs).
-/install/identizen.plist
+/install.plist
   Content-Type: application/xml
   Cache-Control: no-store

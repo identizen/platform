@@ -1,11 +1,11 @@
 // Write an iOS over-the-air install manifest for the latest finished preview build, so a phone
 // can install it from Safari without going through Expo's dashboard:
-//   itms-services://?action=download-manifest&url=https://app.identizen.com/install/identizen.plist
+//   itms-services://?action=download-manifest&url=https://app.identizen.com/install.plist
 // Run from apps/mobile after a build: `node scripts/install-manifest.mjs`, then deploy the web app.
 import { execFileSync } from 'node:child_process';
 import { mkdirSync, writeFileSync } from 'node:fs';
 
-const out = new URL('../../web/public/install/', import.meta.url);
+const out = new URL('../../web/public/', import.meta.url);
 const raw = execFileSync(
   'npx',
   [
@@ -54,7 +54,7 @@ const plist = `<?xml version="1.0" encoding="UTF-8"?>
 `;
 
 const link =
-  'itms-services://?action=download-manifest&url=https://app.identizen.com/install/identizen.plist';
+  'itms-services://?action=download-manifest&url=https://app.identizen.com/install.plist';
 const html = `<!doctype html>
 <html lang="en">
 <head>
@@ -85,8 +85,8 @@ code{font:.9em ui-monospace,Menlo,monospace}
 `;
 
 mkdirSync(out, { recursive: true });
-writeFileSync(new URL('identizen.plist', out), plist);
-writeFileSync(new URL('index.html', out), html);
+writeFileSync(new URL('install.plist', out), plist);
+writeFileSync(new URL('install.html', out), html);
 console.info(
   `install manifest -> build ${build.id.slice(0, 8)} v${build.appVersion} (${build.appBuildVersion})`,
 );
