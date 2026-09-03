@@ -10,6 +10,7 @@ import { healthRoutes } from './routes/health';
 import { identitiesRoutes } from './routes/identities';
 import { meRoutes } from './routes/me';
 import { oidcRoutes } from './routes/oidc';
+import { rootRoutes } from './routes/root';
 import { verifyRoutes } from './routes/verify';
 import { sitesRoutes } from './routes/sites';
 import { wellKnownRoutes } from './routes/wellknown';
@@ -44,6 +45,7 @@ export function createApp(): Hono<AppEnv> {
   app.onError(errorToResponse);
   app.notFound((c) => c.json({ error: 'not_found', error_description: 'no such route' }, 404));
 
+  app.route('/', rootRoutes());
   app.route('/', healthRoutes());
   app.route('/', wellKnownRoutes());
   app.route('/', devicesRoutes());

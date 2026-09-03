@@ -4,6 +4,29 @@ import { BASE, json, registerPhone, resetDb } from './helpers';
 
 beforeEach(resetDb);
 
+describe('root', () => {
+  it('GET / serves a landing page to browsers', async () => {
+    const res = await SELF.fetch(`${BASE}/`, { headers: { accept: 'text/html,*/*' } });
+    expect(res.status).toBe(200);
+    expect(res.headers.get('content-type')).toContain('text/html');
+    const html = await res.text();
+    expect(html).toContain('This is an Identizen index.');
+    expect(html).toContain('href="/.well-known/openid-configuration"');
+    expect(html).toContain('href="http://app.test"');
+  });
+
+  it('GET / serves a JSON descriptor to API clients', async () => {
+    const res = await SELF.fetch(`${BASE}/`);
+    expect(res.status).toBe(200);
+    expect(await json(res)).toMatchObject({
+      service: 'identizen-index',
+      issuer: BASE,
+      app: 'http://app.test',
+      protocol: 'identizen/v1',
+    });
+  });
+});
+
 describe('health and well-known', () => {
   it('GET /health reports the database', async () => {
     const res = await SELF.fetch(`${BASE}/health`);
