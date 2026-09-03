@@ -5,7 +5,6 @@ import { authenticate } from '../../src/biometrics';
 import { approveChallenge, denyChallenge, receiveChallenge } from '../../src/challenges/receive';
 import { challengeStore, usePendingChallenges } from '../../src/challenges/store';
 import { ErrorText, Muted, Screen } from '../../src/components/ui';
-import { openRedirect } from '../../src/deeplinks';
 import { readSettings } from '../../src/identity/store';
 import { ApproveScreen, type ApproveOutcome } from '../../src/screens/ApproveScreen';
 
@@ -45,10 +44,9 @@ export default function Approve() {
     );
     if (!gate.ok) return 'cancelled';
     const result = await approveChallenge(entry.challenge, gate.amr);
-    if (result.status >= 200 && result.status < 300) {
-      if (result.redirect) void openRedirect(result.redirect);
-      return 'approved';
-    }
+    // The waiting browser receives the OIDC redirect itself (WebSocket or poll). Opening it here
+    // would run the site's callback in a browser that holds none of that tab's sign-in state.
+    if (result.status >= 200 && result.status < 300) return 'approved';
     return 'failed';
   };
 

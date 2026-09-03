@@ -100,6 +100,15 @@ describe('completeSignInOnce', () => {
     const session = await second;
     expect(session.claims.sub).toBe('S'.repeat(32));
     // A plain second exchange would have found the transaction consumed.
-    await expect(completeSignIn(params)).rejects.toThrow(/state mismatch/);
+    await expect(completeSignIn(params)).rejects.toThrow(/another window/);
+  });
+});
+
+describe('callback without a transaction', () => {
+  it('explains that the sign-in finished in another window', async () => {
+    sessionStorage.removeItem('idz:oidc-tx');
+    await expect(
+      completeSignIn(new URLSearchParams({ code: 'good-code', state: 'st' })),
+    ).rejects.toThrow(/another window/);
   });
 });

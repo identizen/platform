@@ -108,7 +108,11 @@ export async function completeSignIn(
   if (error) throw new Error(`Sign-in failed: ${error}`);
   const tx = readTransaction();
   const code = params.get('code');
-  if (!tx || !code || params.get('state') !== tx.state)
+  if (!tx)
+    throw new Error(
+      'This sign-in was started in another window. Go back to it; it is already signed in.',
+    );
+  if (!code || params.get('state') !== tx.state)
     throw new Error('Sign-in state mismatch. Try again.');
   const res = await fetchImpl(`${INDEX_URL}/token`, {
     method: 'POST',

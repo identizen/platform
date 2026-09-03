@@ -4,7 +4,6 @@
  * app.json; this module only parses and opens.
  */
 import * as Linking from 'expo-linking';
-import * as WebBrowser from 'expo-web-browser';
 import { parseChallengeId } from '../challenges/receive';
 
 export { parseChallengeId };
@@ -17,14 +16,5 @@ export function challengeIdFromUrl(url: string | null | undefined): string | nul
     return parseChallengeId(path) ?? parseChallengeId(url);
   } catch {
     return parseChallengeId(url);
-  }
-}
-
-/** After approval the site's OIDC callback continues in the system browser. */
-export async function openRedirect(redirect: string): Promise<void> {
-  try {
-    await WebBrowser.openBrowserAsync(redirect);
-  } catch {
-    await Linking.openURL(redirect);
   }
 }
