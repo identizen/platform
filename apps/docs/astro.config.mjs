@@ -60,6 +60,7 @@ export default defineConfig({
           ],
         },
         { label: 'Self-hosting', link: '/self-hosting/' },
+        { label: 'Examples', link: '/examples/' },
         { label: 'AI assistants and llms.txt', link: '/ai-assistants/' },
         { label: 'Enterprise', link: '/enterprise/' },
         {

@@ -19,7 +19,7 @@ The one unsigned request. Creates the identity on first sight of a master key.
   "handle": "george",
   "kind": "personal",
   "ble_key": "<32 bytes, base64url>",
-  "push_token": "<APNs / FCM token, a URL, or \"poll\">",
+  "push_token": "<APNs / FCM token, Expo push token (ExponentPushToken[…]), a URL, or \"poll\">",
   "push_platform": "apns | fcm | web",
   "attestation": {},
   "label": "iPhone"
@@ -28,18 +28,18 @@ The one unsigned request. Creates the identity on first sight of a master key.
 
 Returns `201 { device_id, idz, handle, index, index_pubkey }`. The phone pins `index_pubkey` and only honours challenges signed by it. `409 handle_taken` if the handle exists; `400 bad_identity_proof` if `master_sig` does not verify.
 
-Push tokens: `apns` and `fcm` tokens go to the respective services (transport only; the payload is `{ "challenge_id" }`). Platform `web` accepts an HTTP(S) URL that receives a JSON POST (used by the fake phone) or the literal `poll`, in which case challenge ids are queued for `GET /devices/:id/inbox`.
+Push tokens: every challenge is queued in the device's inbox (`GET /devices/:id/inbox`) before any provider is called. The inbox is the delivery of record for every device; the phone drains it while in the foreground, whatever it registered with. A provider push only wakes the phone sooner, so a missing or failing provider is a logged failure, never a lost request. `ExponentPushToken[…]` tokens are relayed through the Expo push service regardless of `push_platform`; `apns` and `fcm` tokens go to the respective services when the index has credentials (transport only; the payload is `{ "challenge_id" }`). Platform `web` accepts an HTTP(S) URL that receives a JSON POST (used by the fake phone) or the literal `poll`, which sends nothing beyond the inbox.
 
 ### Signed device endpoints
 
-| Method | Path                      | Purpose                                                                         |
-| ------ | ------------------------- | ------------------------------------------------------------------------------- |
-| `POST` | `/identities`             | `{ "handle": "george" \| null }` — set or clear the handle (`409 handle_taken`) |
-| `POST` | `/devices/:id/push-token` | `{ push_token, push_platform }` for the calling device                          |
-| `GET`  | `/devices/:id/inbox`      | Drain queued challenge ids (`{ challenge_ids: [] }`) for polling devices        |
-| `POST` | `/devices/:id/revoke`     | Revoke another device of the same identity                                      |
-| `POST` | `/challenge/:id/assert`   | Submit the double-signed assertion                                              |
-| `POST` | `/challenge/:id/deny`     | Decline a challenge                                                             |
+| Method | Path                      | Purpose                                                                                       |
+| ------ | ------------------------- | --------------------------------------------------------------------------------------------- |
+| `POST` | `/identities`             | `{ "handle": "george" \| null }` — set or clear the handle (`409 handle_taken`)               |
+| `POST` | `/devices/:id/push-token` | `{ push_token, push_platform }` for the calling device                                        |
+| `GET`  | `/devices/:id/inbox`      | Drain queued challenge ids (`{ challenge_ids: [] }`); the delivery of record for every device |
+| `POST` | `/devices/:id/revoke`     | Revoke another device of the same identity                                                    |
+| `POST` | `/challenge/:id/assert`   | Submit the double-signed assertion                                                            |
+| `POST` | `/challenge/:id/deny`     | Decline a challenge                                                                           |
 
 ### `Idz-Signature` request authentication
 
@@ -57,7 +57,7 @@ The signature covers `"identizen/v1/request\n" + METHOD + "\n" + PATH (with quer
 | ------ | ---------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `POST` | `/challenge`                 | Start a login without the hosted page (what the SDK calls). Body: `client_id`, `acr?`, `reason?`, `login_hint?`, `browser_pubkey?`, and the OIDC parameters `redirect_uri`, `state`, `nonce`, `code_challenge`, `code_challenge_method`, `scope`, `prompt`. Returns `201 { challenge_id, code, exp, acr, rp_name, deep_link, ws_url, pushed }`. |
 | `GET`  | `/challenge/:id`             | The signed challenge `{ payload, sig, status }` (public; the phone verifies `sig` against the pinned index key)                                                                                                                                                                                                                                 |
-| `GET`  | `/challenge/:id/state`       | `{ status, pairing, redirect }` for pollers                                                                                                                                                                                                                                                                                                     |
+| `GET`  | `/challenge/:id/state`       | `{ challenge_id, status, pairing, redirect }` for pollers                                                                                                                                                                                                                                                                                       |
 | `GET`  | `/challenge/:id/ws`          | WebSocket; receives `pending`, then `approved` (with `pairing` and `redirect`), `denied`, or `expired`                                                                                                                                                                                                                                          |
 | `POST` | `/challenge/:id/browser-key` | `{ browser_pubkey }` — the hosted page attaches its P-256 key after render so approval issues a pairing                                                                                                                                                                                                                                         |
 
@@ -65,29 +65,31 @@ Challenges live 60 seconds. `acr` is `idz:login` or `idz:mfa`; `reason` (≤ 140
 
 ## Discovery
 
-| Method | Path               | Purpose                                                                                                                                                                                                              |
-| ------ | ------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `POST` | `/discover/ble`    | `{ challenge_id, rotating_id }` — resolves the 16-byte rotating BLE id (current window ±1) and pushes; `202`, `404 no_device`, `429 push_rate_limited`                                                               |
-| `POST` | `/discover/paired` | `{ challenge_id, pairing_id, sig }` — ECDSA P-256 signature over `"identizen/v1/paired\n" + challenge_id`; pushes straight to the paired device; `202`, `401 pairing_inactive` / `device_inactive` / `bad_signature` |
+| Method | Path               | Purpose                                                                                                                                                                                                                                                                |
+| ------ | ------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `POST` | `/discover/ble`    | `{ challenge_id, rotating_id }` — resolves the 16-byte rotating BLE id (current window ±1) and pushes; `202`, `404 unknown_challenge` / `no_device`, `429 push_rate_limited`                                                                                           |
+| `POST` | `/discover/paired` | `{ challenge_id, pairing_id, sig }` — ECDSA P-256 signature over `"identizen/v1/paired\n" + challenge_id`; pushes straight to the paired device; `202`, `404 unknown_challenge`, `401 pairing_inactive` / `device_inactive` / `bad_signature`, `429 push_rate_limited` |
 
 Pairings are issued on approval when the browser supplied a public key and are returned in the `approved` event as a signed pairing record `{ payload: { type, pairing_id, device_id, browser_pubkey, issued_at }, sig }`.
 
 ## Account management: `/me`
 
-Authenticated with `Idz-Signature` (the phone) **or** `Authorization: Bearer <access_token>` issued to a client listed in the index's `DASHBOARD_CLIENT_IDS` (the dashboard PWA, a public PKCE client). Bearer sessions are checked for revocation on every call.
+Authenticated with `Idz-Signature` (the phone) **or** `Authorization: Bearer <access_token>` issued to a client listed in the index's `DASHBOARD_CLIENT_IDS` ([the dashboard](https://app.identizen.com), a public PKCE client). Bearer sessions are checked for revocation on every call.
 
-| Method | Path                       | Purpose                                                                                                                      |
-| ------ | -------------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
-| `GET`  | `/me`                      | `{ idz, handle, kind, via, device }`                                                                                         |
-| `GET`  | `/me/devices`              | Devices with status, push platform, last seen, `current`                                                                     |
-| `GET`  | `/me/pairings`             | Paired browsers with label (from the User-Agent), status, last used                                                          |
-| `GET`  | `/me/sessions`             | Live OIDC sessions (`sid`, `client_id`, `device_id`, expiry)                                                                 |
-| `GET`  | `/me/audit`                | Last 100 audit events                                                                                                        |
-| `POST` | `/me/handle`               | `{ "handle": "george" \| null }`                                                                                             |
-| `POST` | `/me/devices/:id/revoke`   | Revoke a device; pairings and sessions cascade; back-channel logout fires. A phone cannot revoke itself (`403 self_revoke`). |
-| `POST` | `/me/pairings/:id/revoke`  | Remove a paired browser                                                                                                      |
-| `POST` | `/me/sessions/:sid/revoke` | End a session; back-channel logout fires                                                                                     |
+| Method | Path                       | Purpose                                                                                                                                                                |
+| ------ | -------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `GET`  | `/me`                      | `{ idz, handle, kind, via, device }`                                                                                                                                   |
+| `GET`  | `/me/devices`              | Devices: `id`, `status`, `push_platform`, `has_ble`, `last_seen_at`, `created_at`, `current`                                                                           |
+| `GET`  | `/me/pairings`             | Paired browsers: `id`, `device_id`, `label` (from the User-Agent), `browser`, `browser_version`, `os`, `os_version`, `last_ip`, `status`, `last_used_at`, `created_at` |
+| `GET`  | `/me/sessions`             | Live OIDC sessions (`sid`, `client_id`, `device_id`, expiry)                                                                                                           |
+| `GET`  | `/me/audit`                | Last 100 audit events                                                                                                                                                  |
+| `POST` | `/me/handle`               | `{ "handle": "george" \| null }`                                                                                                                                       |
+| `POST` | `/me/devices/:id/revoke`   | Revoke a device; pairings and sessions cascade; back-channel logout fires. A phone cannot revoke itself (`403 self_revoke`).                                           |
+| `POST` | `/me/pairings/:id/revoke`  | Remove a paired browser                                                                                                                                                |
+| `POST` | `/me/sessions/:sid/revoke` | End a session; back-channel logout fires                                                                                                                               |
 
-## Federation
+## Service root and federation
+
+`GET /` returns an HTML landing page when the request accepts `text/html`; otherwise a JSON service descriptor `{ service, issuer, protocol, app, docs, source, endpoints }`.
 
 `GET /.well-known/webfinger?resource=acct:<handle>@<index host>` resolves a handle to `{ subject, properties: { "https://identizen.com/ns/idz": … }, links: [{ rel: "https://identizen.com/ns/index", href }, { rel: "http://openid.net/specs/connect/1.0/issuer", href }] }`. `GET /.well-known/identizen` returns the index URL, the app URL, the pinned index public key, and the protocol version. `GET /health` reports database connectivity.

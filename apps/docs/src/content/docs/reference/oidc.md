@@ -39,7 +39,7 @@ Optional Identizen parameters:
 | `prompt=none`                             | Always `error=interaction_required` — approval on the phone is mandatory.                                      |
 | `scope=openid handle`                     | Releases `idz_handle` when the user has set one.                                                               |
 
-Validation errors with a valid `redirect_uri` are returned as OIDC error redirects (`invalid_request`, `unsupported_response_type`, `invalid_scope`, `login_required`, `interaction_required`); an unknown client or unregistered `redirect_uri` is a `400` page. On success the index renders the hosted login page (match code, QR or "check your phone", WebSocket to the session) and, after approval, redirects to `redirect_uri?code=…&state=…`. The code is single-use, bound to the client, and lives as long as the challenge session.
+Validation errors with a valid `redirect_uri` are returned as OIDC error redirects (`invalid_request`, `unsupported_response_type`, `invalid_scope`, `login_required`, `interaction_required`); an unknown client or unregistered `redirect_uri` is a `400` JSON error (`invalid_client` / `invalid_request`), not a page. On success the index renders the hosted login page (match code, the QR, a WebSocket to the session). The QR is always rendered; when the challenge was pushed to a bound device the hint "We sent it to your phone. Approve there, or scan this code." appears above it. After approval the page redirects to `redirect_uri?code=…&state=…`. The code is single-use, bound to the client, and lives as long as the challenge session.
 
 ## `POST /token`
 

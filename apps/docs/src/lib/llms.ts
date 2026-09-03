@@ -19,6 +19,7 @@ const ORDER = [
   'reference/index-api',
   'errors',
   'self-hosting',
+  'examples',
   'enterprise',
   'protocol',
   'ai-assistants',

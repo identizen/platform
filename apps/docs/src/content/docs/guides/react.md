@@ -7,12 +7,12 @@ This guide is framework-agnostic: Vite, Remix, Astro islands, or a React app wit
 
 Two ways to integrate. Both are standard OpenID Connect with PKCE; the index is the OpenID Provider.
 
-| | In-page login | Hosted login |
-| --- | --- | --- |
-| Where the QR / match code shows | inside your React tree (`<IdentizenButton>`) | on the index's hosted page at `/authorize` |
-| Client type | public (PKCE only, no secret) | confidential (secret on your server) |
-| Needs a backend | only to create your own session from the id_token | yes, for the redirect and code exchange |
-| Best for | SPAs, design control | server-rendered apps, existing OIDC middleware |
+|                                 | In-page login                                     | Hosted login                                   |
+| ------------------------------- | ------------------------------------------------- | ---------------------------------------------- |
+| Where the QR / match code shows | inside your React tree (`<IdentizenButton>`)      | on the index's hosted page at `/authorize`     |
+| Client type                     | public (PKCE only, no secret)                     | confidential (secret on your server)           |
+| Needs a backend                 | only to create your own session from the id_token | yes, for the redirect and code exchange        |
+| Best for                        | SPAs, design control                              | server-rendered apps, existing OIDC middleware |
 
 ## 1. Register the site and get a client id
 
@@ -213,6 +213,8 @@ npm run dev
 
 `identizen dev` starts a fake phone at `http://localhost:4400` registered with the same index. Click **Continue with Identizen**, paste the deep link (or scan the QR with the real app); the fake phone approves automatically (`--policy manual` to approve by hand). You land on `/callback` signed in. On the second login the browser is paired and the approval pushes straight to the phone with no QR.
 
+The iOS app is currently an internal build and is not yet on the App Store; use the fake phone from `identizen dev`, or the playground at https://identizen.com/playground. See [examples](/examples/) for complete sample apps.
+
 ## Hosted login instead
 
 If you would rather not render the login in-page, your backend redirects to the index's `/authorize` and the user sees the hosted page (match code, QR, "check your phone"). The React side is then a plain link:
@@ -231,11 +233,11 @@ Once a user has logged in you hold their `sub`. Push an approval to their phone 
 
 ## Errors you may hit
 
-| Symptom | Cause | Fix |
-| --- | --- | --- |
-| `400` page at `/authorize` | `redirect_uri` not registered exactly | Register the same scheme, host, port, and path with `register-site` |
-| `invalid_grant` from `/token` | code reused, PKCE verifier mismatch, or wrong `redirect_uri` | Use the verifier stored with the same `state`; exchange each code once |
-| `state mismatch` in `completeLogin` | the callback opened in a different tab or after a reload | Start the login again; `sessionStorage` is per tab |
-| Button never leaves "Contacting Identizen…" | wrong `indexUrl` or `clientId`, or the origin is not the registered `rp_id` | Check the values printed by `register-site` |
+| Symptom                                     | Cause                                                                       | Fix                                                                    |
+| ------------------------------------------- | --------------------------------------------------------------------------- | ---------------------------------------------------------------------- |
+| `400` page at `/authorize`                  | `redirect_uri` not registered exactly                                       | Register the same scheme, host, port, and path with `register-site`    |
+| `invalid_grant` from `/token`               | code reused, PKCE verifier mismatch, or wrong `redirect_uri`                | Use the verifier stored with the same `state`; exchange each code once |
+| `state mismatch` in `completeLogin`         | the callback opened in a different tab or after a reload                    | Start the login again; `sessionStorage` is per tab                     |
+| Button never leaves "Contacting Identizen…" | wrong `indexUrl` or `clientId`, or the origin is not the registered `rp_id` | Check the values printed by `register-site`                            |
 
 The full list is on the [errors page](/errors/).

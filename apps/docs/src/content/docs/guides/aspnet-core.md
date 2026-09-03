@@ -68,7 +68,7 @@ Then check `User.FindFirst("acr")?.Value == "idz:mfa"` before completing the sen
 
 ## Back-channel logout
 
-The index POSTs `logout_token=<jwt>` (form-encoded) to the URI you registered. Validate it with the same authority and audience, check `events` contains `http://schemas.openid.net/event/backchannel-logout` and that `nonce` is absent, then end the session identified by `sid` (store `sid` from the id_token in your cookie session at sign-in). See the [OIDC reference](/reference/oidc/#back-channel-logout).
+The index POSTs `logout_token=<jwt>` (form-encoded) to the URI you registered. Validate it with the same authority and audience, check `events` contains `http://schemas.openid.net/event/backchannel-logout` and that `nonce` is absent, then end the session identified by `sid` (store `sid` from the id_token in your cookie session at sign-in). See the [OIDC reference](/reference/oidc/#sessions-and-back-channel-logout).
 
 ## Server-to-server approvals
 

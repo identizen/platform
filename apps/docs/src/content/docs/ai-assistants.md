@@ -5,11 +5,11 @@ description: Machine-readable versions of these docs for Claude, ChatGPT, Cursor
 
 These docs ship in the [llms.txt](https://llmstxt.org/) format so a coding assistant can integrate Identizen without scraping HTML.
 
-| URL | What it is |
-| --- | --- |
-| [`/llms.txt`](/llms.txt) | A short index: what Identizen is, the exact steps to add it to a React + TypeScript app, and links to every page as Markdown. Paste this into a model's context first. |
-| [`/llms-full.txt`](/llms-full.txt) | Every page of these docs concatenated as one Markdown file, for tools that accept a single large context. |
-| `/<page>.md` | Any page as plain Markdown, for example [`/quickstart.md`](/quickstart.md) or [`/guides/react.md`](/guides/react.md). |
+| URL                                | What it is                                                                                                                                                             |
+| ---------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [`/llms.txt`](/llms.txt)           | A short index: what Identizen is, the exact steps to add it to a React + TypeScript app, and links to every page as Markdown. Paste this into a model's context first. |
+| [`/llms-full.txt`](/llms-full.txt) | Every page of these docs concatenated as one Markdown file, for tools that accept a single large context.                                                              |
+| `/<page>.md`                       | Any page as plain Markdown, for example [`/quickstart.md`](/quickstart.md) or [`/guides/react.md`](/guides/react.md).                                                  |
 
 Both files are generated from the same sources as the pages you are reading, so they never drift from the docs.
 

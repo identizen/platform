@@ -127,6 +127,26 @@ No verification with that id for your site.
 
 A unique constraint failed (for example the `rp_id` is already registered).
 
+### invalid_transition
+
+HTTP 409. The object cannot move to the requested state (for example revoking a device that is already revoked). Read its current state and retry only if it makes sense.
+
+### rate_limited
+
+HTTP 429. Too many challenge or discovery requests from one IP address in a minute (`RATE_LIMIT_REQUESTS_PER_IP`, default 60). Try again in a minute.
+
+### client_rate_limited
+
+HTTP 429. The site started too many logins in a minute (`RATE_LIMIT_CHALLENGES_PER_CLIENT`, default 300). Slow down, or raise the limit on a self-hosted index.
+
+### unknown_handle
+
+HTTP 404. WebFinger: no identity with that handle on this index.
+
+### wrong_index
+
+HTTP 404. WebFinger: the host in `acct:<handle>@<host>` is not this index. Query the index that serves that host.
+
 ## Device and challenge errors
 
 ### missing_signature
@@ -159,11 +179,15 @@ The signing device differs from the device named in the assertion, or the challe
 
 ### self_revoke
 
-A phone tried to revoke itself through `/me`; use another device or the dashboard.
+A phone tried to revoke itself through `/me`; use another device or [the dashboard](https://app.identizen.com).
 
 ### not_your_device / not_your_session / not_your_pairing
 
 The object belongs to another identity.
+
+### unknown_session / unknown_pairing
+
+HTTP 404. `/me/sessions/:sid/revoke` or `/me/pairings/:id/revoke` named a session or pairing that does not exist.
 
 ### bad_identity_proof
 
@@ -181,7 +205,7 @@ No challenge with that id, or it is no longer pending for discovery.
 
 The challenge already reached that terminal state (HTTP 410). Start a new login.
 
-### malformed_assertion, challenge_mismatch, nonce_mismatch, rp_id_mismatch, acr_mismatch, reason_mismatch, iat_too_early, iat_too_late, expired, bad_device_signature, bad_site_pubkey, sub_mismatch, bad_site_signature
+### malformed_assertion, challenge_mismatch, nonce_mismatch, rp_id_mismatch, acr_mismatch, reason_mismatch, expired, iat_too_early, iat_too_late, bad_device_signature, bad_site_pubkey, sub_mismatch, bad_site_signature
 
 Assertion verification failures, in the order the index checks them (PROTOCOL.md §4.1). `rp_id_mismatch` is the anti-phishing check; `reason_mismatch` means the phone signed a different reason than the one on the challenge.
 

@@ -3,7 +3,7 @@ title: Plain HTML
 description: Use @identizen/sdk directly in the browser for a custom login UI, with a public (PKCE-only) client.
 ---
 
-For a page without a framework, the browser SDK drives discovery (paired browser → Web Bluetooth → QR, deep link on mobile) and hands you the match code, the QR, and the final OIDC redirect.
+For a page without a framework, the browser SDK drives discovery (paired browser → QR, deep link on mobile) and hands you the match code, the QR, and the final OIDC redirect. Web Bluetooth is opt-in: when `s.bluetoothAvailable` is true, call `session.useBluetooth()` from a click to find the phone without scanning.
 
 Register the site as a public client so no secret is needed in the browser:
 

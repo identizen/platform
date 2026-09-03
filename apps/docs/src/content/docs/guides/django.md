@@ -62,7 +62,7 @@ Send the user to the authorization endpoint with `acr_values=idz:mfa&login_hint=
 
 ## Back-channel logout
 
-Add a view for the URI you registered. It receives `logout_token` as form data: validate the JWT against the JWKS, require the `http://schemas.openid.net/event/backchannel-logout` event, reject tokens with a `nonce`, then delete sessions whose stored `sid` matches. Details in the [OIDC reference](/reference/oidc/#back-channel-logout).
+Add a view for the URI you registered. It receives `logout_token` as form data: validate the JWT against the JWKS, require the `http://schemas.openid.net/event/backchannel-logout` event, reject tokens with a `nonce`, then delete sessions whose stored `sid` matches. Details in the [OIDC reference](/reference/oidc/#sessions-and-back-channel-logout).
 
 ## Verification API
 

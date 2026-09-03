@@ -10,20 +10,22 @@ The index is one Worker plus Postgres. It stores public keys, push tokens, BLE H
 Requirements: a Cloudflare account, `wrangler` logged in, and any Postgres (Neon, RDS, your own) reachable through [Hyperdrive](https://developers.cloudflare.com/hyperdrive/).
 
 ```bash
-git clone https://github.com/identizen/platform && cd identizen
+git clone https://github.com/identizen/platform && cd platform
 npm install
 npx wrangler hyperdrive create identizen --connection-string "postgres://…"   # note the id
 ```
 
 Put the Hyperdrive id in `apps/index/wrangler.jsonc` (`hyperdrive[0].id`) and set the public URLs in `vars`:
 
-| Variable                 | Meaning                                                                                 |
-| ------------------------ | --------------------------------------------------------------------------------------- |
-| `INDEX_URL`              | Public issuer URL, e.g. `https://index.example.com`                                     |
-| `APP_URL`                | Where deep links point (`https://app.example.com/l/<id>`); the dashboard PWA            |
-| `PUSH_PROVIDER`          | `noop` (dev), or `web` / `apns` / `fcm` routing by device platform                      |
-| `OPEN_SITE_REGISTRATION` | `true` lets anyone `POST /sites`; otherwise set `SITE_REGISTRATION_TOKEN`               |
-| `DASHBOARD_CLIENT_IDS`   | Comma-separated client ids allowed to call `/me` with a bearer token (`*` for dev only) |
+| Variable                           | Meaning                                                                                                                                              |
+| ---------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `INDEX_URL`                        | Public issuer URL, e.g. `https://index.example.com`                                                                                                  |
+| `APP_URL`                          | Where deep links point (`https://app.example.com/l/<id>`); the dashboard PWA                                                                         |
+| `PUSH_PROVIDER`                    | `noop` (default; inbox only, no provider pushes). Any other value enables the real senders, chosen per device by its token and the credentials below |
+| `OPEN_SITE_REGISTRATION`           | `true` lets anyone `POST /sites`; otherwise set `SITE_REGISTRATION_TOKEN`                                                                            |
+| `DASHBOARD_CLIENT_IDS`             | Comma-separated client ids allowed to call `/me` with a bearer token (`*` for dev only)                                                              |
+| `RATE_LIMIT_CHALLENGES_PER_CLIENT` | Challenges one site may start per minute (default `300`)                                                                                             |
+| `RATE_LIMIT_REQUESTS_PER_IP`       | Challenge and discovery requests one IP may make per minute (default `60`)                                                                           |
 
 Secrets:
 
@@ -35,7 +37,7 @@ npx wrangler secret put INDEX_SIGNING_KEY        # the 32-byte hex Ed25519 key t
 npx wrangler secret put SITE_REGISTRATION_TOKEN  # if registration is closed
 ```
 
-Push credentials (optional): `APNS_KEY_ID`, `APNS_TEAM_ID`, `APNS_PRIVATE_KEY` (p8 PEM), `APNS_TOPIC`, `APNS_SANDBOX`; `FCM_PROJECT_ID`, `FCM_SERVICE_ACCOUNT` (service-account JSON). Without them phones fall back to polling their inbox (`push_token: "poll"`).
+Push credentials (optional): `EXPO_ACCESS_TOKEN` (from [expo.dev](https://expo.dev/settings/access-tokens); bearer for the Expo push service, which relays `ExponentPushToken[…]` registrations); `APNS_KEY_ID`, `APNS_TEAM_ID`, `APNS_PRIVATE_KEY` (p8 PEM), `APNS_TOPIC`, `APNS_SANDBOX`; `FCM_PROJECT_ID`, `FCM_SERVICE_ACCOUNT` (service-account JSON). Every challenge is queued in the device's inbox regardless; the phone drains it while in the foreground, so nothing is lost without them. A provider push only wakes the phone sooner.
 
 Migrate the database and deploy:
 
