@@ -15,14 +15,16 @@
       "distribution": "internal",
       "ios": {
         "simulator": false
-      }
+      },
+      "autoIncrement": true
     },
     "preview": {
       "extends": "base",
       "distribution": "internal",
       "ios": {
         "simulator": false
-      }
+      },
+      "autoIncrement": true
     },
     "production": {
       "extends": "base",
