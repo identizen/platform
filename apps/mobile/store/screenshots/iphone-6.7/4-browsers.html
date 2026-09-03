@@ -1,0 +1,71 @@
+<!doctype html><html><head><meta charset="utf-8"><style>
+  @font-face{font-family:Inter;src:url(file:///C:/Projects/Identizen/node_modules/@fontsource-variable/inter/files/inter-latin-wght-normal.woff2);font-weight:100 900}
+  @font-face{font-family:Bricolage;src:url(file:///C:/Projects/Identizen/node_modules/@fontsource-variable/bricolage-grotesque/files/bricolage-grotesque-latin-wght-normal.woff2);font-weight:100 900}
+  *{box-sizing:border-box;margin:0}
+  html,body{width:1290px;height:2796px;overflow:hidden}
+  body{font-family:Inter,system-ui,sans-serif;background:linear-gradient(180deg,#fbf3ef 0%,#f5f7f9 55%,#eceff1 100%);color:#11161f;transform:scale(1);transform-origin:top left;width:1290px;height:2796px}
+  .caption{padding:150px 100px 0;text-align:center}
+  .caption h1{font-family:Bricolage,Inter,sans-serif;font-size:96px;line-height:1.05;letter-spacing:-.02em;font-weight:600}
+  .caption p{margin-top:28px;font-size:40px;line-height:1.35;color:#575e69}
+  .frame{position:absolute;left:125px;top:610px;width:1040px;height:2120px;border-radius:120px;background:#0f1115;padding:22px;box-shadow:0 60px 120px rgba(0,0,0,.25)}
+  .screen{position:relative;width:100%;height:100%;border-radius:100px;background:#fcfdff;overflow:hidden;display:flex;flex-direction:column}
+  .status{display:flex;justify-content:space-between;padding:52px 70px 0;font-size:32px;font-weight:600}
+  .dots{font-size:26px;letter-spacing:2px}
+  .topbar{display:flex;align-items:center;justify-content:space-between;padding:20px 30px 0;height:110px}
+  .topbar .title{font-size:34px;font-weight:600}.topbar .back{width:100px}.topbar span:last-child{width:100px}
+  .page{flex:1;display:flex;flex-direction:column;gap:30px;padding:36px 50px 60px}
+  .page.center{align-items:center;text-align:center;justify-content:center;gap:22px;padding-bottom:70px}
+  .page.center-v{justify-content:center;gap:26px;padding-bottom:70px}
+  .grow{flex:1}
+  .row{display:flex;align-items:center}.between{justify-content:space-between}.gap{gap:12px}
+  .lockup{display:flex;align-items:center;gap:16px}
+  .card{display:flex;flex-direction:column;gap:14px;border:2px solid #d8dbdf;background:#f5f7f9;border-radius:28px;padding:34px}
+  .card.row{flex-direction:row;gap:30px}
+  .card.accent{border-color:#c8312266;background:#ffe6e1}
+  .label{font-size:24px;font-weight:500;letter-spacing:.08em;text-transform:uppercase;color:#575e69}
+  .h-xl{font-size:64px;font-weight:600;letter-spacing:-.02em;line-height:1.1}
+  .h-lg{font-size:56px;font-weight:600;letter-spacing:-.02em}
+  .h-md{font-size:44px;font-weight:600}
+  .h-sm{font-size:34px;font-weight:600}
+  .body{font-size:34px;line-height:1.45}
+  .muted{font-size:28px;line-height:1.4;color:#575e69}
+  .tiny{font-size:24px}.mono{font-family:ui-monospace,Menlo,Consolas,monospace}
+  .center-text{text-align:center}
+  .badge{display:inline-block;border-radius:10px;padding:6px 14px;font-size:22px;font-weight:500;letter-spacing:.04em;text-transform:uppercase;white-space:nowrap}
+  .badge.neutral{background:#eceff1;color:#575e69}
+  .badge.success{background:#d2f6dd;color:#004e1e}
+  .badge.warning{background:#ffecc1;color:#753d00}
+  .badge.danger{background:#ffe1e3;color:#96002b}
+  .btn{display:flex;align-items:center;justify-content:center;gap:16px;height:96px;border-radius:20px;font-size:34px;font-weight:600;width:100%}
+  .btn.lg{height:112px;border-radius:26px;font-size:38px}
+  .btn.sm{height:84px;font-size:30px}
+  .btn.primary{background:#c83122;color:#fbfcfd}
+  .btn.secondary{border:2px solid #b3b8be;background:#fcfdff;color:#11161f}
+  .list{display:flex;flex-direction:column}
+  .li{display:flex;align-items:center;justify-content:space-between;gap:20px;padding:26px 0;border-bottom:2px solid #d8dbdf}
+  .chip{border:2px solid #b3b8be;border-radius:12px;padding:8px 18px;font-size:24px;font-weight:500}
+  .reason{width:100%;border:2px solid #b3b8be;background:#eceff1;border-radius:20px;padding:30px;font-size:34px;line-height:1.4;text-align:left}
+  .code{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:170px;font-weight:600;letter-spacing:.2em;padding-left:.2em;line-height:1;margin-top:20px}
+  .input{border:2px solid #d8dbdf;border-radius:16px;padding:22px 26px;font-size:32px;background:#fcfdff}
+  .switch{width:104px;height:62px;border-radius:40px;background:#cdd1d6;position:relative;flex-shrink:0}
+  .switch.on{background:#c83122}
+  .switch::after{content:'';position:absolute;top:6px;left:6px;width:50px;height:50px;border-radius:50%;background:#fff;box-shadow:0 2px 6px rgba(0,0,0,.3)}
+  .switch.on::after{left:48px}
+  .hero-brand{display:flex;flex-direction:column;align-items:flex-start;gap:36px;margin-bottom:10px}
+  .tabs{display:flex;justify-content:space-around;padding:22px 20px 44px;border-top:2px solid #d8dbdf;background:#fcfdff}
+  .tab{display:flex;flex-direction:column;align-items:center;gap:8px;font-size:22px;font-weight:500;color:#575e69}
+  .tab.on{color:#c83122}
+  </style></head>
+<body><div class="caption"><h1>See every browser that can sign you in.</h1><p>Paired browsers skip the QR. Unpair any of them in one tap.</p></div>
+<div class="frame"><div class="screen"><div class="status"><span>9:41</span><span class="dots">●●● ᯤ ▮</span></div>
+      <div class="page">
+        <p class="h-xl">Browsers</p>
+        <p class="muted">Browsers paired to this phone. Later logins from them push straight here. Unpairing ends that.</p>
+        <div class="list">
+          <div class="li"><div><p class="h-sm">Chrome 128 on macOS</p><p class="tiny muted">from 203.0.113.9 · last used 2 minutes ago</p></div><span class="row gap"><span class="badge success">active</span><span class="chip">Unpair</span></span></div>
+          <div class="li"><div><p class="h-sm">Safari 17 on macOS</p><p class="tiny muted">from 198.51.100.24 · last used yesterday</p></div><span class="row gap"><span class="badge success">active</span><span class="chip">Unpair</span></span></div>
+          <div class="li"><div><p class="h-sm">Edge 128 on Windows</p><p class="tiny muted">from 192.0.2.77 · last used 3 days ago</p></div><span class="row gap"><span class="badge danger">revoked</span></span></div>
+        </div>
+        <p class="muted center-text">Pull down to refresh.</p>
+      </div>
+      <nav class="tabs"><div class="tab "><svg xmlns="http://www.w3.org/2000/svg" width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="#575e69" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-house" aria-hidden="true"><path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"></path><path d="M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path></svg><span>Home</span></div><div class="tab "><svg xmlns="http://www.w3.org/2000/svg" width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="#575e69" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-smartphone" aria-hidden="true"><rect width="14" height="20" x="5" y="2" rx="2" ry="2"></rect><path d="M12 18h.01"></path></svg><span>Devices</span></div><div class="tab on"><svg xmlns="http://www.w3.org/2000/svg" width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="#c83122" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-globe" aria-hidden="true"><circle cx="12" cy="12" r="10"></circle><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"></path><path d="M2 12h20"></path></svg><span>Browsers</span></div><div class="tab "><svg xmlns="http://www.w3.org/2000/svg" width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="#575e69" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-key-round" aria-hidden="true"><path d="M2.586 17.414A2 2 0 0 0 2 18.828V21a1 1 0 0 0 1 1h3a1 1 0 0 0 1-1v-1a1 1 0 0 1 1-1h1a1 1 0 0 0 1-1v-1a1 1 0 0 1 1-1h.172a2 2 0 0 0 1.414-.586l.814-.814a6.5 6.5 0 1 0-4-4z"></path><circle cx="16.5" cy="7.5" r=".5" fill="currentColor"></circle></svg><span>Sessions</span></div><div class="tab "><svg xmlns="http://www.w3.org/2000/svg" width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="#575e69" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-settings2 lucide-settings-2" aria-hidden="true"><path d="M14 17H5"></path><path d="M19 7h-9"></path><circle cx="17" cy="17" r="3"></circle><circle cx="7" cy="7" r="3"></circle></svg><span>Settings</span></div></nav></div></div></body></html>
