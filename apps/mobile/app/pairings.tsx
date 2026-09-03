@@ -1,6 +1,6 @@
 import { useRouter } from 'expo-router';
 import { api } from '../src/api/client';
-import { usePairings } from '../src/app/lists';
+import { usePairings } from '../src/state/lists';
 import { ListScreen } from '../src/screens/ListScreen';
 
 export default function Pairings() {

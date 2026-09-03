@@ -7,7 +7,7 @@ import { PassphraseScreen } from '../src/screens/PassphraseScreen';
 import { RestoreScreen, validatePhrase } from '../src/screens/RestoreScreen';
 import { SettingsScreen, validateHandle } from '../src/screens/SettingsScreen';
 import { VerifyWordsScreen, pickWordIndexes } from '../src/screens/VerifyWordsScreen';
-import { mapDevice } from '../src/app/lists';
+import { mapDevice } from '../src/state/lists';
 
 const WORDS =
   'abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon art'.split(

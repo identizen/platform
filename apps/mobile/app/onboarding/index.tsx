@@ -1,6 +1,6 @@
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
-import { onboardingState } from '../../src/app/onboardingState';
+import { onboardingState } from '../../src/state/onboardingState';
 import { createIdentity } from '../../src/identity/identity';
 import { OnboardingScreen } from '../../src/screens/OnboardingScreen';
 

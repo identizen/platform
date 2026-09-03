@@ -1,5 +1,5 @@
 import { Redirect, useRouter } from 'expo-router';
-import { onboardingState } from '../../src/app/onboardingState';
+import { onboardingState } from '../../src/state/onboardingState';
 import { VerifyWordsScreen } from '../../src/screens/VerifyWordsScreen';
 
 export default function Verify() {

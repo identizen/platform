@@ -3,7 +3,7 @@ import '../global.css';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { View } from 'react-native';
-import { useBootstrap } from '../src/app/useBootstrap';
+import { useBootstrap } from '../src/state/useBootstrap';
 
 export default function RootLayout() {
   const { ready } = useBootstrap();
