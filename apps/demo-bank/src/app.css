@@ -70,3 +70,97 @@
     font-variant-numeric: tabular-nums;
   }
 }
+
+/*
+ * The @identizen/react components render unstyled markup with data-idz hooks so a site can
+ * dress them in its own system. This is JT Merlin's dressing; see /docs/login.
+ */
+@layer components {
+  [data-idz='panel'],
+  [data-idz='step-up'] {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+    text-align: center;
+  }
+  [data-idz='status'] {
+    max-width: 28rem;
+    font-size: 0.875rem;
+    color: var(--color-fg-muted);
+  }
+  [data-idz='panel'][data-status='denied'] [data-idz='status'],
+  [data-idz='panel'][data-status='expired'] [data-idz='status'],
+  [data-idz='panel'][data-status='error'] [data-idz='status'] {
+    color: var(--color-danger);
+  }
+  [data-idz='code'] {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.125rem;
+  }
+  [data-idz='code'] span {
+    font-size: 0.6875rem;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--color-fg-muted);
+  }
+  [data-idz='code'] strong {
+    font-family: var(--font-mono);
+    font-size: 3rem;
+    font-weight: 600;
+    letter-spacing: 0.2em;
+    line-height: 1;
+  }
+  [data-idz='reason'] {
+    max-width: 28rem;
+    border: 1px solid var(--color-border-strong);
+    border-radius: var(--radius-md);
+    background: var(--color-surface-2);
+    padding: 0.75rem 1rem;
+    font-size: 0.9375rem;
+  }
+  [data-idz='qr'] svg {
+    width: 12.5rem;
+    height: 12.5rem;
+    border: 8px solid #fff;
+    border-radius: var(--radius-md);
+    background: #fff;
+  }
+  [data-idz='bluetooth'],
+  [data-idz='retry'],
+  [data-idz='start'],
+  [data-idz='deeplink'],
+  [data-idz='cancel'] {
+    display: inline-flex;
+    height: 2.5rem;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--radius-md);
+    padding: 0 1rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    text-decoration: none;
+    cursor: pointer;
+  }
+  [data-idz='bluetooth'],
+  [data-idz='retry'],
+  [data-idz='start'] {
+    border: 1px solid var(--color-border-strong);
+    background: var(--color-surface-0);
+    color: var(--color-fg);
+  }
+  [data-idz='deeplink'] {
+    background: var(--color-idz);
+    color: #fff;
+  }
+  [data-idz='cancel'] {
+    background: transparent;
+    color: var(--color-fg-muted);
+  }
+  [data-idz='cancel']:hover {
+    color: var(--color-fg);
+  }
+}
