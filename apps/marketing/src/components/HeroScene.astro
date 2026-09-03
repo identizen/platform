@@ -143,11 +143,19 @@ const qr = qrSvg('https://app.identizen.com/l/ch_01J9Z2K4M7N8P1Q3R5S7T9V1WX', {
           stroke="var(--color-border-strong)"
           stroke-width="1.5"></rect>
         <rect x="78" y="85" width="14" height="14" rx="4" fill="var(--color-accent)"></rect>
-        <path
-          d="M82 89h6M85 89v6M82 95h6"
+        <g
+          transform="translate(79.5 86.5) scale(0.11)"
+          fill="none"
           stroke="var(--color-accent-fg)"
-          stroke-width="1.5"
-          stroke-linecap="round"></path>
+          stroke-width="11"
+          stroke-linecap="round"
+          stroke-linejoin="round">
+          <path d="M22 15 H72"></path>
+          <path d="M10 31 H90"></path>
+          <path d="M25 47 H66"></path>
+          <path d="M47 12 C46 32 44 54 9 74"></path>
+          <rect x="35" y="61" width="42" height="31" rx="5.5"></rect>
+        </g>
         <text
           x="98"
           y="96"
@@ -225,14 +233,7 @@ const qr = qrSvg('https://app.identizen.com/l/ch_01J9Z2K4M7N8P1Q3R5S7T9V1WX', {
         </div>
 
         <div class="mt-8 flex items-center justify-center gap-1.5">
-          <svg width="16" height="16" viewBox="0 0 32 32" class="text-accent" aria-hidden="true">
-            <rect x="2" y="2" width="28" height="28" rx="8" fill="currentColor"></rect>
-            <path
-              d="M11 9h10M16 9v14M11 23h10"
-              stroke="white"
-              stroke-width="3"
-              stroke-linecap="round"></path>
-          </svg>
+          <Logo variant="mark" height={16} />
           <span class="text-xs font-semibold tracking-tight">Identizen</span>
         </div>
 

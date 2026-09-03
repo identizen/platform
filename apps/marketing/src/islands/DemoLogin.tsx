@@ -1,4 +1,5 @@
 import { useEffect } from 'react';
+import { KimiMark } from '@identizen/ui/components/brand/logo';
 import { useIdentizen } from '@identizen/react';
 import type { Tx } from '../lib/playground-oidc';
 import { CHALLENGE_EVENT } from './useVirtualPhone';
@@ -7,10 +8,7 @@ export type Mode = 'virtual' | 'phone';
 
 function Mark(): React.JSX.Element {
   return (
-    <svg width="16" height="16" viewBox="0 0 32 32" className="text-accent" aria-hidden="true">
-      <rect x="2" y="2" width="28" height="28" rx="8" fill="currentColor" />
-      <path d="M11 9h10M16 9v14M11 23h10" stroke="white" strokeWidth="3" strokeLinecap="round" />
-    </svg>
+    <KimiMark size={16} title={null} />
   );
 }
 

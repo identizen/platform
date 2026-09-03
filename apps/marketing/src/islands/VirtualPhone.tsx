@@ -1,4 +1,5 @@
 import { useVirtualPhone } from './useVirtualPhone';
+import { KimiMark } from '@identizen/ui/components/brand/logo';
 
 export interface VirtualPhoneProps {
   indexUrl: string;
@@ -31,10 +32,7 @@ function FaceIdGlyph({ size = 28 }: { size?: number }): React.JSX.Element {
 
 function Mark(): React.JSX.Element {
   return (
-    <svg width="16" height="16" viewBox="0 0 32 32" className="text-accent" aria-hidden="true">
-      <rect x="2" y="2" width="28" height="28" rx="8" fill="currentColor" />
-      <path d="M11 9h10M16 9v14M11 23h10" stroke="white" strokeWidth="3" strokeLinecap="round" />
-    </svg>
+    <KimiMark size={16} title={null} />
   );
 }
 
