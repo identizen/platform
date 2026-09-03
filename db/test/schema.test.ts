@@ -55,6 +55,8 @@ const REFERENCE: Record<string, Record<string, [string, 'YES' | 'NO', string | n
     device_id: ['text', 'NO', null],
     browser_pubkey: ['bytea', 'NO', null],
     label: ['text', 'YES', null],
+    user_agent: ['text', 'YES', null],
+    last_ip: ['text', 'YES', null],
     status: ['text', 'NO', "'active'"],
     last_used_at: ['timestamp with time zone', 'YES', null],
     created_at: ['timestamp with time zone', 'NO', 'now()'],

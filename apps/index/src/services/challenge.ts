@@ -17,7 +17,7 @@ import {
   type Acr,
   type SignedChallenge,
 } from '@identizen/protocol';
-import type { OidcParams, SessionState } from '../do/challenge-session';
+import type { BrowserMeta, OidcParams, SessionState } from '../do/challenge-session';
 import type { Env } from '../env';
 import { ApiError, badRequest, notFound } from '../lib/errors';
 import type { Services } from '../lib/services';
@@ -30,6 +30,8 @@ export interface StartChallengeInput {
   /** Step-up / verification: the bound per-site `sub` whose device receives the push. */
   loginHint?: string | null;
   browserPubkey?: string | null;
+  /** The requesting browser, when `browserPubkey` came straight from it. */
+  browser?: BrowserMeta | null;
   oidc?: OidcParams | null;
   verificationId?: string | null;
 }
@@ -90,6 +92,7 @@ export async function startChallenge(
     clientId: site.clientId,
     targetDeviceId: target?.id ?? null,
     browserPubkey: input.browserPubkey ?? null,
+    browser: input.browser ?? null,
     oidc: input.oidc ?? null,
     verificationId: input.verificationId ?? null,
   });

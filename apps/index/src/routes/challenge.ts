@@ -4,7 +4,7 @@ import { Hono } from 'hono';
 import { z } from 'zod';
 import type { AppEnv } from '../app';
 import { forbidden, notFound } from '../lib/errors';
-import { browserLabel } from '../lib/util';
+import { browserMeta } from '../lib/util';
 import { deviceAuth } from '../middleware/idz-signature';
 import { ipRateLimit } from '../middleware/rate-limit';
 import { processAssertion } from '../services/assert';
@@ -49,6 +49,7 @@ export function challengeRoutes(): Hono<AppEnv> {
         reason: body.reason ?? null,
         loginHint: body.login_hint ?? null,
         browserPubkey: body.browser_pubkey ?? null,
+        browser: browserMeta(c),
         oidc: body.redirect_uri
           ? {
               client_id: body.client_id,
@@ -115,7 +116,7 @@ export function challengeRoutes(): Hono<AppEnv> {
     const stub = c.env.CHALLENGE_SESSION.getByName(c.req.param('id'));
     const state = await stub.getState();
     if (!state) throw notFound('unknown_challenge', 'no such challenge');
-    const ok = await stub.setBrowserPubkey(body.browser_pubkey);
+    const ok = await stub.setBrowserPubkey(body.browser_pubkey, browserMeta(c));
     return c.json({ ok });
   });
 
@@ -135,9 +136,7 @@ export function challengeRoutes(): Hono<AppEnv> {
     const claimed = (body as { payload?: { device_id?: string } }).payload?.device_id;
     if (claimed !== caller.id)
       throw forbidden('wrong_device', 'assertion device_id does not match the signing device');
-    const outcome = await processAssertion(services, stub, id, body, {
-      browserLabel: browserLabel(c.req.header('user-agent')),
-    });
+    const outcome = await processAssertion(services, stub, id, body);
     const completed = await completeApproval(services, c.env, stub, outcome);
     return c.json({
       status: 'approved',

@@ -8,6 +8,13 @@
       "when": 1788354933027,
       "tag": "0000_init",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1788452164666,
+      "tag": "0001_same_omega_red",
+      "breakpoints": true
     }
   ]
 }

@@ -17,7 +17,11 @@ import {
 } from '@identizen/protocol';
 import { AppState, type AppStateStatus } from 'react-native';
 import { useEffect, useState } from 'react';
-import { blePeripheral, type BleAuthorization, type BleRadioState } from '../../modules/idz-ble-peripheral';
+import {
+  blePeripheral,
+  type BleAuthorization,
+  type BleRadioState,
+} from '../../modules/idz-ble-peripheral';
 
 export interface BleStatus {
   /** False when the Swift module is not linked (Expo Go, simulator, tests). */

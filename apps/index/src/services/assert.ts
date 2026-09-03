@@ -1,3 +1,4 @@
+import { browserLabel } from '../lib/util';
 import {
   bindOrVerify,
   BindingConflictError,
@@ -39,7 +40,6 @@ export async function processAssertion(
   stub: DurableObjectStub<ChallengeSession>,
   challengeId: string,
   body: unknown,
-  opts: { browserLabel?: string | null } = {},
 ): Promise<AssertOutcome> {
   const { db, now, indexKey } = services;
   const signed: SignedChallenge | null = await stub.getSigned();
@@ -130,7 +130,10 @@ export async function processAssertion(
       id,
       deviceId: device.id,
       browserPubkey: fromBase64Url(state.browserPubkey),
-      label: opts.browserLabel ?? null,
+      // Described from the browser's own request (User-Agent, IP), never the phone's.
+      label: state.browser?.ua ? browserLabel(state.browser.ua) : null,
+      userAgent: state.browser?.ua ?? null,
+      lastIp: state.browser?.ip ?? null,
     });
     pairing = signPairing(
       {

@@ -20,6 +20,8 @@ import {
   resetDb,
   signedFetch,
   startChallenge,
+  BROWSER_IP,
+  BROWSER_UA,
 } from './helpers';
 
 beforeEach(resetDb);
@@ -339,14 +341,17 @@ describe('POST /challenge/:id/assert', () => {
     );
     const raw = new Uint8Array(await crypto.subtle.exportKey('raw', browserKey.publicKey));
     const { toBase64Url } = await import('@identizen/protocol');
-    const started = await startChallenge({
-      client_id: site.client_id,
-      browser_pubkey: toBase64Url(raw),
-      redirect_uri: 'https://app.example.com/callback',
-      state: 'xyz',
-      code_challenge: 'E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM',
-      code_challenge_method: 'S256',
-    });
+    const started = await startChallenge(
+      {
+        client_id: site.client_id,
+        browser_pubkey: toBase64Url(raw),
+        redirect_uri: 'https://app.example.com/callback',
+        state: 'xyz',
+        code_challenge: 'E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM',
+        code_challenge_method: 'S256',
+      },
+      { 'user-agent': BROWSER_UA, 'cf-connecting-ip': BROWSER_IP },
+    );
     const res = await approve(phone, started.challenge_id);
     const body = await json<{
       pairing: { payload: { pairing_id: string; device_id: string }; sig: string } | null;
@@ -357,9 +362,24 @@ describe('POST /challenge/:id/assert', () => {
     expect(body.redirect).toMatch(
       /^https:\/\/app\.example\.com\/callback\?code=[A-Za-z0-9_.-]+&state=xyz$/,
     );
-    const pairings = await json<{ pairings: { id: string; label: string | null }[] }>(
-      await signedFetch(phone, 'GET', '/me/pairings'),
-    );
+    const pairings = await json<{
+      pairings: {
+        id: string;
+        label: string | null;
+        browser: string | null;
+        browser_version: string | null;
+        os: string | null;
+        last_ip: string | null;
+      }[];
+    }>(await signedFetch(phone, 'GET', '/me/pairings'));
     expect(pairings.pairings).toHaveLength(1);
+    // Described from the browser that supplied the key, not from the phone's assertion call.
+    expect(pairings.pairings[0]).toMatchObject({
+      label: 'Chrome 128 on macOS',
+      browser: 'Chrome',
+      browser_version: '128',
+      os: 'macOS',
+      last_ip: '203.0.113.9',
+    });
   });
 });

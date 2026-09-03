@@ -4,6 +4,11 @@ export interface Pairing {
   id: string;
   device_id: string;
   label: string | null;
+  browser: string | null;
+  browser_version: string | null;
+  os: string | null;
+  os_version: string | null;
+  last_ip: string | null;
   status: 'active' | 'revoked';
   last_used_at: string | null;
   created_at: string;

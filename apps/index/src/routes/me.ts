@@ -1,3 +1,4 @@
+import { browserLabel, parseUserAgent } from '../lib/util';
 import {
   getDevice,
   getIdentity,
@@ -76,14 +77,22 @@ export function meRoutes(): Hono<AppEnv> {
     const p = c.get('principal');
     const rows = await listPairingsForIdentity(c.get('services').db, p.idz);
     return c.json({
-      pairings: rows.map(({ pairing, device: d }) => ({
-        id: pairing.id,
-        device_id: d.id,
-        label: pairing.label,
-        status: pairing.status,
-        last_used_at: pairing.lastUsedAt,
-        created_at: pairing.createdAt,
-      })),
+      pairings: rows.map(({ pairing, device: d }) => {
+        const ua = parseUserAgent(pairing.userAgent);
+        return {
+          id: pairing.id,
+          device_id: d.id,
+          label: pairing.label ?? (pairing.userAgent ? browserLabel(pairing.userAgent) : null),
+          browser: ua.browser,
+          browser_version: ua.version,
+          os: ua.os,
+          os_version: ua.osVersion,
+          last_ip: pairing.lastIp,
+          status: pairing.status,
+          last_used_at: pairing.lastUsedAt,
+          created_at: pairing.createdAt,
+        };
+      }),
     });
   });
 

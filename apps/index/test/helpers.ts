@@ -154,10 +154,18 @@ export interface StartedChallenge {
   pushed: boolean;
 }
 
-export async function startChallenge(body: Record<string, unknown>): Promise<StartedChallenge> {
+/** A realistic browser identity for pairing tests (the SDK call comes from the browser). */
+export const BROWSER_UA =
+  'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36';
+export const BROWSER_IP = '203.0.113.9';
+
+export async function startChallenge(
+  body: Record<string, unknown>,
+  headers: Record<string, string> = {},
+): Promise<StartedChallenge> {
   const res = await SELF.fetch(`${BASE}/challenge`, {
     method: 'POST',
-    headers: { 'content-type': 'application/json' },
+    headers: { 'content-type': 'application/json', ...headers },
     body: JSON.stringify(body),
   });
   if (res.status !== 201)

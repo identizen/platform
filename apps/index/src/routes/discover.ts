@@ -10,6 +10,7 @@ import { Hono } from 'hono';
 import { z } from 'zod';
 import type { AppEnv } from '../app';
 import { ApiError, notFound, unauthorized } from '../lib/errors';
+import { browserMeta } from '../lib/util';
 import { pushChallenge } from '../services/challenge';
 import { ipRateLimit } from '../middleware/rate-limit';
 
@@ -70,7 +71,7 @@ export function discoverRoutes(): Hono<AppEnv> {
     if (!(await c.env.REQUEST_GUARD.getByName(joined.device.id).allowPush())) {
       throw new ApiError(429, 'push_rate_limited', 'too many pushes to this device');
     }
-    await touchPairing(services.db, joined.pairing.id);
+    await touchPairing(services.db, joined.pairing.id, browserMeta(c).ip);
     await stub.setTargetDevice(joined.device.id);
     await recordAudit(services.db, {
       kind: 'pairing.used',

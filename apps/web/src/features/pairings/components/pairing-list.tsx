@@ -33,6 +33,11 @@ export function PairingList({ pairings, busyId, onRevoke }: PairingListProps) {
                 <div>
                   <p className="font-medium">{p.label ?? 'Browser'}</p>
                   <p className="text-xs text-fg-muted">
+                    {p.last_ip ? (
+                      <>
+                        From <code>{p.last_ip}</code> ·{' '}
+                      </>
+                    ) : null}
                     Last used {relativeTime(p.last_used_at)} · paired {relativeTime(p.created_at)} ·
                     device <code>{shortId(p.device_id, 12)}</code>
                   </p>

@@ -129,6 +129,10 @@ export const pairings = pgTable(
       .references(() => devices.id),
     browserPubkey: bytea('browser_pubkey').notNull(),
     label: text('label'),
+    /** Raw User-Agent of the browser that paired; parsed at read time. */
+    userAgent: text('user_agent'),
+    /** Client IP at pairing, refreshed on each use. */
+    lastIp: text('last_ip'),
     status: text('status', { enum: PAIRING_STATUSES }).notNull().default('active'),
     lastUsedAt: timestamptz('last_used_at'),
     createdAt: timestamptz('created_at').notNull().defaultNow(),

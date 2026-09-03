@@ -47,7 +47,7 @@ export function mapPairing(p: PairingRow): ListItem {
   return {
     id: p.id,
     title: p.label ?? 'Paired browser',
-    subtitle: `last used ${when(p.last_used_at)}`,
+    subtitle: `${p.last_ip ? `from ${p.last_ip} · ` : ''}last used ${when(p.last_used_at)}`,
     badge: { label: p.status, tone: p.status === 'active' ? 'success' : 'danger' },
     revocable: p.status === 'active',
   };

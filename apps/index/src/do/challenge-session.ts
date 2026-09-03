@@ -31,9 +31,16 @@ export interface SessionInit {
   targetDeviceId?: string | null;
   /** Browser P-256 public key (base64url raw) for pairing on approval. */
   browserPubkey?: string | null;
+  /** The browser that supplied the key (its User-Agent and IP), for the pairing record. */
+  browser?: BrowserMeta | null;
   oidc?: OidcParams | null;
   /** Verification API id when created by /v1/verify. */
   verificationId?: string | null;
+}
+
+export interface BrowserMeta {
+  ua: string | null;
+  ip: string | null;
 }
 
 export interface SessionState {
@@ -43,6 +50,7 @@ export interface SessionState {
   acr: Acr;
   targetDeviceId: string | null;
   browserPubkey: string | null;
+  browser: BrowserMeta | null;
   oidc: OidcParams | null;
   verificationId: string | null;
   assertion: Assertion | null;
@@ -87,6 +95,7 @@ export class ChallengeSession extends DurableObject<Env> {
       acr: init.signed.payload.acr,
       targetDeviceId: init.targetDeviceId ?? null,
       browserPubkey: init.browserPubkey ?? null,
+      browser: init.browserPubkey ? (init.browser ?? null) : null,
       oidc: init.oidc ?? null,
       verificationId: init.verificationId ?? null,
       assertion: null,
@@ -113,10 +122,11 @@ export class ChallengeSession extends DurableObject<Env> {
   }
 
   /** The hosted page registers its P-256 key after render; only while pending and unset. */
-  async setBrowserPubkey(key: string): Promise<boolean> {
+  async setBrowserPubkey(key: string, browser: BrowserMeta | null = null): Promise<boolean> {
     const s = await this.require();
     if (s.status !== 'pending' || s.browserPubkey) return false;
     s.browserPubkey = key;
+    s.browser = browser;
     await this.save(s);
     return true;
   }

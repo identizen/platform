@@ -8,6 +8,8 @@ export interface CreatePairingInput {
   deviceId: string;
   browserPubkey: Uint8Array;
   label?: string | null;
+  userAgent?: string | null;
+  lastIp?: string | null;
 }
 
 export async function createPairing(db: Db, input: CreatePairingInput): Promise<PairingRow> {
@@ -18,6 +20,8 @@ export async function createPairing(db: Db, input: CreatePairingInput): Promise<
       deviceId: input.deviceId,
       browserPubkey: input.browserPubkey,
       label: input.label ?? null,
+      userAgent: input.userAgent ?? null,
+      lastIp: input.lastIp ?? null,
       lastUsedAt: new Date(),
     })
     .returning();
@@ -63,10 +67,11 @@ export async function listPairingsForIdentity(db: Db, idz: string): Promise<Pair
     .orderBy(pairings.createdAt);
 }
 
-export async function touchPairing(db: Db, id: string): Promise<void> {
+/** Mark a pairing used; records the client IP of this use when known. */
+export async function touchPairing(db: Db, id: string, ip?: string | null): Promise<void> {
   await db
     .update(pairings)
-    .set({ lastUsedAt: sql`now()` })
+    .set({ lastUsedAt: sql`now()`, ...(ip ? { lastIp: ip } : {}) })
     .where(eq(pairings.id, id));
 }
 
