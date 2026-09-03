@@ -4,7 +4,7 @@
  * permission) the install registers `push_token: 'poll'` and drains its inbox on an interval.
  */
 import * as Notifications from 'expo-notifications';
-import { Platform } from 'react-native';
+import { AppState, Platform } from 'react-native';
 import { api } from '../api/client';
 import { readDevice, writeDevice } from '../identity/store';
 import { receiveChallenge } from '../challenges/receive';
@@ -73,13 +73,14 @@ export function listenForPushes(onChallenge: (challengeId: string) => void): Uns
 }
 
 /**
- * Drain the inbox once, right now. Used when a nearby computer reads our Bluetooth id: the index is
- * about to enqueue a challenge, so we do not wait for the next poll tick. No-op for APNs/FCM installs.
+ * Drain the inbox once, right now. The index queues every challenge aimed at this device in its
+ * inbox whatever push platform we registered with, so this is the delivery of record; a push
+ * notification only gets us here sooner. Also used when a nearby computer reads our Bluetooth id.
  */
 export async function drainInboxOnce(onChallenge: (challengeId: string) => void): Promise<void> {
   try {
     const device = await readDevice();
-    if (device?.deviceId && device.pushMode === 'poll') {
+    if (device?.deviceId) {
       for (const id of await api.inbox(device.deviceId)) onChallenge(id);
     }
   } catch {
@@ -87,7 +88,11 @@ export async function drainInboxOnce(onChallenge: (challengeId: string) => void)
   }
 }
 
-/** Inbox polling for installs without push. Returns a stop function. */
+/**
+ * Inbox polling for every enrolled install, while the app is in the foreground. Drains at once
+ * when the app comes back to the foreground, since that is when a person looks for the request.
+ * Returns a stop function.
+ */
 export function startInboxPolling(
   onChallenge: (challengeId: string) => void,
   intervalMs = 2000,
@@ -96,19 +101,17 @@ export function startInboxPolling(
   let timer: ReturnType<typeof setTimeout> | null = null;
   const tick = async () => {
     if (stopped) return;
-    try {
-      const device = await readDevice();
-      if (device?.deviceId && device.pushMode === 'poll') {
-        for (const id of await api.inbox(device.deviceId)) onChallenge(id);
-      }
-    } catch {
-      /* offline; try again */
-    }
+    const state = AppState.currentState;
+    if (state !== 'background' && state !== 'inactive') await drainInboxOnce(onChallenge);
     if (!stopped) timer = setTimeout(() => void tick(), intervalMs);
   };
+  const sub = AppState.addEventListener('change', (next) => {
+    if (next === 'active' && !stopped) void drainInboxOnce(onChallenge);
+  });
   timer = setTimeout(() => void tick(), 0);
   return () => {
     stopped = true;
+    sub.remove();
     if (timer) clearTimeout(timer);
   };
 }

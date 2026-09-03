@@ -14,9 +14,31 @@
     "allowJs": true,
     "skipLibCheck": true,
     "noEmit": true,
-    "types": ["jest", "node", "nativewind/types"],
-    "paths": { "@/*": ["./*"] }
+    "types": [
+      "jest",
+      "node",
+      "nativewind/types"
+    ],
+    "paths": {
+      "@/*": [
+        "./*"
+      ]
+    }
   },
-  "include": ["app", "src", "modules", "__tests__", "scripts", "*.ts", "*.d.ts"],
-  "exclude": ["node_modules", "ios", "android", ".expo"]
+  "include": [
+    "app",
+    "src",
+    "modules",
+    "__tests__",
+    "scripts",
+    "*.ts",
+    "*.d.ts",
+    "nativewind-env.d.ts"
+  ],
+  "exclude": [
+    "node_modules",
+    "ios",
+    "android",
+    ".expo"
+  ]
 }

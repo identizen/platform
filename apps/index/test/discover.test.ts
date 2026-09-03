@@ -147,6 +147,13 @@ describe('POST /discover/paired', () => {
     expect(
       (await env.CHALLENGE_SESSION.getByName(second.challenge_id).getState())?.targetDeviceId,
     ).toBe(phone.deviceId);
+    expect(
+      (
+        await json<{ challenge_ids: string[] }>(
+          await signedFetch(phone, 'GET', `/devices/${phone.deviceId}/inbox`),
+        )
+      ).challenge_ids,
+    ).toEqual([second.challenge_id]);
     expect((await approve(phone, second.challenge_id)).status).toBe(200);
 
     // Wrong signature / wrong challenge id in signature.

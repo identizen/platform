@@ -33,7 +33,11 @@ function fakeNative(supported = true) {
     onStateChange: new Set(),
     onRead: new Set(),
   };
-  let state: BleNativeState = { state: 'poweredOn', authorization: 'allowedAlways', advertising: false };
+  let state: BleNativeState = {
+    state: 'poweredOn',
+    authorization: 'allowedAlways',
+    advertising: false,
+  };
   const native: IdzBlePeripheralNative & {
     calls: string[];
     fire<E extends keyof BleEvents>(e: E, ...args: Parameters<BleEvents[E]>): void;
@@ -131,11 +135,19 @@ describe('advertiser', () => {
     const reads: number[] = [];
     await startBleAdvertising({ bleKeyHex: BLE_KEY_HEX, onCentralRead: (at) => reads.push(at) });
 
-    native.fire('onStateChange', { state: 'poweredOff', authorization: 'allowedAlways', advertising: false });
+    native.fire('onStateChange', {
+      state: 'poweredOff',
+      authorization: 'allowedAlways',
+      advertising: false,
+    });
     expect(getBleStatus().state).toBe('poweredOff');
     expect(getBleStatus().advertising).toBe(false);
 
-    native.fire('onStateChange', { state: 'poweredOn', authorization: 'allowedAlways', advertising: true });
+    native.fire('onStateChange', {
+      state: 'poweredOn',
+      authorization: 'allowedAlways',
+      advertising: true,
+    });
     expect(getBleStatus().advertising).toBe(true);
 
     expect(recentlyReadOverBluetooth()).toBe(false);
@@ -215,6 +227,6 @@ describe('controller', () => {
 
     await writeDevice({ ...device, pushMode: 'apns' });
     await drainInboxOnce((id) => seen.push(id));
-    expect(hits).toBe(1); // APNs installs are pushed; nothing to drain
+    expect(hits).toBe(2); // APNs installs drain too: the index queues every request in the inbox
   });
 });

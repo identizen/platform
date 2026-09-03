@@ -214,6 +214,23 @@ describe('identities and handles', () => {
     expect(other.status).toBe(403);
   });
 
+  it('a phone with an APNs token still gets step-ups in its inbox when APNs is not configured', async () => {
+    const phone = await registerPhone({ pushToken: 'a'.repeat(64), pushPlatform: 'apns' });
+    const site = await registerSite();
+    const first = await startChallenge({ client_id: site.client_id });
+    const bound = await json<{ sub: string }>(await approve(phone, first.challenge_id));
+    const mfa = await startChallenge({
+      client_id: site.client_id,
+      acr: 'idz:mfa',
+      login_hint: bound.sub,
+    });
+    expect(mfa.pushed).toBe(true);
+    const inbox = await json<{ challenge_ids: string[] }>(
+      await signedFetch(phone, 'GET', `/devices/${phone.deviceId}/inbox`),
+    );
+    expect(inbox.challenge_ids).toEqual([mfa.challenge_id]);
+  });
+
   it('polling devices receive queued challenge ids from their inbox', async () => {
     const phone = await registerPhone({ pushToken: 'poll' });
     const site = await registerSite();

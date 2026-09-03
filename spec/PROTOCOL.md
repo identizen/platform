@@ -202,6 +202,8 @@ A Mac app plus browser extension intercepts `navigator.credentials` on plain-Web
 
 The push payload is `{ "challenge_id": "ch_…" }` and nothing else. The phone fetches the full signed challenge from the index over TLS. Nothing sensitive transits APNs / FCM / Web Push.
 
+Delivery of record is the device **inbox**: whenever the index targets a device (step-up, verification, BLE or paired discovery) it queues the `challenge_id` in that device's inbox, and the phone drains `GET /devices/:id/inbox` (device-authenticated, see section 8) while it is in the foreground. A provider push is an accelerator: an index with no APNs / FCM credentials, or a failed push, still delivers through the inbox. Inbox entries expire with the challenge.
+
 ## 8. Device-authenticated requests (`Idz-Signature`)
 
 Device and identity endpoints authenticate with a signed request header instead of bearer tokens:

@@ -331,7 +331,8 @@ describe('step-up and enrollment', () => {
       acr: 'idz:mfa',
       loginHint: enrolled.sub,
     });
-    expect(stepUp.html).toContain('We sent a notification to your phone.');
+    expect(stepUp.html).toContain('We sent it to your phone.');
+    expect(stepUp.html).toContain('id="showqr"');
     expect(stepUp.html).toContain('class="qr hidden"');
     const tokens = await json<{ id_token: string }>(await exchange(site, stepUp.code));
     const { payload } = await jwtVerify(tokens.id_token, await verifier(), {

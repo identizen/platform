@@ -169,15 +169,28 @@ class PollOnlySender implements PushSender {
   }
 }
 
-/** Route by the device's platform; falls back to `noop` when a provider is not configured. */
+/**
+ * Route by the device's platform. A platform with no configured provider (e.g. an APNs token on
+ * an index without APNs keys) is reported as a failed push, never a silent success: the caller
+ * has already queued the challenge in the device's inbox, and the log should say why the phone
+ * was not woken. `fallback` only serves devices that registered no platform at all.
+ */
 export class RoutingPushSender implements PushSender {
   constructor(
     private readonly senders: Partial<Record<'apns' | 'fcm' | 'web', PushSender>>,
     private readonly fallback: PushSender,
   ) {}
   send(device: PushTarget, payload: PushPayload): Promise<PushResult> {
-    const sender = device.pushPlatform ? this.senders[device.pushPlatform] : undefined;
-    return (sender ?? this.fallback).send(device, payload);
+    if (!device.pushPlatform) return this.fallback.send(device, payload);
+    const sender = this.senders[device.pushPlatform];
+    if (!sender) {
+      return Promise.resolve({
+        ok: false,
+        provider: device.pushPlatform,
+        detail: `no ${device.pushPlatform} provider configured; inbox only`,
+      });
+    }
+    return sender.send(device, payload);
   }
 }
 

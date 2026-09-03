@@ -104,16 +104,22 @@ export async function startChallenge(
   return { site, signed, state, pushedTo: target };
 }
 
-/** Push `{ challenge_id }` to a device. */
+/**
+ * Deliver `{ challenge_id }` to a device. The device's inbox is the delivery of record: every
+ * enrolled phone drains it while in the foreground, whatever push platform it registered with.
+ * A provider push (APNs / FCM / web) only wakes the phone sooner, so a missing or failing provider
+ * never loses a request; it is logged and the inbox carries it.
+ */
 export async function pushChallenge(
   services: Services,
   device: Device,
   challengeId: string,
 ): Promise<boolean> {
+  await services.env.REQUEST_GUARD.getByName(device.id).enqueue(challengeId);
   const result = await services.push.send(device, { challenge_id: challengeId });
   if (!result.ok)
     console.warn(`push to ${device.id} via ${result.provider} failed: ${result.detail ?? ''}`);
-  return result.ok;
+  return true;
 }
 
 export async function loadDeviceForPush(services: Services, deviceId: string): Promise<Device> {

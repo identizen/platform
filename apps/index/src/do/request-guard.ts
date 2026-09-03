@@ -59,8 +59,9 @@ export class RequestGuard extends DurableObject<Env> {
     return true;
   }
 
-  /** Queue a challenge id for a device that polls instead of receiving pushes. */
+  /** Queue a challenge id for the device's inbox (every phone drains it; idempotent per id). */
   async enqueue(challengeId: string): Promise<void> {
+    if (this.inbox.includes(challengeId)) return;
     this.inbox.push(challengeId);
     if (this.inbox.length > 50) this.inbox.shift();
     await this.ctx.storage.setAlarm(Date.now() + WINDOW_MS);

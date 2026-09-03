@@ -50,7 +50,12 @@ export interface Phone {
 
 /** Register a device + identity like the app would. */
 export async function registerPhone(
-  opts: { handle?: string; pushToken?: string; seed?: Uint8Array } = {},
+  opts: {
+    handle?: string;
+    pushToken?: string;
+    pushPlatform?: 'apns' | 'fcm' | 'web';
+    seed?: Uint8Array;
+  } = {},
 ): Promise<Phone> {
   const seed = opts.seed ?? generateSeed();
   const master = deriveMasterKey(seed);
@@ -66,7 +71,10 @@ export async function registerPhone(
       master_sig: signIdentityProof(devicePub, master.privateKey),
       ble_key: toBase64Url(bleKey),
       ...(opts.handle && { handle: opts.handle }),
-      ...(opts.pushToken && { push_token: opts.pushToken, push_platform: 'web' }),
+      ...(opts.pushToken && {
+        push_token: opts.pushToken,
+        push_platform: opts.pushPlatform ?? 'web',
+      }),
     }),
   });
   if (res.status !== 201)

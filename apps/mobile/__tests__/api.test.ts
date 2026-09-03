@@ -77,6 +77,16 @@ describe('api', () => {
     expect(seen).toEqual(['ch_01K3ZB2N9G0000000000000009']);
   });
 
+  it('an APNs install still drains the inbox: the index queues every request there', async () => {
+    await register({ platform: 'apns', token: 'abc123' });
+    expect((await readDevice())?.pushMode).toBe('apns');
+    const seen: string[] = [];
+    const stop = startInboxPolling((id) => seen.push(id), 10);
+    await new Promise((r) => setTimeout(r, 60));
+    stop();
+    expect(seen).toEqual(['ch_01K3ZB2N9G0000000000000009']);
+  });
+
   it('syncs a real APNs token once permissions are granted', async () => {
     await register({ platform: 'web', token: 'poll' });
     jest
