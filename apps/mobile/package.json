@@ -12,7 +12,8 @@
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "test:unit": "jest --ci",
     "test:hermes": "node scripts/hermes-vectors.mjs",
-    "build": "tsc -p tsconfig.json --noEmit"
+    "build": "tsc -p tsconfig.json --noEmit",
+    "eas-build-post-install": "npm --prefix ../../packages/protocol run build"
   },
   "dependencies": {
     "@expo-google-fonts/inter": "^0.4.2",

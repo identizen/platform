@@ -16,12 +16,11 @@
     "ios": {
       "bundleIdentifier": "com.identizen.app",
       "supportsTablet": false,
-      "associatedDomains": [
-        "applinks:app.identizen.com"
-      ],
+      "associatedDomains": ["applinks:app.identizen.com"],
       "infoPlist": {
         "NSFaceIDUsageDescription": "Identizen uses Face ID to approve sign-ins with your identity.",
-        "NSCameraUsageDescription": "Identizen uses the camera to scan sign-in QR codes."
+        "NSCameraUsageDescription": "Identizen uses the camera to scan sign-in QR codes.",
+        "ITSAppUsesNonExemptEncryption": false
       }
     },
     "android": {
@@ -41,11 +40,14 @@
               "pathPrefix": "/l/"
             }
           ],
-          "category": [
-            "BROWSABLE",
-            "DEFAULT"
-          ]
+          "category": ["BROWSABLE", "DEFAULT"]
         }
+      ],
+      "permissions": [
+        "android.permission.USE_BIOMETRIC",
+        "android.permission.USE_FINGERPRINT",
+        "android.permission.CAMERA",
+        "android.permission.RECORD_AUDIO"
       ]
     },
     "plugins": [
