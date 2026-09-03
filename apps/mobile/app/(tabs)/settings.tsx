@@ -1,24 +1,24 @@
 import { useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { api } from '../src/api/client';
-import { authenticate } from '../src/biometrics';
+import { api } from '../../src/api/client';
+import { authenticate } from '../../src/biometrics';
 import {
   forgetIdentity,
   getSummary,
   updateLocalHandle,
   type IdentitySummary,
-} from '../src/identity/identity';
+} from '../../src/identity/identity';
 import {
   readDevice,
   readSettings,
   writeDevice,
   writeSettings,
   type Settings,
-} from '../src/identity/store';
-import { getBleStatus, useBleStatus } from '../src/ble/advertiser';
-import { syncBleAdvertising } from '../src/ble/controller';
-import { SettingsScreen } from '../src/screens/SettingsScreen';
-import { useTheme } from '../src/theme/useTheme';
+} from '../../src/identity/store';
+import { getBleStatus, useBleStatus } from '../../src/ble/advertiser';
+import { syncBleAdvertising } from '../../src/ble/controller';
+import { SettingsScreen } from '../../src/screens/SettingsScreen';
+import { useTheme } from '../../src/theme/useTheme';
 
 const EMPTY: IdentitySummary = {
   idz: null,
@@ -83,7 +83,6 @@ export default function SettingsRoute() {
         await forgetIdentity();
         router.replace('/onboarding');
       }}
-      onBack={() => router.back()}
     />
   );
 }

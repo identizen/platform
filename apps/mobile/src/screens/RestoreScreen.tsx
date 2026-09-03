@@ -39,7 +39,7 @@ export function RestoreScreen({ onRestore, onBack }: RestoreScreenProps) {
   };
 
   return (
-    <Screen testID="restore">
+    <Screen testID="restore" onBack={onBack}>
       <Heading>Restore an identity</Heading>
       <Body>Enter your 24 recovery words, separated by spaces.</Body>
       <TextInput
@@ -59,7 +59,6 @@ export function RestoreScreen({ onRestore, onBack }: RestoreScreenProps) {
         phone.
       </Muted>
       <Button label="Restore" onPress={() => void submit()} busy={busy} testID="restore-submit" />
-      <Button label="Back" variant="ghost" onPress={onBack} />
     </Screen>
   );
 }

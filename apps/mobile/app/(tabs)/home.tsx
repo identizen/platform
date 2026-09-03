@@ -1,11 +1,11 @@
 import { useFocusEffect, useRouter } from 'expo-router';
 import { useCallback, useState } from 'react';
-import { challengeStore, useActivity, usePendingChallenges } from '../src/challenges/store';
-import { getSummary, register, type IdentitySummary } from '../src/identity/identity';
-import { obtainPushToken, syncPushToken } from '../src/push';
-import { useBleStatus } from '../src/ble/advertiser';
-import { syncBleAdvertising } from '../src/ble/controller';
-import { HomeScreen } from '../src/screens/HomeScreen';
+import { challengeStore, useActivity, usePendingChallenges } from '../../src/challenges/store';
+import { getSummary, register, type IdentitySummary } from '../../src/identity/identity';
+import { obtainPushToken, syncPushToken } from '../../src/push';
+import { useBleStatus } from '../../src/ble/advertiser';
+import { syncBleAdvertising } from '../../src/ble/controller';
+import { HomeScreen } from '../../src/screens/HomeScreen';
 
 const EMPTY: IdentitySummary = {
   idz: null,
@@ -56,10 +56,7 @@ export default function Home() {
       onRegister={() => void doRegister()}
       onOpenChallenge={(id) => router.push({ pathname: '/approve/[id]', params: { id } })}
       onScan={() => router.push('/scan')}
-      onDevices={() => router.push('/devices')}
-      onPairings={() => router.push('/pairings')}
-      onSessions={() => router.push('/sessions')}
-      onSettings={() => router.push('/settings')}
+      onRefresh={reload}
     />
   );
 }

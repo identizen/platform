@@ -4,7 +4,7 @@ import { View } from 'react-native';
 import { authenticate } from '../../src/biometrics';
 import { approveChallenge, denyChallenge, receiveChallenge } from '../../src/challenges/receive';
 import { challengeStore, usePendingChallenges } from '../../src/challenges/store';
-import { Button, ErrorText, Muted, Screen } from '../../src/components/ui';
+import { ErrorText, Muted, Screen } from '../../src/components/ui';
 import { openRedirect } from '../../src/deeplinks';
 import { readSettings } from '../../src/identity/store';
 import { ApproveScreen, type ApproveOutcome } from '../../src/screens/ApproveScreen';
@@ -24,11 +24,15 @@ export default function Approve() {
 
   if (!entry) {
     return (
-      <Screen scroll={false} testID="approve-loading">
+      <Screen
+        scroll={false}
+        testID="approve-loading"
+        title="Sign-in request"
+        onBack={() => router.replace('/home')}
+      >
         <View className="flex-1 items-center justify-center">
           {error ? <ErrorText>{error}</ErrorText> : <Muted>Fetching the request…</Muted>}
         </View>
-        <Button label="Back" variant="ghost" onPress={() => router.replace('/home')} />
       </Screen>
     );
   }

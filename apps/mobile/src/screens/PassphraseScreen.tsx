@@ -25,7 +25,7 @@ export function PassphraseScreen({ words, onContinue, readOnly = false }: Passph
   }, []);
 
   return (
-    <Screen testID="passphrase">
+    <Screen testID="passphrase" onBack={readOnly ? onContinue : undefined}>
       <Heading>This is your identity.</Heading>
       <Body>
         Write these 24 words down, in order, somewhere safe. They are the only way to get your

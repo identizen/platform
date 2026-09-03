@@ -1,10 +1,8 @@
-import { useRouter } from 'expo-router';
-import { api } from '../src/api/client';
-import { usePairings } from '../src/state/lists';
-import { ListScreen } from '../src/screens/ListScreen';
+import { api } from '../../src/api/client';
+import { usePairings } from '../../src/state/lists';
+import { ListScreen } from '../../src/screens/ListScreen';
 
 export default function Pairings() {
-  const router = useRouter();
   const list = usePairings();
   return (
     <ListScreen
@@ -20,7 +18,6 @@ export default function Pairings() {
         list.refresh();
       }}
       onRefresh={list.refresh}
-      onBack={() => router.back()}
     />
   );
 }

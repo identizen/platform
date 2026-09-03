@@ -46,7 +46,7 @@ export function VerifyWordsScreen({ words, indexes, onVerified, onBack }: Verify
   };
 
   return (
-    <Screen testID="verify-words">
+    <Screen testID="verify-words" onBack={onBack}>
       <Heading>Check your notes</Heading>
       <Body>Enter the words at these positions exactly as you wrote them down.</Body>
       <View className="gap-3">

@@ -74,7 +74,7 @@ export function ApproveScreen({ challenge, onApprove, onDeny, onDone }: ApproveS
   }
 
   return (
-    <Screen scroll={false} testID={`approve-${variant}`}>
+    <Screen scroll={false} testID={`approve-${variant}`} title="Sign-in request">
       <View className="flex-1 justify-center gap-4">
         <Muted center>{title}</Muted>
         <Text

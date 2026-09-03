@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Pressable, Text, View } from 'react-native';
-import { Badge, Button, ErrorText, Heading, ListRow, Muted, Screen } from '../components/ui';
+import { Badge, ErrorText, Heading, ListRow, Muted, Screen } from '../components/ui';
 
 export interface ListItem {
   id: string;
@@ -21,7 +21,8 @@ export interface ListScreenProps {
   revokeLabel: string;
   onRevoke: (id: string) => Promise<void>;
   onRefresh: () => void;
-  onBack: () => void;
+  /** Only for lists pushed on the stack; tab lists have no back. */
+  onBack?: () => void;
 }
 
 /** Devices / paired browsers / sessions share one shape: a list with a two-step revoke. */
@@ -44,12 +45,17 @@ export function ListScreen(p: ListScreenProps) {
   };
 
   return (
-    <Screen testID={`list-${p.heading.toLowerCase().replace(/\s+/g, '-')}`}>
+    <Screen
+      testID={`list-${p.heading.toLowerCase().replace(/\s+/g, '-')}`}
+      onBack={p.onBack}
+      onRefresh={p.onRefresh}
+      refreshing={p.loading && p.items.length > 0}
+    >
       <Heading>{p.heading}</Heading>
       <Muted>{p.intro}</Muted>
       {p.error ? <ErrorText>{p.error}</ErrorText> : null}
       {actionError ? <ErrorText>{actionError}</ErrorText> : null}
-      {p.loading ? <Muted>Loading…</Muted> : null}
+      {p.loading && p.items.length === 0 ? <Muted>Loading…</Muted> : null}
       {!p.loading && p.items.length === 0 ? <Muted>{p.emptyText}</Muted> : null}
       {p.items.map((item) => (
         <ListRow
@@ -67,8 +73,9 @@ export function ListScreen(p: ListScreenProps) {
                     onPress={() => void revoke(item.id)}
                     disabled={busy === item.id}
                     testID={`confirm-${item.id}`}
+                    className="rounded-sm bg-danger px-3 py-1.5 dark:bg-danger-dark"
                   >
-                    <Text className="font-semibold text-sm text-danger dark:text-danger-dark">
+                    <Text className="font-semibold text-sm text-danger-fg dark:text-danger-fg-dark">
                       {busy === item.id ? '…' : 'Confirm'}
                     </Text>
                   </Pressable>
@@ -78,8 +85,9 @@ export function ListScreen(p: ListScreenProps) {
                     accessibilityLabel={`${p.revokeLabel} ${item.title}`}
                     onPress={() => setConfirming(item.id)}
                     testID={`revoke-${item.id}`}
+                    className="rounded-sm border border-border-strong px-3 py-1.5 dark:border-border-strong-dark"
                   >
-                    <Text className="font-medium text-sm text-fg-muted dark:text-fg-muted-dark">
+                    <Text className="font-medium text-sm text-fg dark:text-fg-dark">
                       {p.revokeLabel}
                     </Text>
                   </Pressable>
@@ -89,14 +97,7 @@ export function ListScreen(p: ListScreenProps) {
           }
         />
       ))}
-      <View className="flex-row gap-2 pt-2">
-        <View className="flex-1">
-          <Button label="Refresh" variant="secondary" onPress={p.onRefresh} />
-        </View>
-        <View className="flex-1">
-          <Button label="Back" variant="ghost" onPress={p.onBack} />
-        </View>
-      </View>
+      {p.items.length > 0 ? <Muted center>Pull down to refresh.</Muted> : null}
     </Screen>
   );
 }

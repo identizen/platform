@@ -1,4 +1,5 @@
 import { View } from 'react-native';
+import { Seal, Wordmark } from '../components/brand';
 import { Body, Button, Heading, Muted, Screen } from '../components/ui';
 
 export interface OnboardingScreenProps {
@@ -11,7 +12,11 @@ export interface OnboardingScreenProps {
 export function OnboardingScreen({ onCreate, onRestore, busy = false }: OnboardingScreenProps) {
   return (
     <Screen scroll={false} testID="onboarding">
-      <View className="flex-1 justify-center gap-3">
+      <View className="flex-1 justify-center gap-4">
+        <View className="items-start gap-5 pb-2">
+          <Seal size={72} />
+          <Wordmark height={30} dot={false} />
+        </View>
         <Heading>Your phone is your identity.</Heading>
         <Body>No password. No email. No Google or Microsoft account. One tap, Face ID, in.</Body>
         <Muted>
@@ -22,6 +27,7 @@ export function OnboardingScreen({ onCreate, onRestore, busy = false }: Onboardi
       <View className="gap-3">
         <Button
           label="Create your identity"
+          size="lg"
           onPress={onCreate}
           busy={busy}
           testID="create-identity"

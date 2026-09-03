@@ -30,7 +30,7 @@ export interface SettingsScreenProps {
   onBiometricRequired: (v: boolean) => Promise<void>;
   onShowPhrase: () => Promise<void>;
   onForget: () => Promise<void>;
-  onBack: () => void;
+  onBack?: () => void;
 }
 
 export function SettingsScreen(p: SettingsScreenProps) {
@@ -63,7 +63,7 @@ export function SettingsScreen(p: SettingsScreenProps) {
   const themes: ThemePreference[] = ['system', 'light', 'dark'];
 
   return (
-    <Screen testID="settings">
+    <Screen testID="settings" onBack={p.onBack}>
       <Heading>Settings</Heading>
       {error ? <ErrorText>{error}</ErrorText> : null}
 
@@ -210,8 +210,6 @@ export function SettingsScreen(p: SettingsScreenProps) {
           />
         )}
       </Card>
-
-      <Button label="Back" variant="ghost" onPress={p.onBack} />
     </Screen>
   );
 }

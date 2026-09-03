@@ -2,7 +2,7 @@ import { useRef, useState } from 'react';
 import { View } from 'react-native';
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import { parseChallengeId } from '../challenges/receive';
-import { Button, ErrorText, Heading, Muted, Screen } from '../components/ui';
+import { Button, ErrorText, Muted, Screen } from '../components/ui';
 
 export interface ScanScreenProps {
   onScanned: (challengeId: string) => Promise<void>;
@@ -31,18 +31,16 @@ export function ScanScreen({ onScanned, onBack }: ScanScreenProps) {
 
   if (!permission?.granted) {
     return (
-      <Screen scroll={false} testID="scan-permission">
-        <Heading>Camera</Heading>
+      <Screen scroll={false} testID="scan-permission" title="Camera" onBack={onBack}>
         <Muted>Identizen needs the camera to read sign-in codes. Nothing is recorded.</Muted>
         <Button label="Allow camera" onPress={() => void requestPermission()} />
-        <Button label="Back" variant="ghost" onPress={onBack} />
       </Screen>
     );
   }
 
   return (
-    <Screen scroll={false} testID="scan">
-      <Heading>Scan the code</Heading>
+    <Screen scroll={false} testID="scan" title="Scan the code" onBack={onBack}>
+      <Muted center>Point the camera at the code the site is showing.</Muted>
       <View className="flex-1 overflow-hidden rounded-lg">
         <CameraView
           style={{ flex: 1 }}
@@ -52,7 +50,6 @@ export function ScanScreen({ onScanned, onBack }: ScanScreenProps) {
         />
       </View>
       {error ? <ErrorText>{error}</ErrorText> : null}
-      <Button label="Back" variant="ghost" onPress={onBack} />
     </Screen>
   );
 }

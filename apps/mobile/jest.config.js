@@ -8,6 +8,8 @@ const extraTransformed = [
   '@scure',
   'nativewind',
   'react-native-css-interop',
+  'lucide-react-native',
+  'react-native-svg',
 ];
 
 /** @type {import('jest').Config} */
@@ -15,6 +17,8 @@ module.exports = {
   preset: 'jest-expo',
   setupFilesAfterEnv: ['./jest.setup.ts'],
   testMatch: ['**/__tests__/**/*.test.[jt]s?(x)'],
+  // lucide-react-native ships .mjs; run it through the same babel-jest as .js.
+  transform: { ...preset.transform, '\\.mjs$': preset.transform['\\.[jt]sx?$'] },
   transformIgnorePatterns: preset.transformIgnorePatterns.map((p) =>
     p.includes('(?!(') ? p.replace('(?!(', `(?!(${extraTransformed.join('|')}|`) : p,
   ),

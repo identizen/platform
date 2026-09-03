@@ -1,10 +1,8 @@
-import { useRouter } from 'expo-router';
-import { api } from '../src/api/client';
-import { useSessions } from '../src/state/lists';
-import { ListScreen } from '../src/screens/ListScreen';
+import { api } from '../../src/api/client';
+import { useSessions } from '../../src/state/lists';
+import { ListScreen } from '../../src/screens/ListScreen';
 
 export default function Sessions() {
-  const router = useRouter();
   const list = useSessions();
   return (
     <ListScreen
@@ -20,7 +18,6 @@ export default function Sessions() {
         list.refresh();
       }}
       onRefresh={list.refresh}
-      onBack={() => router.back()}
     />
   );
 }
