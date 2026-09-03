@@ -16,7 +16,9 @@
     "ios": {
       "bundleIdentifier": "com.identizen.app",
       "supportsTablet": false,
-      "associatedDomains": ["applinks:app.identizen.com"],
+      "associatedDomains": [
+        "applinks:app.identizen.com"
+      ],
       "infoPlist": {
         "NSFaceIDUsageDescription": "Identizen uses Face ID to approve sign-ins with your identity.",
         "NSCameraUsageDescription": "Identizen uses the camera to scan sign-in QR codes."
@@ -24,13 +26,25 @@
     },
     "android": {
       "package": "com.identizen.app",
-      "adaptiveIcon": { "foregroundImage": "./assets/icon.png", "backgroundColor": "#fbfbfc" },
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/icon.png",
+        "backgroundColor": "#fbfbfc"
+      },
       "intentFilters": [
         {
           "action": "VIEW",
           "autoVerify": true,
-          "data": [{ "scheme": "https", "host": "app.identizen.com", "pathPrefix": "/l/" }],
-          "category": ["BROWSABLE", "DEFAULT"]
+          "data": [
+            {
+              "scheme": "https",
+              "host": "app.identizen.com",
+              "pathPrefix": "/l/"
+            }
+          ],
+          "category": [
+            "BROWSABLE",
+            "DEFAULT"
+          ]
         }
       ]
     },
@@ -43,16 +57,33 @@
       "expo-splash-screen",
       [
         "expo-local-authentication",
-        { "faceIDPermission": "Identizen uses Face ID to approve sign-ins with your identity." }
+        {
+          "faceIDPermission": "Identizen uses Face ID to approve sign-ins with your identity."
+        }
       ],
       [
         "expo-camera",
-        { "cameraPermission": "Identizen uses the camera to scan sign-in QR codes." }
+        {
+          "cameraPermission": "Identizen uses the camera to scan sign-in QR codes."
+        }
       ],
-      ["expo-notifications", { "icon": "./assets/icon.png", "color": "#C43E2C" }],
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/icon.png",
+          "color": "#C43E2C"
+        }
+      ],
       "expo-dev-client",
       "./modules/idz-ble-peripheral/app.plugin.js"
     ],
-    "experiments": { "typedRoutes": false }
+    "experiments": {
+      "typedRoutes": false
+    },
+    "extra": {
+      "eas": {
+        "projectId": "63862275-0cdd-4bbe-a849-1bec679d8cbf"
+      }
+    }
   }
 }
