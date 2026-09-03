@@ -16,7 +16,8 @@
     "docs:verify": "npm run sync-spec && tsx scripts/verify-samples.ts",
     "test:unit": "npm run docs:verify",
     "e2e": "playwright test",
-    "lighthouse": "lhci autorun"
+    "lighthouse": "lhci autorun",
+    "deploy": "wrangler deploy"
   },
   "dependencies": {
     "@astrojs/starlight": "^0.36.3",
