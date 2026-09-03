@@ -29,3 +29,4 @@ e2e/.state/
 # Public build-time values for the hosted dashboard (index URL, public client id); no secrets.
 !apps/web/.env.production
 !apps/demo-bank/.env.production
+!apps/marketing/.env.production
