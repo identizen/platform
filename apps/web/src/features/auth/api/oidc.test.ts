@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { buildSignIn, completeSignIn, decodeClaims } from './oidc';
+import { buildSignIn, completeSignIn, completeSignInOnce, decodeClaims } from './oidc';
 import { getSession } from './session';
 import { mockIdToken } from '@/mocks/fixtures';
 
@@ -79,5 +79,27 @@ describe('sign-in', () => {
       idz_handle: 'george',
     });
     expect(() => decodeClaims('a.b.c')).toThrow();
+  });
+});
+
+describe('completeSignInOnce', () => {
+  it('runs one exchange per callback URL and lets later callers join it', async () => {
+    sessionStorage.setItem(
+      'idz:oidc-tx',
+      JSON.stringify({
+        state: 'st',
+        nonce: 'mock-nonce',
+        verifier: 'v',
+        clientId: 'idz_test_dashboard',
+      }),
+    );
+    const params = new URLSearchParams({ code: 'good-code', state: 'st' });
+    const first = completeSignInOnce(params);
+    const second = completeSignInOnce(new URLSearchParams(params));
+    expect(second).toBe(first);
+    const session = await second;
+    expect(session.claims.sub).toBe('S'.repeat(32));
+    // A plain second exchange would have found the transaction consumed.
+    await expect(completeSignIn(params)).rejects.toThrow(/state mismatch/);
   });
 });

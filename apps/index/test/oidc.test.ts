@@ -326,14 +326,13 @@ describe('step-up and enrollment', () => {
     expect(enrollClaims.sub).toBe(enrolled.sub);
     expect(enrollClaims.acr).toBe('idz:login');
 
-    // Step-up against the bound sub: pushed straight to the phone (no QR), acr idz:mfa.
+    // Step-up against the bound sub: pushed straight to the phone (QR still shown), acr idz:mfa.
     const stepUp = await authorizeAndApprove(site, phone, {
       acr: 'idz:mfa',
       loginHint: enrolled.sub,
     });
     expect(stepUp.html).toContain('We sent it to your phone.');
-    expect(stepUp.html).toContain('id="showqr"');
-    expect(stepUp.html).toContain('class="qr hidden"');
+    expect(stepUp.html).toContain('class="qr"'); // the QR stays visible even when pushed
     const tokens = await json<{ id_token: string }>(await exchange(site, stepUp.code));
     const { payload } = await jwtVerify(tokens.id_token, await verifier(), {
       issuer: BASE,

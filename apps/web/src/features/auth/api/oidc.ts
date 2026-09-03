@@ -79,6 +79,25 @@ export function decodeClaims(idToken: string): SessionClaims {
 }
 
 /** Exchange the authorization code (public client: no secret) and store the session. */
+let inflight: { key: string; promise: Promise<DashboardSession> } | null = null;
+
+/**
+ * `completeSignIn`, but at most once per callback URL for the life of the page. The exchange
+ * consumes the stored transaction and the one-time code, so a second call for the same callback
+ * (an effect re-running, StrictMode, a re-render mid-exchange) must join the first instead of
+ * failing with a state mismatch after the first one already succeeded.
+ */
+export function completeSignInOnce(
+  params: URLSearchParams,
+  deps: SignInDeps = {},
+): Promise<DashboardSession> {
+  const key = params.toString();
+  if (inflight?.key === key) return inflight.promise;
+  const promise = completeSignIn(params, deps);
+  inflight = { key, promise };
+  return promise;
+}
+
 export async function completeSignIn(
   params: URLSearchParams,
   deps: SignInDeps = {},

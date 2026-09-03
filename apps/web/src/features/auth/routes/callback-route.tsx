@@ -1,16 +1,20 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from '@tanstack/react-router';
 import { Button } from '@identizen/ui';
-import { completeSignIn } from '../api/oidc';
+import { completeSignInOnce } from '../api/oidc';
 
-/** `/callback`: finishes the OIDC code exchange and lands on the overview. */
+/**
+ * `/callback`: finishes the OIDC code exchange and lands on the overview. The exchange runs once
+ * per callback URL however many times this effect fires (`navigate` can change identity while
+ * the exchange is in flight); every run joins the same promise and the last one navigates.
+ */
 export function CallbackRoute() {
   const navigate = useNavigate();
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
-    completeSignIn(new URLSearchParams(location.search))
+    completeSignInOnce(new URLSearchParams(location.search))
       .then(() => {
         if (!cancelled) void navigate({ to: '/', replace: true });
       })
