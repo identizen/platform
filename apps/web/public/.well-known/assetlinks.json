@@ -1,0 +1,12 @@
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "com.identizen.app",
+      "sha256_cert_fingerprints": [
+        "57:EB:5D:0E:5D:DD:09:85:F1:DE:E5:B4:60:3E:DB:1B:76:B4:73:C6:30:C5:C8:EC:F1:1F:EF:7A:A0:80:21:0F"
+      ]
+    }
+  }
+]

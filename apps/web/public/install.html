@@ -11,6 +11,7 @@
 body{margin:0;background:var(--bg);color:var(--fg);font:17px/1.5 ui-sans-serif,system-ui,-apple-system,sans-serif}
 main{max-width:28rem;margin:0 auto;padding:4rem 1.5rem}
 h1{font-size:1.5rem;letter-spacing:-.02em}
+h2{font-size:1.15rem;margin-top:2.5rem;letter-spacing:-.01em}
 p{color:var(--muted)}
 a.btn{display:block;text-align:center;background:var(--accent);color:#fff;text-decoration:none;font-weight:600;padding:1rem;border-radius:.75rem;margin:2rem 0 1rem}
 code{font:.9em ui-monospace,Menlo,monospace}
@@ -37,6 +38,14 @@ ol{padding-left:1.25rem;color:var(--muted)}
   <li id="s2">Go to the home screen: the Identizen icon is dimmed while it downloads, then fills in. That is the install completing; Safari cannot see it.</li>
   <li id="s3">Open Identizen and check Settings: the last line should read <code>0.1.0 (9)</code>.</li>
 </ol>
+<h2>Android</h2>
+<dl>
+  <dt>Version</dt><dd>0.1.0 (2)</dd>
+  <dt>Built</dt><dd><time datetime="2026-09-04T14:22:00.075Z">Fri, 04 Sep 2026 14:22:00 GMT</time></dd>
+  <dt>Commit</dt><dd><code>23764cd</code></dd>
+</dl>
+<a class="btn" href="https://expo.dev/artifacts/eas/1y1bny4imCzZzHugzze9t-wQhoCw1GSypyp1JvHtqrI.apk">Download the Android APK</a>
+<p>Open this page in Chrome on the phone, download, then open the file and allow installs from Chrome when asked. Android shows its own progress for the download and the install.</p>
 <p id="nothing" class="hidden">Nothing happened? iOS ignores an install when the same version and build are already on the phone, and when this device is not in the provisioning profile. Delete the existing Identizen app and tap again.</p>
 <script>
 (function(){
