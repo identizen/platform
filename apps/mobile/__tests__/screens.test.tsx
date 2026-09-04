@@ -4,7 +4,7 @@ import { ApproveScreen } from '../src/screens/ApproveScreen';
 import { ListScreen, type ListItem } from '../src/screens/ListScreen';
 import { OnboardingScreen } from '../src/screens/OnboardingScreen';
 import { PassphraseScreen } from '../src/screens/PassphraseScreen';
-import { RestoreScreen, validatePhrase } from '../src/screens/RestoreScreen';
+import { RestoreScreen, restoreErrorMessage, validatePhrase } from '../src/screens/RestoreScreen';
 import { SettingsScreen, validateHandle } from '../src/screens/SettingsScreen';
 import { VerifyWordsScreen, pickWordIndexes } from '../src/screens/VerifyWordsScreen';
 import { mapDevice } from '../src/state/lists';
@@ -84,6 +84,25 @@ describe('onboarding', () => {
     await fireEvent.press(screen.getByTestId('restore-submit'));
     await waitFor(() => expect(onRestore).toHaveBeenCalledWith(WORDS.join(' ')));
     await waitFor(() => expect(screen.getByRole('alert')).toHaveTextContent(/does not check out/));
+  });
+
+  it('blames the phone, not the phrase, when the keystore refuses the seed', async () => {
+    expect(validatePhrase(WORDS.slice(0, 23).concat('abandon').join(' '))).toMatch(/check out/);
+    expect(restoreErrorMessage(new Error('invalid mnemonic'))).toMatch(/does not check out/);
+    expect(
+      restoreErrorMessage(
+        new Error('Could not Authenticate the user: No biometrics are currently enrolled'),
+      ),
+    ).toMatch(/phone could not save it.*No biometrics are currently enrolled/);
+    const onRestore = jest.fn(() =>
+      Promise.reject(new Error('No biometrics are currently enrolled')),
+    );
+    await render(<RestoreScreen onRestore={onRestore} onBack={jest.fn()} />);
+    await fireEvent.changeText(screen.getByTestId('phrase-input'), WORDS.join(' '));
+    await fireEvent.press(screen.getByTestId('restore-submit'));
+    await waitFor(() =>
+      expect(screen.getByRole('alert')).toHaveTextContent(/phone could not save it/),
+    );
     expect(validatePhrase(`${WORDS.join(' ')} zzzz`)).toMatch(/24 words/);
     expect(validatePhrase(WORDS.map((w, i) => (i === 3 ? 'notaword' : w)).join(' '))).toMatch(
       /notaword/,

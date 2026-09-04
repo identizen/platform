@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { TextInput } from 'react-native';
-import { BIP39_WORDLIST } from '@identizen/protocol';
+import { BIP39_WORDLIST, mnemonicToSeed } from '@identizen/protocol';
 import { Body, Button, ErrorText, Heading, Muted, Screen } from '../components/ui';
 
 export interface RestoreScreenProps {
@@ -15,7 +15,21 @@ export function validatePhrase(input: string): string | null {
   if (words.length !== 24) return `Enter all 24 words (${words.length} so far).`;
   const unknown = words.filter((w) => !BIP39_WORDLIST.includes(w));
   if (unknown.length) return `Not in the word list: ${unknown.slice(0, 3).join(', ')}.`;
+  try {
+    mnemonicToSeed(words.join(' '));
+  } catch {
+    return BAD_PHRASE;
+  }
   return null;
+}
+
+const BAD_PHRASE = 'That phrase does not check out. Check the order and spelling of every word.';
+
+/** Only a checksum failure is the phrase's fault; anything else is this phone refusing the seed. */
+export function restoreErrorMessage(err: unknown): string {
+  const message = err instanceof Error ? err.message : String(err);
+  if (/mnemonic|checksum/i.test(message)) return BAD_PHRASE;
+  return `The phrase is valid but this phone could not save it. ${message}`;
 }
 
 /** PRD 7.5: restore on a new phone from the 24 words. */
@@ -31,8 +45,8 @@ export function RestoreScreen({ onRestore, onBack }: RestoreScreenProps) {
     setError(null);
     try {
       await onRestore(phrase.trim().toLowerCase().split(/\s+/).join(' '));
-    } catch {
-      setError('That phrase does not check out. Check the order and spelling of every word.');
+    } catch (err) {
+      setError(restoreErrorMessage(err));
     } finally {
       setBusy(false);
     }

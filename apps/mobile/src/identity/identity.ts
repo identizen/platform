@@ -82,8 +82,9 @@ export async function restoreIdentity(
   await writeDevice(freshDevice(settings.indexUrl));
 }
 
+/** The device record is written with the seed and wiped with it, and reading it never prompts. */
 export async function hasIdentity(): Promise<boolean> {
-  return (await readSeedHex()) !== null;
+  return (await readDevice()) !== null;
 }
 
 export async function getSummary(): Promise<IdentitySummary> {

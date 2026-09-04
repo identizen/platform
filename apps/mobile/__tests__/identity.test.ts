@@ -159,6 +159,21 @@ describe('identity lifecycle', () => {
     expect(index.calls.filter((c) => c.url.endsWith('/devices'))).toHaveLength(1);
   });
 
+  it('falls back to a plain keystore entry when the phone has no strong biometric', async () => {
+    const canUse = SecureStore.canUseBiometricAuthentication as jest.Mock;
+    canUse.mockReturnValueOnce(false);
+    await createIdentity(settings);
+    const seedWrites = (SecureStore.setItemAsync as jest.Mock).mock.calls.filter(
+      ([k]: [string]) => k === 'idz.seed',
+    ) as [string, string, Record<string, unknown>][];
+    const [, , opts] = seedWrites[seedWrites.length - 1]!;
+    expect(opts.requireAuthentication).toBeUndefined();
+    (SecureStore.getItemAsync as jest.Mock).mockClear();
+    expect(await hasIdentity()).toBe(true);
+    // Checking for an identity never touches the (possibly biometric-gated) seed entry.
+    expect(SecureStore.getItemAsync).not.toHaveBeenCalledWith('idz.seed', expect.anything());
+  });
+
   it('restores from a phrase and rejects invalid ones', async () => {
     const index = fakeIndex();
     setFetch(index.fetchImpl);
