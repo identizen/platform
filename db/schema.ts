@@ -1,5 +1,5 @@
 /**
- * Identizen index schema. Reference SQL: planning/identizen-implementation-plan.md section 3.
+ * Identizen index schema. Reference SQL: the implementation plan (internal), section 3.
  *
  * The index stores no secrets: public keys, push tokens, BLE HMAC keys (resolvable only by the
  * index), revocation state, and audit events. Adding a table or column requires an explicit

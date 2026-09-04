@@ -7,7 +7,7 @@ import { migrateDb, resolveMigrationsDir } from '../src/migrate';
 import { freshDatabase } from './setup';
 
 /**
- * Reference: planning/identizen-implementation-plan.md section 3.
+ * Reference: the implementation plan (internal), section 3.
  * column -> [data_type, is_nullable, column_default (substring) | null]
  */
 const REFERENCE: Record<string, Record<string, [string, 'YES' | 'NO', string | null]>> = {

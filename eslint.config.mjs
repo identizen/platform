@@ -10,7 +10,7 @@ import globals from 'globals';
 /**
  * Identizen ESLint flat config.
  *
- * Enforces the frontend rules from planning/identizen-implementation-plan.md section 10:
+ * Enforces the frontend rules from the implementation plan (internal), section 10:
  * - no default exports (except framework config / route files that require them)
  * - no `any`
  * - <= 250 lines per component file

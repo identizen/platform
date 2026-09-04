@@ -30,3 +30,6 @@ e2e/.state/
 !apps/web/.env.production
 !apps/demo-bank/.env.production
 !apps/marketing/.env.production
+
+# Internal docs live in the private repo cloned here (github.com/plsft/identizen-internal).
+private/

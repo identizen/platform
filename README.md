@@ -36,6 +36,6 @@ npm run gate                    # lint + typecheck + unit + e2e
 - **Self-host anywhere with Docker:** `INDEX_SIGNING_KEY=… OIDC_SIGNING_KEYS=… INDEX_URL=https://index.example.com docker compose --profile selfhost up` runs the same Worker inside workerd next to Postgres, configured by environment only. Generate keys with `npm run keys -w @identizen/index`.
 - **Cloudflare:** `npm run deploy -w @identizen/index` after `wrangler hyperdrive create` and `wrangler secret put INDEX_SIGNING_KEY` / `OIDC_SIGNING_KEYS`. The static apps deploy with `wrangler deploy` from `apps/web`, `apps/marketing`, and `apps/docs`.
 
-See `planning/` for the PRD, architecture one-pager, and implementation plan. `TASKS.md` is the milestone checklist.
+Planning documents and the milestone checklist are kept in a private companion repository.
 
 License: Apache-2.0.
