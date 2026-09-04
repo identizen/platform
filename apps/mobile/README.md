@@ -77,3 +77,21 @@ Verify: install the build, register the phone, then on a Mac open Chrome at
 https://identizen.com/playground, choose **My phone**, click **Continue with Identizen**, then
 **Find my phone over Bluetooth**. The chooser lists **Identizen**; pick it and the approve screen
 opens on the phone within a second, tagged as arriving over Bluetooth.
+
+## Android
+
+The same app builds for Android (`npx eas build --platform android --profile preview` produces an
+APK; `production` an app bundle). Differences from iOS:
+
+- **Biometrics** go through the system BiometricPrompt via expo-local-authentication; copy says
+  "your fingerprint or face" instead of Face ID.
+- **Nearby sign-in** is `modules/idz-ble-peripheral/android` (Kotlin): a `BluetoothLeAdvertiser`
+  plus a `BluetoothGattServer` serving the rotating id from the same characteristic as iOS. On
+  Android 12+ the app asks for `BLUETOOTH_ADVERTISE` and `BLUETOOTH_CONNECT` the first time the
+  switch is turned on (`src/ble/permissions.ts`); no location permission is involved. Chromium's
+  chooser lists the phone by its Bluetooth name (the advertisement carries only the service UUID).
+- **Push** needs a Firebase project: put `google-services.json` in `apps/mobile` and add the FCM
+  V1 credentials with `npx eas credentials --platform android`. Without them the phone still gets
+  every request through its inbox while the app is open.
+- **App links** need `apps/web/public/.well-known/assetlinks.json` carrying the SHA-256 of the
+  signing key EAS generated (`npx eas credentials --platform android` prints it).

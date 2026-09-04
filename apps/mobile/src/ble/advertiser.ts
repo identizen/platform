@@ -17,6 +17,7 @@ import {
 } from '@identizen/protocol';
 import { AppState, type AppStateStatus } from 'react-native';
 import { useEffect, useState } from 'react';
+import { ensureBlePermissions } from './permissions';
 import {
   blePeripheral,
   type BleAuthorization,
@@ -153,6 +154,31 @@ export async function startBleAdvertising(opts: AdvertiserOptions): Promise<Stop
   const appSub = AppState.addEventListener('change', (next: AppStateStatus) => {
     if (next === 'active') void apply(false);
   });
+
+  // Android 12+ asks for the advertise and connect permissions here; iOS prompts from native.
+  const permission = await ensureBlePermissions();
+  if (permission !== 'granted') {
+    publish({
+      enabled: true,
+      supported: native.isSupported(),
+      authorization: 'denied',
+      advertising: false,
+      error:
+        permission === 'blocked'
+          ? 'Bluetooth permission is turned off for Identizen in system settings'
+          : 'Bluetooth permission was not granted',
+    });
+    const stopDenied: Stop = () => {
+      stopped = true;
+      stateSub.remove();
+      readSub.remove();
+      appSub.remove();
+      if (current === stopDenied) current = null;
+      publish({ enabled: false });
+    };
+    current = stopDenied;
+    return stopDenied;
+  }
 
   const radio = native.getState();
   publish({
