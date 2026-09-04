@@ -1,6 +1,6 @@
 import * as Application from 'expo-application';
-import { useRouter } from 'expo-router';
-import { useEffect, useState } from 'react';
+import { useFocusEffect, useRouter } from 'expo-router';
+import { useCallback, useState } from 'react';
 import { api } from '../../src/api/client';
 import { BUILD_INFO } from '../../src/build-info';
 import { authenticate } from '../../src/biometrics';
@@ -22,29 +22,27 @@ import { syncBleAdvertising } from '../../src/ble/controller';
 import { SettingsScreen } from '../../src/screens/SettingsScreen';
 import { useTheme } from '../../src/theme/useTheme';
 
-const EMPTY: IdentitySummary = {
-  idz: null,
-  deviceId: null,
-  handle: null,
-  indexUrl: '',
-  registered: false,
-};
-
 export default function SettingsRoute() {
   const router = useRouter();
   const theme = useTheme();
-  const [summary, setSummary] = useState<IdentitySummary>(EMPTY);
+  const [summary, setSummary] = useState<IdentitySummary | null>(null);
   const [settings, setSettings] = useState<Settings | null>(null);
   const ble = useBleStatus();
 
-  useEffect(() => {
-    void getSummary().then(setSummary);
-    void readSettings().then(setSettings);
-  }, []);
-  if (!settings) return null;
+  // Reload every time the tab gains focus: the handle and registration can change on Home.
+  useFocusEffect(
+    useCallback(() => {
+      void getSummary().then(setSummary);
+      void readSettings().then(setSettings);
+    }, []),
+  );
+  // The form copies handle and index into its own state on mount, so it must not mount before
+  // both have loaded, and it remounts when either changes underneath it.
+  if (!settings || !summary) return null;
 
   return (
     <SettingsScreen
+      key={`${summary.handle ?? ''}|${summary.indexUrl}|${summary.registered ? 1 : 0}`}
       about={{
         version: Application.nativeApplicationVersion,
         build: Application.nativeBuildVersion,
