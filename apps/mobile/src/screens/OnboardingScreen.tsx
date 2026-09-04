@@ -1,4 +1,5 @@
 import { View } from 'react-native';
+import { biometricName } from '../biometrics';
 import { Seal, Wordmark } from '../components/brand';
 import { Body, Button, Heading, Muted, Screen } from '../components/ui';
 
@@ -18,7 +19,7 @@ export function OnboardingScreen({ onCreate, onRestore, busy = false }: Onboardi
           <Wordmark height={30} dot={false} />
         </View>
         <Heading>Your phone is your identity.</Heading>
-        <Body>No password. No email. No Google or Microsoft account. One tap, Face ID, in.</Body>
+        <Body>{`No password. No email. No Google or Microsoft account. One tap, ${biometricName()}, in.`}</Body>
         <Muted>
           Your identity is a key that never leaves this phone. Sites only ever see a per-site
           identifier.

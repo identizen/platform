@@ -6,7 +6,13 @@
  * (expo-secure-store); the claim is kept so the wire format does not change when M9 lands.
  */
 import * as LocalAuthentication from 'expo-local-authentication';
+import { Platform } from 'react-native';
 import type { Amr } from '@identizen/protocol';
+
+/** What to call the biometric gate in copy: Apple's names on iOS, the generic term elsewhere. */
+export function biometricName(): string {
+  return Platform.OS === 'ios' ? 'Face ID' : 'your fingerprint or face';
+}
 
 export interface BiometricResult {
   ok: boolean;

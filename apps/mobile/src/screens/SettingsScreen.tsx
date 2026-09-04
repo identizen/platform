@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Switch, Text, TextInput, View } from 'react-native';
+import { biometricName } from '../biometrics';
 import type { ThemePreference } from '../theme/useTheme';
 import { Button, Card, ErrorText, Heading, Muted, Screen } from '../components/ui';
 
@@ -136,7 +137,7 @@ export function SettingsScreen(p: SettingsScreenProps) {
         <View className="flex-row items-center justify-between">
           <View className="flex-1 gap-0.5">
             <Text className="font-medium text-base text-fg dark:text-fg-dark">
-              Require Face ID / Touch ID
+              Require {biometricName()}
             </Text>
             <Muted>
               Every approval asks for biometrics. Turning this off falls back to the device
@@ -161,7 +162,7 @@ export function SettingsScreen(p: SettingsScreenProps) {
             <Muted>
               {p.bluetoothSupported
                 ? 'A computer next to you can find this phone and push the sign-in to it, no code to scan. Nothing identifying is broadcast: the id rotates every 15 minutes and only the index can read it.'
-                : 'Needs the native build of the app; not available in Expo Go or the simulator.'}
+                : 'Not available on this build of the app.'}
             </Muted>
           </View>
           <Switch
@@ -202,7 +203,7 @@ export function SettingsScreen(p: SettingsScreenProps) {
 
       <Card>
         <Text className="font-medium text-base text-fg dark:text-fg-dark">Recovery phrase</Text>
-        <Muted>Shown after Face ID. Never share it.</Muted>
+        <Muted>{`Shown after ${biometricName()}. Never share it.`}</Muted>
         <Button
           label="Show recovery phrase"
           variant="secondary"

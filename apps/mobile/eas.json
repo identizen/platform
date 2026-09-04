@@ -16,7 +16,10 @@
       "ios": {
         "simulator": false
       },
-      "autoIncrement": true
+      "autoIncrement": true,
+      "android": {
+        "buildType": "apk"
+      }
     },
     "preview": {
       "extends": "base",
@@ -24,11 +27,17 @@
       "ios": {
         "simulator": false
       },
-      "autoIncrement": true
+      "autoIncrement": true,
+      "android": {
+        "buildType": "apk"
+      }
     },
     "production": {
       "extends": "base",
-      "autoIncrement": true
+      "autoIncrement": true,
+      "android": {
+        "buildType": "app-bundle"
+      }
     }
   },
   "submit": {

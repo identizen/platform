@@ -25,6 +25,26 @@ const raw = execFileSync(
 const [build] = JSON.parse(raw);
 if (!build?.artifacts?.buildUrl) throw new Error('no finished iOS build with an artifact');
 
+// Android: the preview profile builds an APK, which installs straight from the phone's browser.
+const rawAndroid = execFileSync(
+  'npx',
+  [
+    'eas',
+    'build:list',
+    '--platform',
+    'android',
+    '--status',
+    'finished',
+    '--limit',
+    '1',
+    '--json',
+    '--non-interactive',
+  ],
+  { encoding: 'utf8', shell: true, stdio: ['ignore', 'pipe', 'inherit'] },
+);
+const [android] = JSON.parse(rawAndroid || '[]');
+const apkUrl = android?.artifacts?.buildUrl ?? null;
+
 const esc = (s) => String(s).replaceAll('&', '&amp;').replaceAll('<', '&lt;');
 const plist = `<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
@@ -68,6 +88,7 @@ const html = `<!doctype html>
 body{margin:0;background:var(--bg);color:var(--fg);font:17px/1.5 ui-sans-serif,system-ui,-apple-system,sans-serif}
 main{max-width:28rem;margin:0 auto;padding:4rem 1.5rem}
 h1{font-size:1.5rem;letter-spacing:-.02em}
+h2{font-size:1.15rem;margin-top:2.5rem;letter-spacing:-.01em}
 p{color:var(--muted)}
 a.btn{display:block;text-align:center;background:var(--accent);color:#fff;text-decoration:none;font-weight:600;padding:1rem;border-radius:.75rem;margin:2rem 0 1rem}
 code{font:.9em ui-monospace,Menlo,monospace}
@@ -94,6 +115,18 @@ ol{padding-left:1.25rem;color:var(--muted)}
   <li id="s2">Go to the home screen: the Identizen icon is dimmed while it downloads, then fills in. That is the install completing; Safari cannot see it.</li>
   <li id="s3">Open Identizen and check Settings: the last line should read <code>${esc(build.appVersion)} (${esc(build.appBuildVersion)})</code>.</li>
 </ol>
+${
+  apkUrl
+    ? `<h2>Android</h2>
+<dl>
+  <dt>Version</dt><dd>${esc(android.appVersion)} (${esc(android.appBuildVersion)})</dd>
+  <dt>Built</dt><dd><time datetime="${esc(android.completedAt)}">${esc(new Date(android.completedAt).toUTCString())}</time></dd>
+  <dt>Commit</dt><dd><code>${esc(String(android.gitCommitHash).slice(0, 7))}</code></dd>
+</dl>
+<a class="btn" href="${esc(apkUrl)}">Download the Android APK</a>
+<p>Open this page in Chrome on the phone, download, then open the file and allow installs from Chrome when asked. Android shows its own progress for the download and the install.</p>`
+    : ''
+}
 <p id="nothing" class="hidden">Nothing happened? iOS ignores an install when the same version and build are already on the phone, and when this device is not in the provisioning profile. Delete the existing Identizen app and tap again.</p>
 <script>
 (function(){
@@ -114,7 +147,7 @@ mkdirSync(out, { recursive: true });
 writeFileSync(new URL('install.plist', out), plist);
 writeFileSync(new URL('install.html', out), html);
 console.info(
-  `install manifest -> build ${build.id.slice(0, 8)} v${build.appVersion} (${build.appBuildVersion})`,
+  `install manifest -> iOS ${build.id.slice(0, 8)} v${build.appVersion} (${build.appBuildVersion})${apkUrl ? `, Android ${android.id.slice(0, 8)} (${android.appBuildVersion})` : ', no Android build yet'}`,
 );
 console.info(
   'deploy: npx turbo run build --filter=@identizen/web && npm run deploy -w @identizen/web',
