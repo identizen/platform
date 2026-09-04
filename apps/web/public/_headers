@@ -6,3 +6,7 @@
 /install.plist
   Content-Type: application/xml
   Cache-Control: no-store
+
+# Android reads the app-links statement and requires JSON.
+/.well-known/assetlinks.json
+  Content-Type: application/json
