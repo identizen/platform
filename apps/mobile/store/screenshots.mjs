@@ -1,6 +1,7 @@
 /**
- * App Store screenshots, composed from the app's real screens (same tokens, brand and copy) and
- * rendered with Playwright at Apple's required sizes. No simulator needed.
+ * App Store and Play Store screenshots, composed from the app's real screens (same tokens, brand
+ * and copy) and rendered with Playwright at each store's required sizes. No simulator needed.
+ * Android also gets the Play feature graphic (1024×500) and the 512 px listing icon.
  *
  *   node store/screenshots.mjs        # writes store/screenshots/<size>/<n>-<name>.png
  */
@@ -10,6 +11,7 @@ import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { createRequire } from 'node:module';
 import { fileURLToPath } from 'node:url';
 import { chromium } from 'playwright';
+import sharp from 'sharp';
 import {
   Bluetooth,
   ChevronLeft,
@@ -24,14 +26,21 @@ import {
 const require = createRequire(import.meta.url);
 const { light: T } = require('../src/theme/tokens.js');
 const here = fileURLToPath(new URL('.', import.meta.url));
-const brand = (f) => readFileSync(new URL(`../../../packages/ui/brand/${f}`, import.meta.url), 'utf8');
+const brand = (f) =>
+  readFileSync(new URL(`../../../packages/ui/brand/${f}`, import.meta.url), 'utf8');
 const font = (pkg, file) =>
   `file:///${require.resolve(`${pkg}/files/${file}`).replace(/\\/g, '/')}`;
 
 const SIZES = [
-  { dir: 'iphone-6.7', w: 1290, h: 2796 },
-  { dir: 'iphone-6.5', w: 1242, h: 2688 },
+  { dir: 'iphone-6.7', w: 1290, h: 2796, platform: 'ios' },
+  { dir: 'iphone-6.5', w: 1242, h: 2688, platform: 'ios' },
+  // Play accepts 320–3840 px with the long side at most twice the short side; 1:2 fits the design.
+  { dir: 'android-phone', w: 1080, h: 2160, platform: 'android' },
 ];
+
+/** Apple's names on iOS; the generic term on Android (mirrors src/biometrics biometricName). */
+const localize = (html, platform) =>
+  platform === 'android' ? html.replaceAll('Face ID', 'your fingerprint') : html;
 
 const icon = (Cmp, size, color) =>
   renderToStaticMarkup(createElement(Cmp, { size, color, strokeWidth: 2 }));
@@ -43,7 +52,8 @@ const wordmark = (h, color) =>
   brand('identizen-wordmark.svg')
     .replace(/width="[\d.]+" height="[\d.]+"/, `height="${h}"`)
     .replaceAll('currentColor', color);
-const seal = (size) => brand('kimi-seal.svg').replace(/width="100" height="100"/, `width="${size}" height="${size}"`);
+const seal = (size) =>
+  brand('kimi-seal.svg').replace(/width="100" height="100"/, `width="${size}" height="${size}"`);
 
 const tabs = (active) => {
   const items = [
@@ -159,13 +169,15 @@ const SCREENS = [
 ];
 
 const css = (W, H) => {
-  const s = W / 1290; // scale everything from the 6.7" design
+  const s = Math.min(W / 1290, H / 2796); // scale the 6.7" design to fit, centred
+  const x = Math.round((W - 1290 * s) / 2);
   return `
+  html{background:linear-gradient(180deg,#fbf3ef 0%,${T['surface-1']} 55%,${T['surface-2']} 100%)}
   @font-face{font-family:Inter;src:url(${font('@fontsource-variable/inter', 'inter-latin-wght-normal.woff2')});font-weight:100 900}
   @font-face{font-family:Bricolage;src:url(${font('@fontsource-variable/bricolage-grotesque', 'bricolage-grotesque-latin-wght-normal.woff2')});font-weight:100 900}
   *{box-sizing:border-box;margin:0}
   html,body{width:${W}px;height:${H}px;overflow:hidden}
-  body{font-family:Inter,system-ui,sans-serif;background:linear-gradient(180deg,#fbf3ef 0%,${T['surface-1']} 55%,${T['surface-2']} 100%);color:${T.fg};transform:scale(${s});transform-origin:top left;width:1290px;height:2796px}
+  body{font-family:Inter,system-ui,sans-serif;background:linear-gradient(180deg,#fbf3ef 0%,${T['surface-1']} 55%,${T['surface-2']} 100%);color:${T.fg};transform:translateX(${x}px) scale(${s});transform-origin:top left;width:1290px;height:2796px}
   .caption{padding:150px 100px 0;text-align:center}
   .caption h1{font-family:Bricolage,Inter,sans-serif;font-size:96px;line-height:1.05;letter-spacing:-.02em;font-weight:600}
   .caption p{margin-top:28px;font-size:40px;line-height:1.35;color:${T['fg-muted']}}
@@ -220,7 +232,11 @@ const css = (W, H) => {
   `;
 };
 
-const page = (screen, W, H) => `<!doctype html><html><head><meta charset="utf-8"><style>${css(W, H)}</style></head>
+const page = (
+  screen,
+  W,
+  H,
+) => `<!doctype html><html><head><meta charset="utf-8"><style>${css(W, H)}</style></head>
 <body><div class="caption"><h1>${screen.headline}</h1><p>${screen.sub}</p></div>
 <div class="frame"><div class="screen">${screen.body}</div></div></body></html>`;
 
@@ -228,16 +244,49 @@ const browser = await chromium.launch();
 for (const size of SIZES) {
   const out = `${here}screenshots/${size.dir}`;
   mkdirSync(out, { recursive: true });
-  const ctx = await browser.newContext({ viewport: { width: size.w, height: size.h }, deviceScaleFactor: 1 });
+  const ctx = await browser.newContext({
+    viewport: { width: size.w, height: size.h },
+    deviceScaleFactor: 1,
+  });
   const tab = await ctx.newPage();
   for (const [i, screen] of SCREENS.entries()) {
     const html = `${out}/${i + 1}-${screen.name}.html`;
-    writeFileSync(html, page(screen, size.w, size.h));
+    writeFileSync(html, localize(page(screen, size.w, size.h), size.platform));
     await tab.goto(`file:///${html.replace(/\\/g, '/')}`);
     await tab.evaluate(() => document.fonts.ready);
     await tab.screenshot({ path: `${out}/${i + 1}-${screen.name}.png`, fullPage: false });
     console.info(`${size.dir}/${i + 1}-${screen.name}.png`);
   }
   await ctx.close();
+}
+
+// Play listing extras: feature graphic and hi-res icon.
+{
+  const out = `${here}screenshots/android-phone`;
+  const html = `${out}/feature-graphic.html`;
+  writeFileSync(
+    html,
+    `<!doctype html><html><head><meta charset="utf-8"><style>${css(1290, 2796)}
+  html,body{width:1024px;height:500px;transform:none}
+  body{display:flex;align-items:center;justify-content:space-between;padding:0 72px}
+  .lockup{display:flex;align-items:center;gap:22px}
+  h1{font-family:Bricolage,Inter,sans-serif;font-size:54px;line-height:1.05;letter-spacing:-.02em;font-weight:600;max-width:520px}
+  p{margin-top:16px;font-size:24px;line-height:1.35;color:${T['fg-muted']};max-width:520px}
+  </style></head><body>
+  <div><span class="lockup">${mark(64, T.fg)}${wordmark(52, T.fg)}</span><h1 style="margin-top:36px">Your phone is the login.</h1><p>Passwordless sign-in for the web. Open source.</p></div>
+  ${seal(300)}</body></html>`,
+  );
+  const ctx = await browser.newContext({
+    viewport: { width: 1024, height: 500 },
+    deviceScaleFactor: 1,
+  });
+  const tab = await ctx.newPage();
+  await tab.goto(`file:///${html.replace(/\\/g, '/')}`);
+  await tab.evaluate(() => document.fonts.ready);
+  await tab.screenshot({ path: `${out}/feature-graphic.png`, fullPage: false });
+  await ctx.close();
+  console.info('android-phone/feature-graphic.png');
+  await sharp(`${here}../assets/icon.png`).resize(512, 512).png().toFile(`${out}/icon-512.png`);
+  console.info('android-phone/icon-512.png');
 }
 await browser.close();

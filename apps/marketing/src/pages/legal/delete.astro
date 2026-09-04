@@ -1,0 +1,59 @@
+---
+import Base from '../../layouts/Base.astro';
+---
+
+<Base
+  title="Delete your identity and data"
+  description="How to remove Identizen from a phone, revoke a device, and have the public index delete everything it holds about an identity."
+>
+  <div class="container-site max-w-3xl py-16 sm:py-24">
+    <article class="prose-idz">
+      <p class="eyebrow">Legal</p>
+      <h1 class="mt-2 text-4xl font-semibold tracking-tight">Delete your identity and data</h1>
+      <p class="mt-4 text-lg text-fg-muted">
+        Identizen has no accounts, emails, or passwords. What exists is a key on your phone and a
+        short record about that phone on the public index. Both can be removed by you, without
+        asking anyone.
+      </p>
+
+      <h2>1. Remove the identity from a phone</h2>
+      <p>
+        In the app, open <strong>Settings</strong> and choose <strong>Forget this identity</strong>.
+        The private key, recovery phrase, and activity history are erased from the phone
+        immediately. Nothing about them was ever sent anywhere, so there is nothing else to delete
+        for that part.
+      </p>
+
+      <h2>2. Revoke the phone on the index</h2>
+      <p>
+        Sign in to <a href="https://app.identizen.com">app.identizen.com</a> from another device, open
+        <strong>Devices</strong>, and revoke the phone. From that moment the phone can no longer
+        sign in anywhere, every browser it paired is unpaired, and every session it opened is signed
+        out. The index marks the device record as revoked rather than deleting it, so that the
+        revocation stays effective and can be audited; step 3 removes it.
+      </p>
+
+      <h2>3. Ask us to delete everything</h2>
+      <p>
+        To have the index remove every record tied to an identity, including device records,
+        per-site identifiers, and the audit trail, use the <a href="/contact/">contact form</a> or write
+        to <a href="mailto:privacy@identizen.com">privacy@identizen.com</a> and include the identifier
+        shown on the app's Home tab (it begins with <code>idz_</code>). We confirm the request by
+        sending a sign-in challenge to that identity, so only its holder can trigger it, and
+        complete the deletion within 30 days. Hosting request logs, which contain IP addresses,
+        expire on their own within days.
+      </p>
+
+      <h2>What is kept</h2>
+      <p>
+        Nothing that identifies you. After step 3 the index holds no record of the identity at all.
+        Sites you signed in to keep whatever account they created for you under the per-site
+        identifier; deleting that is between you and each site, since Identizen never sees it.
+      </p>
+
+      <p class="mt-8 text-sm text-fg-muted">
+        See also the <a href="/legal/privacy/">Privacy Policy</a> for what the index stores and why.
+      </p>
+    </article>
+  </div>
+</Base>
