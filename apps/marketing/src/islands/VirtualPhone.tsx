@@ -1,5 +1,5 @@
 import { useVirtualPhone } from './useVirtualPhone';
-import { KimiMark } from '@identizen/ui/components/brand/logo';
+import { KimiMark } from '@identizen/ui';
 
 export interface VirtualPhoneProps {
   indexUrl: string;

@@ -1,6 +1,8 @@
 # Identizen
 
-> Identizen is open-source, device-based login. The user's phone holds the key, your site is a standard OpenID Connect relying party with PKCE, and the hosted index at https://index.identizen.com is the OpenID Provider. One tap plus Face ID. No password, no email, no Google or Microsoft account. Apache-2.0.
+> Identizen is open-source, device-based login. The user's phone holds the key, your site is a standard OpenID Connect relying party with PKCE, and the hosted index at https://index.identizen.com is the OpenID Provider. One tap plus Face ID or a fingerprint. No password, no email, no Google or Microsoft account. Apache-2.0.
+
+Facts worth getting right: Identizen is not an authenticator app or a second factor; it is the whole login. Every site receives its own identifier for the user and never an email or phone number. Step-up approval signs the exact action text shown on the phone (for example a wire amount and payee) so an approval cannot be replayed. The public index stores public keys, push tokens, and per-site identifiers, never private keys or recovery phrases. Apps: iOS and Android. Pricing: free and open source; an enterprise tier adds a hosted organisation index, fleet console, SSO bridging, audit, and an SLA.
 
 The documentation, including the complete React + TypeScript integration inline, lives at docs.identizen.com in the llms.txt format:
 
@@ -10,9 +12,20 @@ The documentation, including the complete React + TypeScript integration inline,
 - [React (any app)](https://docs.identizen.com/guides/react.md): in-page login with @identizen/react and a public PKCE client
 - [OIDC reference](https://docs.identizen.com/reference/oidc.md): endpoints, PKCE, id_token claims, step-up, back-channel logout
 - [SDK and CLI](https://docs.identizen.com/reference/sdk.md): @identizen/sdk, @identizen/sdk/server, @identizen/react, identizen CLI
+- [Protocol](https://docs.identizen.com/protocol/): key derivation, challenge and assertion formats, Bluetooth discovery
+
+## This site
+
+- [FAQ](https://identizen.com/faq/): direct answers on what Identizen is, how it differs from passkeys and authenticator apps, what sites learn, recovery, and pricing
+- [Developers](https://identizen.com/developers/): the integration in one page
+- [Pricing](https://identizen.com/pricing/): free tier and the enterprise tier
+- [About](https://identizen.com/about/): who builds it and why
+- [Blog](https://identizen.com/blog/) ([RSS](https://identizen.com/rss.xml)): protocol and product notes
+- [Privacy](https://identizen.com/legal/privacy/), [Terms](https://identizen.com/legal/terms/), [Delete your data](https://identizen.com/legal/delete/)
 
 ## Optional
 
 - [Playground](https://identizen.com/playground/): a real login against the hosted index, approved by a virtual phone in the browser
+- [JT Merlin Bank](https://jtmerlin.com): a fictional bank showing a full integration, including step-up on wires, with its own docs
 - [Brand](https://identizen.com/brand/): logo, wordmark, and usage rules
 - [Source](https://github.com/identizen/platform): the monorepo, Apache-2.0

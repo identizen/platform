@@ -11,8 +11,8 @@ const PAGES = [
   ['/contact', 'Talk to us.'],
   ['/playground', 'Try it before you write code.'],
   ['/brand', 'The mark is 君. It means you.'],
-  ['/legal/privacy', 'Privacy'],
-  ['/legal/terms', 'Terms of service'],
+  ['/legal/privacy', 'Privacy Policy'],
+  ['/legal/terms', 'Terms of Service'],
 ] as const;
 
 for (const [path, h1] of PAGES) {
@@ -101,4 +101,53 @@ test('brand assets download as SVG from the design system', async ({ page, reque
   expect(await res.text()).toContain('<svg');
   const mark = await request.get('/brand/alt/kimi-mark-brush.svg');
   expect(mark.status()).toBe(200);
+});
+
+test('search, social and answer-engine discovery', async ({ page, request }) => {
+  await page.goto('/');
+  const ld = await page.locator('script[type="application/ld+json"]').first().textContent();
+  const graph = JSON.parse(ld ?? '{}') as { '@graph': { '@type': string }[] };
+  const types = graph['@graph'].map((n) => n['@type']);
+  expect(types).toEqual(
+    expect.arrayContaining(['Organization', 'WebSite', 'WebPage', 'SoftwareApplication']),
+  );
+  await expect(page.locator('meta[property="og:image"]')).toHaveAttribute('content', /\/og\.png$/);
+  await expect(page.locator('meta[name="twitter:image"]')).toHaveAttribute('content', /\/og\.png$/);
+  await expect(page.locator('link[rel="alternate"][type="application/rss+xml"]')).toHaveCount(1);
+  await expect(page.locator('link[rel="canonical"]')).toHaveAttribute(
+    'href',
+    'https://identizen.com/',
+  );
+  await expect(
+    page.getByRole('contentinfo').getByRole('link', { name: 'llms.txt' }),
+  ).toHaveAttribute('href', '/llms.txt');
+
+  await page.goto('/faq');
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText('Questions, answered plainly.');
+  const faqLd = await page.locator('script[type="application/ld+json"]').first().textContent();
+  const faqGraph = JSON.parse(faqLd ?? '{}') as {
+    '@graph': { '@type': string; mainEntity?: unknown[] }[];
+  };
+  const faq = faqGraph['@graph'].find((n) => n['@type'] === 'FAQPage');
+  expect(faq?.mainEntity?.length).toBeGreaterThan(8);
+
+  await page.goto('/blog/why-the-phone-is-the-identity');
+  const postLd = await page.locator('script[type="application/ld+json"]').first().textContent();
+  expect(postLd).toContain('"BlogPosting"');
+  await expect(page.locator('meta[property="article:published_time"]')).toHaveCount(1);
+
+  for (const [path, type, needle] of [
+    ['/rss.xml', 'xml', '<item>'],
+    ['/llms.txt', 'text/plain', '# Identizen'],
+    ['/robots.txt', 'text/plain', 'GPTBot'],
+    ['/sitemap-index.xml', 'xml', 'sitemap-0.xml'],
+    ['/site.webmanifest', 'manifest', '"Identizen"'],
+    ['/.well-known/security.txt', 'text/plain', 'Expires:'],
+    ['/og.png', 'image/png', ''],
+  ] as const) {
+    const res = await request.get(path);
+    expect(res.status(), path).toBe(200);
+    expect(res.headers()['content-type'], path).toContain(type);
+    if (needle) expect(await res.text(), path).toContain(needle);
+  }
 });

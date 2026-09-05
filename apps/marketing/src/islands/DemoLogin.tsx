@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { KimiMark } from '@identizen/ui/components/brand/logo';
+import { KimiMark } from '@identizen/ui';
 import { useIdentizen } from '@identizen/react';
 import type { Tx } from '../lib/playground-oidc';
 import { CHALLENGE_EVENT } from './useVirtualPhone';

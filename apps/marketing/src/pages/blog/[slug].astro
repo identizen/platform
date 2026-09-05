@@ -2,6 +2,8 @@
 import { getCollection, render } from 'astro:content';
 import Base from '../../layouts/Base.astro';
 import Icon from '../../components/Icon.astro';
+import { blogPosting, breadcrumbs } from '../../lib/seo';
+import { SITE } from '../../lib/site';
 
 export async function getStaticPaths() {
   const posts = await getCollection('blog', ({ data }) => !data.draft);
@@ -11,9 +13,31 @@ export async function getStaticPaths() {
 const { post } = Astro.props;
 const { Content } = await render(post);
 const fmt = new Intl.DateTimeFormat('en', { dateStyle: 'long' });
+const base = Astro.site ?? SITE.url;
+const url = new URL(Astro.url.pathname, base).toString();
+const ld = [
+  blogPosting({
+    url,
+    title: post.data.title,
+    description: post.data.description,
+    published: post.data.date,
+    author: post.data.author,
+  }),
+  breadcrumbs([
+    { name: 'Blog', url: new URL('/blog', base).toString() },
+    { name: post.data.title, url },
+  ]),
+];
 ---
 
-<Base title={post.data.title} description={post.data.description} type="article">
+<Base
+  title={post.data.title}
+  description={post.data.description}
+  type="article"
+  published={post.data.date}
+  author={post.data.author}
+  jsonLd={ld}
+>
   <article>
     <header class="bg-glow">
       <div class="container-site max-w-3xl pt-16 pb-12 sm:pt-24">

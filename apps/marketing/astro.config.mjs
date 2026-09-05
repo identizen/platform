@@ -9,7 +9,14 @@ export default defineConfig({
   site: 'https://identizen.com',
   output: 'static',
   adapter: cloudflare({ imageService: 'compile' }),
-  integrations: [react(), sitemap()],
+  integrations: [
+    react(),
+    sitemap({
+      filter: (page) => !page.includes('/api/') && !page.endsWith('/404/'),
+      changefreq: 'weekly',
+      lastmod: new Date(),
+    }),
+  ],
   vite: {
     resolve: { alias: { 'react-dom/server': 'react-dom/server.edge' } },
     plugins: [tailwindcss()],

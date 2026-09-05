@@ -45,8 +45,24 @@ test('callback exchanges the code and lands on the overview', async ({ page }) =
 });
 
 test('callback with a bad state explains and offers a way back', async ({ page }) => {
+  await page.goto('/');
+  await page.evaluate(() =>
+    sessionStorage.setItem(
+      'idz:oidc-tx',
+      JSON.stringify({ state: 'expected', verifier: 'v', returnTo: '/' }),
+    ),
+  );
   await page.goto('/callback?code=good-code&state=nope');
   await expect(page.getByRole('status')).toContainText('state mismatch');
+  await page.getByRole('button', { name: 'Back to sign in' }).click();
+  await expect(page).toHaveURL('/');
+});
+
+test('callback without a transaction points back to the window that started it', async ({
+  page,
+}) => {
+  await page.goto('/callback?code=good-code&state=nope');
+  await expect(page.getByRole('status')).toContainText('started in another window');
   await page.getByRole('button', { name: 'Back to sign in' }).click();
   await expect(page).toHaveURL('/');
 });

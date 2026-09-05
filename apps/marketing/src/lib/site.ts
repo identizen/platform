@@ -31,6 +31,7 @@ export const FOOTER: readonly { heading: string; items: readonly NavItem[] }[] =
       { href: '/developers', label: 'Developers' },
       { href: '/pricing', label: 'Pricing' },
       { href: '/playground', label: 'Playground' },
+      { href: '/faq', label: 'FAQ' },
       { href: SITE.app, label: 'Dashboard', external: true },
     ],
   },
@@ -40,8 +41,9 @@ export const FOOTER: readonly { heading: string; items: readonly NavItem[] }[] =
       { href: SITE.docs, label: 'Documentation', external: true },
       { href: `${SITE.docs}/protocol`, label: 'Protocol spec', external: true },
       { href: SITE.github, label: 'GitHub', external: true },
-      { href: `${SITE.docs}/llms.txt`, label: 'llms.txt', external: true },
+      { href: '/llms.txt', label: 'llms.txt' },
       { href: '/blog', label: 'Blog' },
+      { href: '/rss.xml', label: 'RSS' },
     ],
   },
   {

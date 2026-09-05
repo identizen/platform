@@ -1,0 +1,14 @@
+{
+  "name": "Identizen",
+  "short_name": "Identizen",
+  "description": "Open-source, device-based login. Your phone holds the key; sites integrate standard OpenID Connect.",
+  "start_url": "/",
+  "display": "browser",
+  "background_color": "#fafbfd",
+  "theme_color": "#e0412e",
+  "icons": [
+    { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" },
+    { "src": "/favicon.svg", "sizes": "any", "type": "image/svg+xml" }
+  ]
+}

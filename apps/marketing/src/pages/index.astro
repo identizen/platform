@@ -5,6 +5,7 @@ import Code from '../components/Code.astro';
 import Icon from '../components/Icon.astro';
 import type { IconName } from '../lib/icons';
 import { SITE } from '../lib/site';
+import { softwareApplication } from '../lib/seo';
 
 const reactSnippet = `
 import { IdentizenProvider, IdentizenButton } from '@identizen/react';
@@ -95,7 +96,7 @@ const platforms = [
 ];
 ---
 
-<Base title={SITE.name}>
+<Base title={SITE.name} jsonLd={[softwareApplication()]}>
   <!-- Hero -->
   <section class="bg-glow relative overflow-hidden">
     <div class="container-site pt-16 pb-16 text-center sm:pt-24 lg:pb-24">
@@ -128,7 +129,7 @@ const platforms = [
           class="inline-flex items-center gap-1.5 rounded-full border border-accent/30 bg-accent-soft px-2.5 py-0.5 text-xs font-medium text-accent-soft-fg"
         >
           <span class="h-1.5 w-1.5 rounded-full bg-accent" aria-hidden="true"></span>
-          iOS app coming soon to the App Store
+          iOS and Android apps coming soon to the stores
         </span>
         <span>
           See a full integration at
