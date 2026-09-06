@@ -31,11 +31,14 @@ export async function completeApproval(
     code = `${state.challengeId}.${randomToken(24)}`;
     redirect = buildRedirect(state.oidc.redirect_uri, { code, state: state.oidc.state });
   }
+  // The session is the one authority on the outcome: it moves to approved first (and refuses
+  // if a denial or expiry got there first), and only then is the Verification API record
+  // resolved and the site notified.
+  await stub.approve(outcome.assertion, outcome.pairing, code, redirect);
   if (state.verificationId) {
     const v = await getVerification(db, state.verificationId);
     if (v && v.status === 'pending') {
       const resolved = await resolveVerification(db, v.id, 'approved', outcome.signedAssertion);
-      await deliverWebhook(services, _env, resolved);
       await recordAudit(db, {
         kind: 'verification.approved',
         idz: outcome.device.idz,
@@ -43,9 +46,9 @@ export async function completeApproval(
         clientId: state.clientId,
         detail: { verification_id: v.id },
       });
+      await deliverWebhook(services, _env, resolved);
     }
   }
-  await stub.approve(outcome.assertion, outcome.pairing, code, redirect);
   return { redirect };
 }
 

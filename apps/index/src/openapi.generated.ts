@@ -607,7 +607,7 @@ export const OPENAPI_DOCUMENT: Record<string, unknown> = {
             }
           },
           "400": {
-            "description": "`invalid_request` — `grant_type`, `code`, or `code_verifier` missing; `unsupported_grant_type` — any grant other than `authorization_code` (there are no refresh tokens); `invalid_grant` — malformed, unknown, expired, or used code, code issued to another client, `redirect_uri` mismatch, PKCE failure, or the device no longer exists / is not active.",
+            "description": "`invalid_request` — `grant_type`, `code`, or `code_verifier` missing; `unsupported_grant_type` — any grant other than `authorization_code` (there are no refresh tokens); `invalid_grant` — malformed, unknown, expired (five minutes after approval), or used code, code issued to another client, `redirect_uri` mismatch or no longer registered, PKCE failure, or the device no longer exists / is not active. Every check runs before the code is consumed, so a failed exchange leaves the code usable by the right caller.",
             "headers": {
               "Cache-Control": {
                 "schema": {
@@ -1035,7 +1035,7 @@ export const OPENAPI_DOCUMENT: Record<string, unknown> = {
         ],
         "operationId": "startChallenge",
         "summary": "Start a login (the JSON twin of `/authorize`)",
-        "description": "What the SDK calls. Creates a signed challenge in a session and returns what the\nbrowser needs; the phone fetches the signed challenge itself (`GET /challenge/{id}`).\nWhen `redirect_uri` is present the session also carries the OIDC parameters so the\napproval yields an authorization code redeemable at `POST /token`. `acr: idz:mfa` or\n`login_hint` pushes the challenge to the device bound to `login_hint`\n(`400 login_hint_required` when `idz:mfa` has no hint, `400 login_required` when the\n`sub` has no active bound device). Rate limited per source IP and per client.\n",
+        "description": "What the SDK calls. Creates a signed challenge in a session and returns what the\nbrowser needs; the phone fetches the signed challenge itself (`GET /challenge/{id}`).\nWhen `redirect_uri` is present the session also carries the OIDC parameters so the\napproval yields an authorization code redeemable at `POST /token`; the request is then\nheld to exactly the rules of `/authorize` (a registered `redirect_uri`, PKCE S256,\n`scope` including `openid`, `prompt` semantics), with errors returned as JSON\n(`400 invalid_request`, `invalid_scope`, `interaction_required`) instead of a redirect. `acr: idz:mfa` or\n`login_hint` pushes the challenge to the device bound to `login_hint`\n(`400 login_hint_required` when `idz:mfa` has no hint, `400 login_required` when the\n`sub` has no active bound device). Rate limited per source IP and per client.\n",
         "requestBody": {
           "required": true,
           "content": {
@@ -1400,7 +1400,7 @@ export const OPENAPI_DOCUMENT: Record<string, unknown> = {
             }
           },
           "403": {
-            "description": "`device_inactive`; `wrong_device` — `payload.device_id` differs from the signing device, or the challenge was pushed to another device.",
+            "description": "`device_inactive`; `wrong_device` — `payload.device_id` differs from the signing device, or an untargeted challenge was routed to another device; `wrong_identity` — the challenge was issued for another identity (step-up, Verification API); `wrong_subject` — the assertion `sub` is not the one the challenge was issued for.",
             "content": {
               "application/json": {
                 "schema": {
@@ -1442,7 +1442,7 @@ export const OPENAPI_DOCUMENT: Record<string, unknown> = {
         ],
         "operationId": "denyChallenge",
         "summary": "Decline a challenge from the phone",
-        "description": "Marks a pending session denied and notifies the browser. When the session is no longer pending the current status is returned unchanged. No body.",
+        "description": "Marks a pending session denied and notifies the browser. Only the person the challenge was issued for may decline it (any of their devices); an untargeted challenge that discovery routed to one device is that device's to decline. When the session is no longer pending the current status is returned unchanged. No body.",
         "security": [
           {
             "idzSignature": []
@@ -1480,7 +1480,14 @@ export const OPENAPI_DOCUMENT: Record<string, unknown> = {
             "$ref": "#/components/responses/DeviceUnauthorized"
           },
           "403": {
-            "$ref": "#/components/responses/DeviceInactive"
+            "description": "`device_inactive`; `wrong_identity` — the challenge was issued for another identity; `wrong_device` — it was routed to another device.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
           },
           "404": {
             "$ref": "#/components/responses/UnknownChallenge"
@@ -1529,8 +1536,28 @@ export const OPENAPI_DOCUMENT: Record<string, unknown> = {
           "400": {
             "$ref": "#/components/responses/InvalidRequest"
           },
+          "403": {
+            "description": "`wrong_identity` — the challenge was issued for another identity and cannot be routed to this device.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
           "404": {
             "description": "`unknown_challenge` — no pending challenge with that id; `no_device` — no active device advertises this id.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "`challenge_targeted` — an untargeted challenge is routed once; this one already went to another device.",
             "content": {
               "application/json": {
                 "schema": {
@@ -1606,8 +1633,28 @@ export const OPENAPI_DOCUMENT: Record<string, unknown> = {
               }
             }
           },
+          "403": {
+            "description": "`wrong_identity` — the challenge was issued for another identity and cannot be routed to this device.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
           "404": {
             "description": "`unknown_challenge` — no pending challenge with that id.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "`challenge_targeted` — an untargeted challenge is routed once; this one already went to another device.",
             "content": {
               "application/json": {
                 "schema": {

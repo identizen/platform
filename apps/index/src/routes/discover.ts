@@ -9,7 +9,8 @@ import { fromBase64Url, pairedSignatureBytes, resolveBleId } from '@identizen/pr
 import { Hono } from 'hono';
 import { z } from 'zod';
 import type { AppEnv } from '../app';
-import { ApiError, notFound, unauthorized } from '../lib/errors';
+import type { ChallengeSession } from '../do/challenge-session';
+import { ApiError, conflict, forbidden, notFound, unauthorized } from '../lib/errors';
 import { browserMeta } from '../lib/util';
 import { pushChallenge } from '../services/challenge';
 import { ipRateLimit } from '../middleware/rate-limit';
@@ -25,6 +26,21 @@ const PairedSchema = z
     sig: z.string().regex(/^[A-Za-z0-9_-]+$/),
   })
   .strict();
+
+/** Route the challenge to a discovered device, or explain why it cannot go there. */
+async function routeTo(
+  stub: DurableObjectStub<ChallengeSession>,
+  deviceId: string,
+  idz: string,
+): Promise<void> {
+  const routed = await stub.setTargetDevice(deviceId, idz);
+  if (routed === 'ok') return;
+  if (routed === 'wrong_identity')
+    throw forbidden('wrong_identity', 'this challenge was issued to a different identity');
+  if (routed === 'already_targeted')
+    throw conflict('challenge_targeted', 'this challenge has already been routed to a device');
+  throw notFound('unknown_challenge', 'no pending challenge');
+}
 
 export function discoverRoutes(): Hono<AppEnv> {
   const r = new Hono<AppEnv>();
@@ -44,7 +60,7 @@ export function discoverRoutes(): Hono<AppEnv> {
       throw new ApiError(429, 'push_rate_limited', 'too many pushes to this device');
     }
     const device = await requireDevice(services.db, match.id);
-    await stub.setTargetDevice(device.id);
+    await routeTo(stub, device.id, device.idz);
     await pushChallenge(services, device, body.challenge_id);
     return c.json({ status: 'pushed', challenge_id: body.challenge_id }, 202);
   });
@@ -71,8 +87,8 @@ export function discoverRoutes(): Hono<AppEnv> {
     if (!(await c.env.REQUEST_GUARD.getByName(joined.device.id).allowPush())) {
       throw new ApiError(429, 'push_rate_limited', 'too many pushes to this device');
     }
+    await routeTo(stub, joined.device.id, joined.device.idz);
     await touchPairing(services.db, joined.pairing.id, browserMeta(c).ip);
-    await stub.setTargetDevice(joined.device.id);
     await recordAudit(services.db, {
       kind: 'pairing.used',
       idz: joined.device.idz,

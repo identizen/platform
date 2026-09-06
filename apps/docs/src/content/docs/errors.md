@@ -85,7 +85,7 @@ The `request` or `request_uri` parameter was sent on `/authorize`. Request objec
 
 ### invalid_grant
 
-The code is unknown, expired, already used (a reused code also revokes the session the first exchange created), issued to another client, the `redirect_uri` differs, PKCE verification failed, or the device is no longer active. Start the login again.
+The code is unknown, expired (five minutes after approval), already used (a reused code also revokes the session the first exchange created), issued to another client, the `redirect_uri` differs, PKCE verification failed, or the device is no longer active. Start the login again.
 
 ### unsupported_grant_type
 
@@ -152,6 +152,18 @@ HTTP 404. WebFinger: no identity with that handle on this index.
 HTTP 404. WebFinger: the host in `acct:<handle>@<host>` is not this index. Query the index that serves that host.
 
 ## Device and challenge errors
+
+### wrong_identity
+
+HTTP 403. The challenge was issued for a different identity (a step-up with `login_hint`, or a Verification API request for a `sub`). Only that person's devices may approve, decline, or be routed the challenge by discovery. The verification stays pending.
+
+### wrong_subject
+
+HTTP 403. The assertion's `sub` is not the one the challenge was issued for. Not reachable from a genuine phone; it means someone tried to answer a challenge with another site key.
+
+### challenge_targeted
+
+HTTP 409. An untargeted challenge is routed by discovery once; this one already went to another device. The person approves it from the device it was routed to.
 
 ### missing_signature
 

@@ -294,7 +294,7 @@ describe('POST /challenge/:id/assert', () => {
         buildAssertion(third, cm),
       );
       expect(r8.status).toBe(403);
-      expect(await json(r8)).toMatchObject({ error: 'wrong_device' });
+      expect(await json(r8)).toMatchObject({ error: 'wrong_identity' });
 
       // Expired challenge (alarm fired).
       const exp = await startChallenge({ client_id: site.client_id });

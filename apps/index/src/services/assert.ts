@@ -77,7 +77,20 @@ export async function processAssertion(
   if (!device) throw await deny('unknown_device', 'assertion names an unregistered device', 401);
   if (device.status !== 'active')
     throw await deny('device_inactive', `device is ${device.status}`, 403, device.id, device.idz);
-  if (state.targetDeviceId && state.targetDeviceId !== device.id) {
+  // Who may approve: for a challenge issued to an identity, any active device of that identity
+  // (the person's other phone is fine; anyone else is not). For an untargeted challenge that
+  // discovery routed to one device, that device.
+  if (state.expectedIdz !== null) {
+    if (device.idz !== state.expectedIdz) {
+      throw await deny(
+        'wrong_identity',
+        'challenge was issued to a different identity',
+        403,
+        device.id,
+        device.idz,
+      );
+    }
+  } else if (state.targetDeviceId && state.targetDeviceId !== device.id) {
     throw await deny(
       'wrong_device',
       'challenge was issued to a different device',
@@ -100,6 +113,15 @@ export async function processAssertion(
     );
   }
   const assertion = verified.value;
+  if (state.expectedSub !== null && assertion.sub !== state.expectedSub) {
+    throw await deny(
+      'wrong_subject',
+      'assertion sub is not the one this challenge was issued for',
+      403,
+      device.id,
+      device.idz,
+    );
+  }
 
   let bindingCreated = false;
   try {

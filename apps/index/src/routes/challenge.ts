@@ -1,9 +1,11 @@
-import { recordAudit } from '@identizen/db';
-import { AcrSchema, REASON_MAX_LENGTH } from '@identizen/protocol';
+import { getSite, recordAudit } from '@identizen/db';
+import { AcrSchema, REASON_MAX_LENGTH, type Acr } from '@identizen/protocol';
 import { Hono } from 'hono';
 import { z } from 'zod';
 import type { AppEnv } from '../app';
-import { forbidden, notFound } from '../lib/errors';
+import type { OidcParams } from '../do/challenge-session';
+import { badRequest, forbidden, notFound } from '../lib/errors';
+import { registeredRedirect, validateAuthorizeRequest } from '../oidc/authorize-request';
 import { browserMeta } from '../lib/util';
 import { deviceAuth } from '../middleware/idz-signature';
 import { ipRateLimit } from '../middleware/rate-limit';
@@ -41,30 +43,48 @@ export function challengeRoutes(): Hono<AppEnv> {
   r.post('/challenge', ipRateLimit(), async (c) => {
     const services = c.get('services');
     const body = StartSchema.parse(await c.req.json());
+    // With a redirect_uri this is an authorization request and is held to exactly the rules
+    // `/authorize` applies: registered redirect, PKCE, known scopes, prompt semantics. Errors
+    // come back as JSON rather than a redirect, because the caller is the site's own code.
+    let acr: Acr = body.acr;
+    let loginHint: string | null = body.login_hint ?? null;
+    let oidc: OidcParams | null = null;
+    if (body.redirect_uri !== undefined) {
+      const site = await getSite(services.db, body.client_id);
+      if (!site) throw notFound('unknown_client', `no site with client_id ${body.client_id}`);
+      const redirectUri = registeredRedirect(site, body.redirect_uri);
+      if (!redirectUri)
+        throw badRequest('invalid_request', 'redirect_uri is not registered for this client');
+      const v = validateAuthorizeRequest(
+        c.env,
+        site,
+        {
+          scope: body.scope ?? 'openid',
+          state: body.state,
+          nonce: body.nonce,
+          code_challenge: body.code_challenge,
+          code_challenge_method: body.code_challenge_method,
+          acr_values: body.acr,
+          prompt: body.prompt,
+          login_hint: body.login_hint,
+        },
+        { redirectUri, responseTypeRequired: false },
+      );
+      if (!v.ok) throw badRequest(v.error, v.description);
+      acr = v.acr;
+      loginHint = v.loginHint;
+      oidc = v.oidc;
+    }
     const result = await startChallenge(
       services,
       {
         clientId: body.client_id,
-        acr: body.acr,
+        acr,
         reason: body.reason ?? null,
-        loginHint: body.login_hint ?? null,
+        loginHint,
         browserPubkey: body.browser_pubkey ?? null,
         browser: browserMeta(c),
-        oidc: body.redirect_uri
-          ? {
-              client_id: body.client_id,
-              ...(body.redirect_uri !== undefined && { redirect_uri: body.redirect_uri }),
-              ...(body.state !== undefined && { state: body.state }),
-              ...(body.nonce !== undefined && { nonce: body.nonce }),
-              ...(body.code_challenge !== undefined && { code_challenge: body.code_challenge }),
-              ...(body.code_challenge_method !== undefined && {
-                code_challenge_method: body.code_challenge_method,
-              }),
-              ...(body.scope !== undefined && { scope: body.scope }),
-              ...(body.prompt !== undefined && { prompt: body.prompt }),
-              ...(body.login_hint !== undefined && { login_hint: body.login_hint }),
-            }
-          : null,
+        oidc,
       },
       c.env,
     );
@@ -157,6 +177,14 @@ export function challengeRoutes(): Hono<AppEnv> {
     if (!state) throw notFound('unknown_challenge', 'no such challenge');
     if (state.status !== 'pending') return c.json({ status: state.status, challenge_id: id });
     const device = c.get('device');
+    // Only the person the challenge was issued for may decline it (any of their devices); an
+    // untargeted challenge that discovery routed to one device is that device's to decline.
+    if (state.expectedIdz !== null) {
+      if (device.idz !== state.expectedIdz)
+        throw forbidden('wrong_identity', 'this challenge was issued to a different identity');
+    } else if (state.targetDeviceId !== null && state.targetDeviceId !== device.id) {
+      throw forbidden('wrong_device', 'this challenge was routed to a different device');
+    }
     await stub.deny();
     await recordAudit(db, {
       kind: 'login.denied',

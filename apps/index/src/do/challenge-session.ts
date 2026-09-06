@@ -1,6 +1,9 @@
 import { DurableObject } from 'cloudflare:workers';
 import {
   CHALLENGE_TTL_SECONDS,
+  sha256,
+  toBase64Url,
+  utf8Encode,
   type Acr,
   type Assertion,
   type SignedChallenge,
@@ -10,6 +13,9 @@ import type { Env } from '../env';
 import { expireVerification } from '../services/verification';
 
 export type SessionStatus = 'pending' | 'approved' | 'denied' | 'expired';
+
+/** An authorization code can be redeemed this long after approval, then it is gone. */
+export const CODE_TTL_MS = CHALLENGE_TTL_SECONDS * 1000 * 5;
 
 /** OIDC authorization request parameters carried through the session (used by M4). */
 export interface OidcParams {
@@ -29,6 +35,13 @@ export interface SessionInit {
   clientId: string;
   /** Device targeted by push (paired / MFA), if known at creation. */
   targetDeviceId?: string | null;
+  /**
+   * The identity and per-site sub this challenge was issued for (step-up, Verification API).
+   * Immutable: only a device of this identity may approve or deny it, and the assertion's sub
+   * must be this one. Null for an untargeted login, where whoever scans the QR is the person.
+   */
+  expectedIdz?: string | null;
+  expectedSub?: string | null;
   /** Browser P-256 public key (base64url raw) for pairing on approval. */
   browserPubkey?: string | null;
   /** The browser that supplied the key (its User-Agent and IP), for the pairing record. */
@@ -49,6 +62,9 @@ export interface SessionState {
   clientId: string;
   acr: Acr;
   targetDeviceId: string | null;
+  /** See SessionInit: the principal this challenge is for, fixed at creation. */
+  expectedIdz: string | null;
+  expectedSub: string | null;
   browserPubkey: string | null;
   browser: BrowserMeta | null;
   oidc: OidcParams | null;
@@ -68,6 +84,27 @@ export interface SessionState {
 interface Stored extends SessionState {
   signed: SignedChallenge;
 }
+
+export interface RedeemCodeInput {
+  code: string;
+  clientId: string;
+  /** The site's redirect URIs as registered now. */
+  registeredRedirectUris: string[];
+  redirectUri: string | undefined;
+  codeVerifier: string | undefined;
+  /** Milliseconds since the epoch. */
+  now: number;
+}
+
+export type RedeemCodeResult =
+  | { ok: true; state: SessionState }
+  | {
+      ok: false;
+      error: 'invalid_grant' | 'invalid_request';
+      description: string;
+      /** Set when the code had already been exchanged: the session that exchange created. */
+      reusedSid?: string | null;
+    };
 
 export type SessionEvent =
   | {
@@ -96,6 +133,8 @@ export class ChallengeSession extends DurableObject<Env> {
       clientId: init.clientId,
       acr: init.signed.payload.acr,
       targetDeviceId: init.targetDeviceId ?? null,
+      expectedIdz: init.expectedIdz ?? null,
+      expectedSub: init.expectedSub ?? null,
       browserPubkey: init.browserPubkey ?? null,
       browser: init.browserPubkey ? (init.browser ?? null) : null,
       oidc: init.oidc ?? null,
@@ -134,11 +173,25 @@ export class ChallengeSession extends DurableObject<Env> {
     return true;
   }
 
-  /** Record the device a push went to (BLE / paired discovery after creation). */
-  async setTargetDevice(deviceId: string): Promise<void> {
+  /**
+   * Record the device a push went to (BLE / paired discovery after creation). A challenge
+   * issued for an identity can only be routed to that identity's devices; an untargeted
+   * challenge is routed once, to the first device that discovers it.
+   */
+  async setTargetDevice(
+    deviceId: string,
+    idz: string,
+  ): Promise<'ok' | 'not_pending' | 'wrong_identity' | 'already_targeted'> {
     const s = await this.require();
+    if (s.status !== 'pending') return 'not_pending';
+    if (s.expectedIdz !== null) {
+      if (idz !== s.expectedIdz) return 'wrong_identity';
+    } else if (s.targetDeviceId !== null && s.targetDeviceId !== deviceId) {
+      return 'already_targeted';
+    }
     s.targetDeviceId = deviceId;
     await this.save(s);
+    return 'ok';
   }
 
   async approve(
@@ -170,15 +223,61 @@ export class ChallengeSession extends DurableObject<Env> {
     return this.publicState(s);
   }
 
-  /** Redeem the OIDC authorization code exactly once (M4). */
-  async redeemCode(code: string, clientId: string): Promise<SessionState | null> {
+  /**
+   * Redeem the OIDC authorization code exactly once (RFC 6749 §4.1.3, RFC 7636 §4.6). Every
+   * check runs here, against the authoritative copy of the request, before the code is marked
+   * used: a wrong verifier or redirect does not burn the code, and a second presentation of a
+   * code that was exchanged reports the session it produced so the caller can revoke it.
+   */
+  async redeemCode(input: RedeemCodeInput): Promise<RedeemCodeResult> {
     const s = await this.load();
-    if (!s || s.status !== 'approved' || s.code === null || s.codeUsed || s.code !== code)
-      return null;
-    if (s.clientId !== clientId) return null;
+    const fail = (error: 'invalid_grant' | 'invalid_request', description: string) => ({
+      ok: false as const,
+      error,
+      description,
+    });
+    if (!s || s.code === null || s.code !== input.code || !s.oidc) {
+      return fail('invalid_grant', 'code is invalid, expired, or already used');
+    }
+    if (s.codeUsed) {
+      return {
+        ...fail('invalid_grant', 'code is invalid, expired, or already used'),
+        reusedSid: s.sid ?? null,
+      };
+    }
+    if (s.status !== 'approved' || !s.assertion) {
+      return fail('invalid_grant', 'code is invalid, expired, or already used');
+    }
+    if (s.resolvedAt !== null && input.now - s.resolvedAt > CODE_TTL_MS) {
+      return fail('invalid_grant', 'code has expired');
+    }
+    if (s.clientId !== input.clientId) {
+      return fail('invalid_grant', 'code was issued to another client');
+    }
+    // Defence in depth: the redirect must still be one the site registered, and the one the
+    // authorization request used.
+    if (
+      s.oidc.redirect_uri !== undefined &&
+      !input.registeredRedirectUris.includes(s.oidc.redirect_uri)
+    ) {
+      return fail('invalid_grant', 'redirect_uri is no longer registered for this client');
+    }
+    if (s.oidc.redirect_uri !== undefined && input.redirectUri !== s.oidc.redirect_uri) {
+      return fail('invalid_grant', 'redirect_uri does not match the authorization request');
+    }
+    // RFC 7636 §4.6: a code issued against a code_challenge needs the matching verifier. A code
+    // issued without one (only possible with OIDC_PKCE_OPTIONAL) must not be exchanged with one.
+    if (s.oidc.code_challenge !== undefined) {
+      if (input.codeVerifier === undefined)
+        return fail('invalid_request', 'code_verifier is required');
+      if (toBase64Url(sha256(utf8Encode(input.codeVerifier))) !== s.oidc.code_challenge)
+        return fail('invalid_grant', 'PKCE verification failed');
+    } else if (input.codeVerifier !== undefined) {
+      return fail('invalid_grant', 'code was issued without PKCE');
+    }
     s.codeUsed = true;
     await this.save(s);
-    return this.publicState(s);
+    return { ok: true, state: this.publicState(s) };
   }
 
   /** Record the session the code was exchanged for (see `exchangedSessionFor`). */
@@ -187,16 +286,6 @@ export class ChallengeSession extends DurableObject<Env> {
     if (!s) return;
     s.sid = sid;
     await this.save(s);
-  }
-
-  /**
-   * RFC 6749 §4.1.2: a code presented a second time is a sign it leaked, and the server SHOULD
-   * revoke what the first exchange produced. Returns that session's sid when `code` was already
-   * redeemed here, null otherwise.
-   */
-  async exchangedSessionFor(code: string): Promise<string | null> {
-    const s = await this.load();
-    return s && s.codeUsed && s.code === code ? (s.sid ?? null) : null;
   }
 
   override async alarm(): Promise<void> {
@@ -280,6 +369,11 @@ export class ChallengeSession extends DurableObject<Env> {
   private async load(): Promise<Stored | null> {
     if (this.cache) return this.cache;
     const s = await this.ctx.storage.get<Stored>('session');
+    if (s) {
+      // Sessions stored before these fields existed.
+      s.expectedIdz ??= null;
+      s.expectedSub ??= null;
+    }
     this.cache = s ?? null;
     return this.cache;
   }

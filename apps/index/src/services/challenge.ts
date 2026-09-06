@@ -62,6 +62,7 @@ export async function startChallenge(
   await checkClientRate(env, site.clientId);
 
   let target: Device | null = null;
+  let expected: { idz: string; sub: string } | null = null;
   if (input.acr === 'idz:mfa' || input.loginHint) {
     if (!input.loginHint)
       throw badRequest('login_hint_required', 'acr idz:mfa requires login_hint=<sub>');
@@ -71,6 +72,9 @@ export async function startChallenge(
     const devices = await listDevicesForIdentity(db, binding.idz);
     target = devices.find((d) => d.status === 'active') ?? null;
     if (!target) throw new ApiError(400, 'login_required', 'no active device for this identity');
+    // The principal is fixed here and never changes: discovery cannot re-route the challenge to
+    // another identity, and the assertion must carry this sub.
+    expected = { idz: binding.idz, sub: input.loginHint };
   }
 
   const id = newChallengeId();
@@ -91,6 +95,8 @@ export async function startChallenge(
     signed,
     clientId: site.clientId,
     targetDeviceId: target?.id ?? null,
+    expectedIdz: expected?.idz ?? null,
+    expectedSub: expected?.sub ?? null,
     browserPubkey: input.browserPubkey ?? null,
     browser: input.browser ?? null,
     oidc: input.oidc ?? null,
