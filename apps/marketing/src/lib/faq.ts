@@ -51,17 +51,17 @@ export const FAQ_GROUPS: readonly { heading: string; items: readonly Faq[] }[] =
       {
         question: 'What is step-up approval?',
         answer:
-          'A request from your server for the user to approve one specific action, such as “Wire $12,000.00 to Acme Supply Co.” The phone shows exactly that text, the user approves it with biometrics, and the signature covers the text, so the approval cannot be reused for a different amount or payee. Your server verifies the signed result before acting.',
+          'A request from your server for the user to approve one specific action, such as “Wire $12,000.00 to Acme Supply Co.” The phone shows exactly that text, the user approves it with biometrics, and the signature covers the text, so the approval cannot be reused for a different amount or payee. Your server acts on the result the index returns, and can re-verify the assertion itself.',
       },
       {
         question: 'What does the site learn about the user?',
         answer:
-          'A stable identifier that is unique to your site, and nothing else unless the user chooses to share a public handle. No email, name, phone number, or identifiers that other sites could correlate. Your app decides what profile data to ask for after sign-in.',
+          'A stable identifier that is unique to your site, and nothing else unless the user has set a public handle and your site asks for the handle scope. No email, name, phone number, or identifiers that other sites could correlate. Your app decides what profile data to ask for after sign-in.',
       },
       {
         question: 'What does Identizen cost?',
         answer:
-          'The protocol, apps, SDKs, and the hosted public index are free and Apache-2.0 licensed. An enterprise tier adds a hosted organisation index, a fleet console, SSO bridging, audit export, and an SLA, priced per active device.',
+          'The protocol, apps, SDKs, and the hosted public index are free and Apache-2.0 licensed. An enterprise tier, in development, will add a hosted organisation index, a fleet console, SSO bridging, audit export, and an SLA, priced per active device. Talk to us for early access.',
       },
     ],
   },
@@ -81,7 +81,7 @@ export const FAQ_GROUPS: readonly { heading: string; items: readonly Faq[] }[] =
       {
         question: 'What does the Identizen index store?',
         answer:
-          'Public keys, a push token, a Bluetooth key that only the index can resolve, the per-site identifiers, and an audit trail of approvals and revocations. It never stores private keys, recovery phrases, passwords, emails, or anything that could sign in as the user. The index cannot approve a login on its own.',
+          'Public keys, a push token, a Bluetooth key that only the index can resolve, the per-site identifiers, an audit trail of approvals and revocations and, for paired browsers, a public key plus the browser’s user-agent and last IP. It never stores private keys, recovery phrases, passwords, emails, or anything that could sign in as the user. The index cannot approve a login on its own.',
       },
       {
         question: 'Is Identizen resistant to phishing?',

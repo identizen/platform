@@ -19,7 +19,7 @@ You need Node 22+ and an index to talk to. For local development run the index f
    npm install
    ```
 
-   `identizen init` registers your site with the index, writes `IDENTIZEN_*` variables to `.env.local`, and scaffolds four route handlers under `app/api/auth/` (login, callback, logout, back-channel logout) plus `lib/identizen.ts`. It never overwrites files you already have.
+   `identizen init` registers your site with the index, writes `IDENTIZEN_*` variables to `.env.local`, and scaffolds four route handlers under `app/api/auth/` (login, callback, logout, back-channel logout) plus `lib/identizen.ts`. It never overwrites files you already have unless you pass `--force`.
 
 2. **Add the button**
 
@@ -51,7 +51,7 @@ You need Node 22+ and an index to talk to. For local development run the index f
 
    Open `http://localhost:3000`, click **Continue with Identizen**, and paste the "Open in Identizen" link from the hosted login page into the fake phone (or scan the QR with the real app). The page shows a two-digit match code; the phone shows the same one. Approve, and you land back on your site signed in.
 
-   The iOS app is currently an internal build and is not yet on the App Store; use the fake phone from `identizen dev`, or the playground at https://identizen.com/playground. The [examples](/examples/) page lists sample apps you can run the same way.
+   The iOS app is in App Store review and the Android app is coming to Google Play. Until then use the fake phone from `identizen dev`, or the playground at https://identizen.com/playground. The [examples](/examples/) page lists sample apps you can run the same way.
 
 5. **Read the session**
 

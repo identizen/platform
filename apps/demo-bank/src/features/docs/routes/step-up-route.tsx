@@ -7,20 +7,23 @@ const VERIFY = `# Server side, with the site's client secret: the index pushes t
 # signed assertion, so your ledger can prove what was approved without trusting the browser.
 curl -X POST https://index.identizen.com/v1/verify \\
   -H "authorization: Bearer $IDENTIZEN_CLIENT_SECRET" \\
+  -H "idz-client-id: $IDENTIZEN_CLIENT_ID" \\
   -H 'content-type: application/json' \\
-  -d '{ "sub": "<the customer sub>", "reason": "Wire $12,000.00 to Acme Supply Co. (···4471)", "ttl": 90 }'
+  -d '{ "sub": "<the customer sub>", "reason": "Wire $12,000.00 to Acme Supply Co. (···4471)" }'
 
 # then
 curl https://index.identizen.com/v1/verify/<id> \\
-  -H "authorization: Bearer $IDENTIZEN_CLIENT_SECRET"
-# -> { "status": "approved", "assertion": { ...signed, "reason": "Wire $12,000.00 ..." } }
+  -H "authorization: Bearer $IDENTIZEN_CLIENT_SECRET" \\
+  -H "idz-client-id: $IDENTIZEN_CLIENT_ID"
+# -> { "status": "approved", "reason": "Wire $12,000.00 …",
+#      "assertion": { "payload": { …, "reason_hash": "…" }, "site_sig": "…", "device_sig": "…" } }
 `;
 
 const OIDC_STEP_UP = `// Prefer OIDC? Re-authorize with acr_values=idz:mfa and the customer's sub as login_hint.
 // The id_token comes back with acr "idz:mfa" and amr showing Face ID.
 const url = authorizationUrl({
   indexUrl, clientId, redirectUri, state, nonce, codeChallenge,
-  acrValues: 'idz:mfa',
+  acr: 'idz:mfa',
   loginHint: session.sub,
 });
 `;

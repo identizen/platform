@@ -6,7 +6,8 @@ const CLI = `npx identizen register-site \\
   --index https://index.identizen.com \\
   --name "JT Merlin Bank" \\
   --rp-id jtmerlin.com \\
-  --redirect-uri https://jtmerlin.com/callback
+  --redirect-uri https://jtmerlin.com/callback \\
+  --public --live
 `;
 
 const CURL = `# The CLI is a thin wrapper over one call. A public (PKCE-only) client gets no secret,

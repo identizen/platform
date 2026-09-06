@@ -18,9 +18,10 @@ const reactSnippet = `
 import { IdentizenProvider, IdentizenButton } from '@identizen/react';
 
 export function Login() {
+  // login = { redirectUri, state, nonce, codeChallenge } from prepareLogin()
   return (
     <IdentizenProvider indexUrl="https://index.identizen.com" clientId={clientId}>
-      <IdentizenButton login={{ redirectUri: '/api/auth/callback' }} />
+      <IdentizenButton login={login} />
     </IdentizenProvider>
   );
 }`;
@@ -53,7 +54,7 @@ const steps = [
   },
   {
     title: 'The phone gets it',
-    text: 'A paired browser pushes straight to the phone. Otherwise the phone is found over Bluetooth, or the user scans a QR. The match code stops relay tricks.',
+    text: 'A paired browser pushes straight to the phone. Otherwise the user scans a QR, or on Chromium clicks to find the phone over Bluetooth. The match code stops relay tricks.',
   },
   {
     title: 'Face ID signs, you get OIDC',
@@ -70,7 +71,7 @@ const features: { icon: IconName; title: string; text: string }[] = [
   {
     icon: 'shield',
     title: 'Nothing to leak',
-    text: 'The index stores public keys, push tokens, and audit events. Never a private key, seed, password, or plaintext token.',
+    text: 'The index stores public keys, push tokens, audit events and, for paired browsers, a public key plus the browser’s user-agent and last IP. Never a private key, seed, password, or plaintext token.',
   },
   {
     icon: 'globe',
@@ -96,7 +97,7 @@ const features: { icon: IconName; title: string; text: string }[] = [
 
 const platforms = [
   ['Web (any framework)', 'OIDC + @identizen/sdk', '@identizen/react'],
-  ['Next.js, Remix, SvelteKit', 'Guides + CLI scaffolds', 'npx identizen init'],
+  ['Next.js, Express', 'Guides + CLI scaffolds', 'npx identizen init'],
   ['iPhone', 'Identizen app · in App Store review', 'Face ID'],
   ['Android', 'Identizen app · Google Play soon', 'Fingerprint'],
   ['Your own index', 'Cloudflare Worker or Docker', 'WebFinger federation'],
@@ -343,7 +344,7 @@ const platforms = [
             [
               'Works with any OIDC library; the SDK is optional.',
               'Fake phone for local development and CI, no device needed.',
-              'Framework guides for Next.js, Remix, SvelteKit, and plain Node.',
+              'Framework guides for Next.js, Express, ASP.NET Core, Django, React, and plain HTML.',
             ].map((t) => (
               <li class="flex items-start gap-3">
                 <span class="mt-0.5 inline-flex h-5 w-5 items-center justify-center rounded-full bg-success-soft text-success-soft-fg">

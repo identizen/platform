@@ -111,6 +111,8 @@ Idz-Webhook-Signature: sha256=<hex>
 <jwt>
 ```
 
+The `Idz-Webhook-Signature` header is informational; verify the JWT signature, not this header.
+
 The JWT is signed with the index's OIDC keys (`typ: idz-webhook+jwt`, `iss` = index URL, `aud` = your `client_id`, 10-minute expiry) and carries:
 
 ```json

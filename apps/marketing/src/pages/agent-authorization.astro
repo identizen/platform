@@ -10,7 +10,10 @@ const flow = [
   { who: 'Your application', what: 'Policy says: human approval required above $5,000' },
   { who: 'Identizen', what: 'Pushes the request to the person’s phone' },
   { who: 'Phone', what: 'Approve purchase? Vendor X · 500 units · $14,200 · [ Face ID ]' },
-  { who: 'Signed approval', what: 'Assertion bound to that exact text, verified by your server' },
+  {
+    who: 'Signed approval',
+    what: 'Assertion bound to that exact text, verified by the index and returned to your server',
+  },
   { who: 'Agent continues', what: 'or stops, with a record either way' },
 ];
 

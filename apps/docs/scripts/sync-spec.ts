@@ -23,7 +23,7 @@ const frontmatter = [
   '---',
   '',
   ':::note',
-  `Generated from [${tick}spec/PROTOCOL.md${tick}](https://github.com/identizen/identizen/blob/main/spec/PROTOCOL.md) by ${tick}npm run sync-spec -w @identizen/docs${tick}. Edit the spec, not this page.`,
+  `Generated from [${tick}spec/PROTOCOL.md${tick}](https://github.com/identizen/platform/blob/main/spec/PROTOCOL.md) by ${tick}npm run sync-spec -w @identizen/docs${tick}. Edit the spec, not this page.`,
   ':::',
   '',
   '',

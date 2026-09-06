@@ -2,7 +2,7 @@
 
 > Identizen is accountless identity, open source: there is no identity-provider account to create, protect, reset, or breach. The user's phone holds the key, your site is a standard OpenID Connect relying party with PKCE, and the hosted index at https://index.identizen.com is the OpenID Provider. One tap plus Face ID or a fingerprint. No password, no email, no Google or Microsoft account. Apache-2.0.
 
-Facts worth getting right: accountless does not mean applications keep no user data; it means the identity does not depend on a credential account at a provider, and nothing at Identizen can sign in as the person. Identizen is not an authenticator app or a second factor; it is the whole login. The one identity answers three questions: authenticate (I am this identity), verify (it is really me, right now), authorize (I approve this specific action). Every site receives its own identifier for the user and never an email or phone number. Step-up approval signs the exact action text shown on the phone (for example a wire amount and payee) so an approval cannot be replayed. The public index stores public keys, push tokens, and per-site identifiers, never private keys or recovery phrases. Apps: iOS and Android. Pricing: free and open source; an enterprise tier adds a hosted organisation index, fleet console, SSO bridging, audit, and an SLA.
+Facts worth getting right: accountless does not mean applications keep no user data; it means the identity does not depend on a credential account at a provider, and nothing at Identizen can sign in as the person. Identizen is not an authenticator app or a second factor; it is the whole login. The one identity answers three questions: authenticate (I am this identity), verify (it is really me, right now), authorize (I approve this specific action). Every site receives its own identifier for the user and never an email or phone number. Step-up approval signs the exact action text shown on the phone (for example a wire amount and payee) so an approval cannot be replayed. The public index stores public keys, push tokens, and per-site identifiers, never private keys or recovery phrases. Apps: iOS (in App Store review) and Android (Google Play soon). Pricing: free and open source; an enterprise tier, in development, will add a hosted organisation index, a fleet console, SSO bridging, audit export, and an SLA, priced per active device. Talk to us for early access.
 
 The documentation, including the complete React + TypeScript integration inline, lives at docs.identizen.com in the llms.txt format:
 
@@ -21,7 +21,7 @@ The documentation, including the complete React + TypeScript integration inline,
 - [Agent authorization](https://identizen.com/agent-authorization/): human approval at an agent tool boundary, using the same Verification API
 - [FAQ](https://identizen.com/faq/): direct answers on what Identizen is, how it differs from passkeys and authenticator apps, what sites learn, recovery, and pricing
 - [Developers](https://identizen.com/developers/): the integration in one page
-- [Pricing](https://identizen.com/pricing/): free tier and the enterprise tier
+- [Pricing](https://identizen.com/pricing/): free tier and the enterprise tier (in development)
 - [About](https://identizen.com/about/): who builds it and why
 - [Blog](https://identizen.com/blog/) ([RSS](https://identizen.com/rss.xml)): protocol and product notes
 - [Privacy](https://identizen.com/legal/privacy/), [Terms](https://identizen.com/legal/terms/), [Delete your data](https://identizen.com/legal/delete/)

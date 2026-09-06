@@ -84,7 +84,7 @@ function page(indexUrl: string, appUrl: string): string {
 <p><span class="tag">Public API</span> &nbsp;No passwords, seeds, or private keys are stored on this host.</p>
 <h2>Looking for something else?</h2>
 <ul>
-<li><a href="${escapeHtml(appUrl)}">Dashboard</a><small>Register a site, manage devices and sessions</small></li>
+<li><a href="${escapeHtml(appUrl)}">Dashboard</a><small>Manage your devices, paired browsers, and sessions</small></li>
 <li><a href="${DOCS_URL}">Documentation</a><small>Quickstart, SDKs, and the protocol spec</small></li>
 <li><a href="${SITE_URL}">identizen.com</a><small>What Identizen is and how it works</small></li>
 <li><a href="${SOURCE_URL}">Source</a><small>Open source under Apache-2.0</small></li>

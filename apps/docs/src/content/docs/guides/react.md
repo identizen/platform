@@ -22,7 +22,7 @@ npx identizen register-site --name "My app" --rp-id localhost \
   --redirect-uri http://localhost:5173/callback --public
 ```
 
-`register-site` prints `client_id` once (`idz_test_…` on localhost, `idz_live_…` with `--live`). `--rp-id` must be the host your users see in the address bar; the phone signs it into every approval, which is what makes phishing fail. `--public` means PKCE only, so nothing secret ships to the browser. Without `--index` the CLI targets `IDENTIZEN_INDEX_URL`, else `http://localhost:8787`; pass `--index https://index.identizen.com` to use the hosted index.
+`register-site` prints `client_id` once (`idz_test_…` by default, `idz_live_…` with `--live`). `--rp-id` must be the host your users see in the address bar; the phone signs it into every approval, which is what makes phishing fail. `--public` means PKCE only, so nothing secret ships to the browser. Without `--index` the CLI targets `IDENTIZEN_INDEX_URL`, else `http://localhost:8787`; pass `--index https://index.identizen.com` to use the hosted index.
 
 ## 2. In-page login with `@identizen/react`
 
@@ -213,7 +213,7 @@ npm run dev
 
 `identizen dev` starts a fake phone at `http://localhost:4400` registered with the same index. Click **Continue with Identizen**, paste the deep link (or scan the QR with the real app); the fake phone approves automatically (`--policy manual` to approve by hand). You land on `/callback` signed in. On the second login the browser is paired and the approval pushes straight to the phone with no QR.
 
-The iOS app is currently an internal build and is not yet on the App Store; use the fake phone from `identizen dev`, or the playground at https://identizen.com/playground. See [examples](/examples/) for complete sample apps.
+The iOS app is in App Store review and the Android app is coming to Google Play. Until then use the fake phone from `identizen dev`, or the playground at https://identizen.com/playground. See [examples](/examples/) for complete sample apps.
 
 ## Hosted login instead
 

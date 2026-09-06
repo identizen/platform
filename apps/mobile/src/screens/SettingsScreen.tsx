@@ -95,7 +95,10 @@ export function SettingsScreen(p: SettingsScreenProps) {
 
       <Card>
         <Text className="font-medium text-base text-fg dark:text-fg-dark">Handle</Text>
-        <Muted>Optional. A site only sees it if you release it. Leave empty for none.</Muted>
+        <Muted>
+          Optional. Any site that asks for the handle scope receives it once you set one; leave it
+          empty to stay opaque everywhere.
+        </Muted>
         <TextInput
           accessibilityLabel="Handle"
           testID="handle-input"

@@ -30,12 +30,12 @@ const properties: { icon: IconName; title: string; text: string }[] = [
   {
     icon: 'server',
     title: 'The index is a phonebook, not a vault',
-    text: 'The index stores public keys, push tokens, per-site identifiers, and an audit trail. It routes requests and verifies signatures. It cannot approve a login by itself.',
+    text: 'The index stores public keys, push tokens, per-site identifiers, an audit trail and, for paired browsers, a public key plus the browser’s user-agent and last IP. It routes requests and verifies signatures. It cannot approve a login by itself.',
   },
   {
     icon: 'git-branch',
     title: 'Open, self-hostable, federated',
-    text: 'Apache-2.0. Run your own index on Cloudflare or in a container; handles resolve across indexes with WebFinger. Sites talk to one index; a phone can hold identities on several.',
+    text: 'Apache-2.0. Run your own index on Cloudflare or in a container; handles resolve across indexes with WebFinger. Sites talk to one index; a phone registers with one index at a time (multi-index identities are planned).',
   },
 ];
 

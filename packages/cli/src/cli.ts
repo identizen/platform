@@ -11,7 +11,7 @@ Usage:
       Register this site with an index, write .env(.local), scaffold /api/auth routes.
   identizen dev [--index <url>] [--port 4400] [--policy approve|deny|manual|ignore] [--local]
       Run a fake phone that approves sign-ins so you can develop without a device.
-  identizen register-site --name <n> --rp-id <host> --redirect-uri <uri> [--redirect-uri <uri>…]
+  identizen register-site --name <n> --rp-id <host> --redirect-uri <uri> [<uri>…]
       [--index <url>] [--backchannel-logout-uri <uri>] [--webhook-url <uri>] [--public] [--live]
 
 Flags:

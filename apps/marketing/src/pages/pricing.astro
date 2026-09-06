@@ -7,6 +7,7 @@ import { SITE } from '../lib/site';
 const oss = [
   'Protocol, phone app, index/relay, OIDC provider, SDKs, CLI, dashboard',
   'Path A login and Path B MFA, Verification API, back-channel logout',
+  'Instant revocation with back-channel logout to every connected site',
   'Personal identities on the public index at no cost',
   'Self-host with one Worker deploy or one container; federate over WebFinger',
   'Community support on GitHub',
@@ -15,7 +16,6 @@ const oss = [
 const enterprise = [
   'Hosted org index with SLA, or a supported self-host',
   'Device fleet console: enroll, disable, re-enroll, attestation status',
-  'Instant revocation with back-channel logout to every connected site',
   'SSO bridging into your existing identity provider; SCIM in',
   'Policy: require attestation, biometric class, geo/time rules',
   'Exportable, SIEM-friendly audit; SOC 2 report, DPA, data residency',
@@ -24,15 +24,15 @@ const enterprise = [
 const faq = [
   [
     'Is the open-source version crippled?',
-    'No. The enterprise tier is hosting, control, and support, not withheld features. Everything a customer pays for can be reproduced by a capable team running the OSS.',
+    'No. The enterprise tier will be hosting, control, and support, not withheld features. Everything a customer will pay for can be reproduced by a capable team running the OSS.',
   ],
   [
     'What counts as an active device?',
-    'A device enrolled in your org index that completed at least one login or approval in the billing month. Personal identities on the public index are free.',
+    'A device enrolled in your org index that completes at least one login or approval in the billing month. Personal identities on the public index will stay free.',
   ],
   [
     'Can we run the index ourselves and still buy support?',
-    'Yes. Support contracts and professional services are available for self-hosters; the hosted org index is optional.',
+    'Yes. Support contracts and professional services will be available for self-hosters; the hosted org index will be optional.',
   ],
   [
     'Do you ever hold a private key?',
@@ -43,7 +43,7 @@ const faq = [
 
 <Base
   title="Pricing"
-  description="Identizen is open source and free to self-host. The enterprise tier adds a hosted org index, fleet console, SSO bridging, audit, and an SLA, priced per active device."
+  description="Identizen is open source and free to self-host. An enterprise tier, in development, will add a hosted org index, a fleet console, SSO bridging, audit export, and an SLA, priced per active device."
 >
   <PageHeader
     eyebrow="Pricing"
@@ -80,14 +80,17 @@ const faq = [
           class="absolute top-6 right-6 rounded-full bg-accent px-2.5 py-1 font-mono text-2xs font-semibold uppercase tracking-wider text-accent-fg"
           >Enterprise</span
         >
-        <p class="eyebrow">Hosted org index</p>
+        <p class="eyebrow">Hosted org index · In development</p>
         <h2 id="ent" class="mt-2 text-2xl font-semibold tracking-tight">Enterprise</h2>
-        <p class="mt-1 text-sm text-fg-muted">Hosting, control, and support for device fleets</p>
+        <p class="mt-1 text-sm text-fg-muted">
+          In development. Will add hosting, control, and support for device fleets.
+        </p>
         <p class="headline mt-6 text-3xl sm:text-4xl">
           Per active device<span class="text-base font-normal text-fg-muted"> / month</span>
         </p>
         <p class="mt-2 text-sm text-fg-muted">
-          Free tier for your first devices, so hosted and self-hosted start in the same place.
+          There will be a free tier for your first devices, so hosted and self-hosted start in the
+          same place.
         </p>
         <ul class="mt-8 space-y-3 text-sm">
           {
@@ -102,7 +105,7 @@ const faq = [
           }
         </ul>
         <a href="/contact" class="btn btn-primary mt-10 self-start">
-          Talk to us <Icon name="arrow-right" />
+          Talk to us for early access <Icon name="arrow-right" />
         </a>
       </section>
     </div>

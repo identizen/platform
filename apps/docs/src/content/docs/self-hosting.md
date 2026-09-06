@@ -50,13 +50,16 @@ Rotate OIDC keys by prepending a new JWK to `OIDC_SIGNING_KEYS` (`npm run keys -
 
 ## Docker
 
-`docker compose up` runs Postgres and the index (the Worker runs in `workerd` inside the container via `wrangler dev`, so Durable Objects and the Hyperdrive binding behave exactly as on Cloudflare). Configuration is the same environment variables, passed to the `index` service; the Hyperdrive binding is pointed at the compose Postgres with `CLOUDFLARE_HYPERDRIVE_LOCAL_CONNECTION_STRING_HYPERDRIVE`.
+`docker compose --profile selfhost up` runs Postgres and the index (the Worker runs in `workerd` inside the container via `wrangler dev`, so Durable Objects and the Hyperdrive binding behave exactly as on Cloudflare). Export `INDEX_SIGNING_KEY` and `OIDC_SIGNING_KEYS` (see the secrets section), then start it and check health:
 
 ```bash
-cp apps/index/.dev.vars.example apps/index/.dev.vars   # INDEX_SIGNING_KEY, OIDC_SIGNING_KEYS, …
-docker compose up
+export INDEX_SIGNING_KEY=…       # 32-byte hex, see Secrets above
+export OIDC_SIGNING_KEYS='[…]'   # the JSON array from npm run keys
+docker compose --profile selfhost up
 curl http://localhost:8787/health
 ```
+
+Configuration is environment variables on the `index` service (`DATABASE_URL`, `INDEX_URL`, `APP_URL`, push credentials, …); the entrypoint points the Hyperdrive binding at the compose Postgres for you.
 
 Durable Object state (in-flight logins, 60 seconds each) lives on the container's disk and needs no backup. Postgres is the only persistent store.
 
@@ -71,4 +74,4 @@ Or run `npx identizen init --index https://index.example.com` inside the app.
 
 ## Federation
 
-Handles resolve across indexes with WebFinger (`/.well-known/webfinger?resource=acct:name@host`), and `/.well-known/identizen` publishes the index's pinned signing key. Sites always talk to one index (the one they registered with); phones can hold identities on several.
+Handles resolve across indexes with WebFinger (`/.well-known/webfinger?resource=acct:name@host`), and `/.well-known/identizen` publishes the index's pinned signing key. Sites always talk to one index (the one they registered with); a phone registers with one index at a time (multi-index identities are planned).

@@ -6,8 +6,8 @@ description: Org identities, fleet console, instant revocation, SSO bridging, SC
 ## Available today
 
 - **Two identity kinds.** Identities carry `kind: 'personal' | 'org'` and an optional `org_id`; the `orgs` table exists so org features land without a schema break.
-- **`idz_org` claim.** Org identities surface their organisation id in the `id_token` and `/userinfo`.
-- **Instant revocation with back-channel logout.** Revoking a device (`POST /me/devices/:id/revoke`) or a session ends every live OIDC session for it and POSTs a logout token to each site's `backchannel_logout_uri` within a second. This is the mechanism the fleet console will drive.
+- **`idz_org` claim.** The id_token and `/userinfo` carry `idz_org` for identities with an `org_id`; there is no API yet that assigns one (org enrollment is on the roadmap).
+- **Instant revocation with back-channel logout.** Revoking a device (`POST /me/devices/:id/revoke`) or a session ends every live OIDC session for it and POSTs a logout token to each site's `backchannel_logout_uri` immediately after revocation, retried for a few seconds on failure. This is the mechanism the fleet console will drive.
 - **Audit events.** Every login, denial, enrollment, pairing, session, verification, and revocation writes an `audit_events` row (`GET /me/audit` for the user's own view).
 - **Self-hosting.** A regulated org can run the entire index inside its own boundary with no Identizen-operated service in the path ([self-hosting](/self-hosting/)).
 - **Closed registration.** `SITE_REGISTRATION_TOKEN` gates which sites may register with an index.

@@ -89,7 +89,7 @@ Only `authorization_code` is supported; there are no refresh tokens.
 
 ### login_required
 
-Step-up (`acr_values=idz:mfa`) or a Verification API call targeted a `sub` that is not bound to an active device for this site. Run enrollment (`prompt=enroll`) first.
+Step-up (`acr_values=idz:mfa`) targeted a `sub` that is not bound to an active device for this site. Run enrollment (`prompt=enroll`) first. The Verification API reports this as `unknown_sub`.
 
 ### login_hint_required
 

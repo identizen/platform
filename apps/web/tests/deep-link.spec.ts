@@ -12,7 +12,7 @@ test('deep link landing shows the site, the match code, and the app link; polls 
     'href',
     'identizen://l/ch_01K3ZB2N9G0000000000000020',
   );
-  await expect(page.getByRole('link', { name: 'Install Identizen' })).toBeVisible();
+  await expect(page.getByRole('link', { name: 'Get the Identizen app' })).toBeVisible();
 });
 
 test('deep link for a step-up shows the reason', async ({ page }) => {

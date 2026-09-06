@@ -10,7 +10,7 @@ npm install
 
 const INIT_OUTPUT = `# What \`identizen init\` did:
 #   registered "my-bank" with https://index.identizen.com
-#   wrote IDENTIZEN_INDEX_URL, IDENTIZEN_CLIENT_ID, IDENTIZEN_CLIENT_SECRET to .env.local
+#   wrote IDENTIZEN_INDEX_URL, IDENTIZEN_CLIENT_ID, IDENTIZEN_CLIENT_SECRET, IDENTIZEN_SITE_URL to .env.local
 #   created app/api/auth/login/route.ts, callback/route.ts, logout/route.ts,
 #           app/api/auth/backchannel-logout/route.ts, lib/identizen.ts
 `;
@@ -59,7 +59,8 @@ export function QuickstartRoute() {
         <CodeBlock code={INIT_OUTPUT} terminal title="what happened" />
         <P>
           One command, one registration. The client id identifies your site to the index; the secret
-          stays on your server and is only used for the token exchange.
+          stays on your server and is used for the token exchange and for server-to-server calls
+          such as the Verification API.
         </P>
       </Step>
       <Step n={2} title="Add the button">
@@ -73,8 +74,9 @@ export function QuickstartRoute() {
       <Step n={3} title="Run a phone">
         <CodeBlock code={FAKE_PHONE} terminal />
         <P>
-          With a real iPhone, install the Identizen app instead. Either way the login page shows a
-          two-digit match code, the phone shows the same one, and the person approves.
+          With the Identizen app on your phone (App Store review in progress), scan the QR instead.
+          Either way the login page shows a two-digit match code, the phone shows the same one, and
+          the person approves.
         </P>
       </Step>
       <Step n={4} title="Log in">

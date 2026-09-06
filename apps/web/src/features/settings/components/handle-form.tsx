@@ -51,7 +51,8 @@ export function HandleForm({ current, busy, error, onSave, onClear }: HandleForm
           {...form.register('handle')}
         />
         <p id="handle-help" className="text-xs text-fg-muted">
-          Optional. Lets sites you allow show a name instead of an opaque id. Never required.
+          Optional. Any site that asks for the handle scope receives it once you set one; leave it
+          empty to stay opaque everywhere.
         </p>
         <p id="handle-error" role="alert" className="min-h-4 text-xs text-danger-soft-fg">
           {fieldError ?? error ?? ''}

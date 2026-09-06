@@ -64,7 +64,9 @@ export function ApproveScreen({ challenge, onApprove, onDeny, onDone }: ApproveS
           <Heading>{outcome === 'approved' ? 'Approved' : 'Declined'}</Heading>
           <Muted center>
             {outcome === 'approved'
-              ? `You are signed in to ${challenge.rp_name}.`
+              ? variant === 'login'
+                ? `You are signed in to ${challenge.rp_name}.`
+                : `Approved for ${challenge.rp_name}.`
               : `${challenge.rp_name} was told you declined.`}
           </Muted>
         </View>

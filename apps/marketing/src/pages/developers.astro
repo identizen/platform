@@ -67,13 +67,13 @@ const links: { icon: IconName; label: string; href: string; text: string }[] = [
   {
     icon: 'book',
     label: 'Framework guides',
-    href: `${SITE.docs}/frameworks/nextjs`,
-    text: 'Next.js, Remix, SvelteKit, Node.',
+    href: `${SITE.docs}/guides/nextjs/`,
+    text: 'Next.js, Express, ASP.NET Core, Django, plain HTML.',
   },
   {
     icon: 'radio',
     label: 'Verification API',
-    href: `${SITE.docs}/verification-api`,
+    href: `${SITE.docs}/reference/verification-api/`,
     text: 'Transaction signing from any backend.',
   },
 ];
@@ -111,7 +111,7 @@ const links: { icon: IconName; label: string; href: string; text: string }[] = [
       <div class="card p-6">
         <p class="eyebrow">Path B</p>
         <h3 class="mt-2 text-lg font-semibold tracking-tight">MFA and transaction approval</h3>
-        <p class="mt-1 text-sm text-fg-muted">Keep your login, add the factor.</p>
+        <p class="mt-1 text-sm text-fg-muted">Keep your login. Add a phone-signed approval.</p>
         <Code code={pathB} lang="ts" title="server/step-up.ts" class="mt-5" />
       </div>
     </div>

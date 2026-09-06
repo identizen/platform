@@ -5,7 +5,7 @@ description: Keep your password, magic link, or SSO. Bind the user's phone once,
 
 import { Steps, Tabs, TabItem, Aside } from '@astrojs/starlight/components';
 
-Path B is the same product in a second mode: your site keeps its own login and calls Identizen for the factor. There is nothing to store except a per-site `sub`, no SMS, no TOTP secrets, and no big-tech account in the chain.
+Path B is the same product in a second mode: your site keeps its own login and calls Identizen for a phone-signed approval. There is nothing to store except a per-site `sub`, no SMS, no TOTP secrets, and no big-tech account in the chain.
 
 Two integration styles:
 
@@ -170,7 +170,7 @@ Two integration styles:
 {/* prettier-ignore-end */}
 
 <Aside type="note" title="What the phone shows">
-  Site name, the two-digit match code, the `reason` if you sent one, and the biometric prompt.
-  Nothing else. Number matching means a push the user did not start cannot be approved by accident,
-  and the index rate-limits pushes per device.
+  Site name and origin, the two-digit match code, the `reason` if you sent one, and the biometric
+  prompt. Number matching means a push the user did not start cannot be approved by accident, and
+  the index rate-limits pushes per device.
 </Aside>

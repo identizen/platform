@@ -9,19 +9,19 @@ Identizen is a device-based identity protocol. The user's phone holds an Ed25519
 The protocol serves two modes that share one challenge/assertion shape:
 
 - **Path A — primary login.** `acr = idz:login`. The site receives an `id_token` with a per-site `sub`.
-- **Path B — step-up / MFA / transaction approval.** `acr = idz:mfa`. The site keeps its own login and calls the index for the factor, over OIDC step-up (`acr_values=idz:mfa`, `login_hint=<sub>`) or the Verification API (`POST /v1/verify { sub, reason }`). An optional `reason` string is displayed on the phone and bound into the signed assertion.
+- **Path B — step-up / MFA / transaction approval.** `acr = idz:mfa`. The site keeps its own login and calls the index for a phone-signed approval, over OIDC step-up (`acr_values=idz:mfa`, `login_hint=<sub>`) or the Verification API (`POST /v1/verify { sub, reason }`). An optional `reason` string is displayed on the phone and bound into the signed assertion.
 
 ## 1. Keys and identifiers
 
-| Name                | Derivation                                                                                        | Purpose                                                                                                                                                                                                                                                   |
-| ------------------- | ------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Seed                | 256 bits of on-device randomness, encoded as 24 BIP39 English words                               | Root of the personal identity. Shown once at setup; the only recovery path.                                                                                                                                                                               |
-| Master key          | `HKDF-SHA256(ikm = seed, salt = "identizen/v1/master", info = "", L = 32)` → Ed25519 private key  | Anchors the identity in the index.                                                                                                                                                                                                                        |
-| Identity ID (`idz`) | `base64url(SHA-256(masterPublicKey))[0:32]`                                                       | Stable, cross-site identifier held by the index. **Never sent to sites by default.**                                                                                                                                                                      |
-| Per-site key        | `HKDF-SHA256(ikm = seed, salt = "identizen/v1/site", info = rp_id, L = 32)` → Ed25519 private key | Signs assertions for one site. `rp_id` is the site's registered origin host (e.g. `app.example.com`).                                                                                                                                                     |
-| `sub`               | `base64url(SHA-256(perSitePublicKey))[0:32]`                                                      | The site's stable identifier for the user. Two sites cannot correlate a user by `sub`.                                                                                                                                                                    |
-| Device key          | Fresh Ed25519 keypair per install; **not derived**                                                | Identifies the _install_, not the person. Signs device registration, the `device_sig` on assertions, and `Idz-Signature` request headers. Wrapped at rest by the Secure Enclave / StrongBox on native, by a non-extractable WebCrypto AES-GCM key on web. |
-| Device BLE key      | 32 random bytes per install, registered with the index                                            | HMAC key for rotating BLE identifiers (§6.3).                                                                                                                                                                                                             |
+| Name                | Derivation                                                                                        | Purpose                                                                                                                                                                                                                                                             |
+| ------------------- | ------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Seed                | 256 bits of on-device randomness, encoded as 24 BIP39 English words                               | Root of the personal identity. Shown once at setup; the only recovery path.                                                                                                                                                                                         |
+| Master key          | `HKDF-SHA256(ikm = seed, salt = "identizen/v1/master", info = "", L = 32)` → Ed25519 private key  | Anchors the identity in the index.                                                                                                                                                                                                                                  |
+| Identity ID (`idz`) | `base64url(SHA-256(masterPublicKey))[0:32]`                                                       | Stable, cross-site identifier held by the index. **Never sent to sites by default.**                                                                                                                                                                                |
+| Per-site key        | `HKDF-SHA256(ikm = seed, salt = "identizen/v1/site", info = rp_id, L = 32)` → Ed25519 private key | Signs assertions for one site. `rp_id` is the site's registered origin host (e.g. `app.example.com`).                                                                                                                                                               |
+| `sub`               | `base64url(SHA-256(perSitePublicKey))[0:32]`                                                      | The site's stable identifier for the user. Two sites cannot correlate a user by `sub`.                                                                                                                                                                              |
+| Device key          | Fresh Ed25519 keypair per install; **not derived**                                                | Identifies the _install_, not the person. Signs device registration, the `device_sig` on assertions, and `Idz-Signature` request headers. Stored in the platform keychain / keystore, biometric-gated when enabled; Secure Enclave / StrongBox wrapping is planned. |
+| Device BLE key      | 32 random bytes per install, registered with the index                                            | HMAC key for rotating BLE identifiers (§6.3).                                                                                                                                                                                                                       |
 
 HKDF is RFC 5869 with SHA-256. `salt` and `info` are UTF-8 strings. The 32-byte HKDF output is used directly as the Ed25519 seed (RFC 8032 private key); the public key is derived per RFC 8032.
 
@@ -114,10 +114,10 @@ The assertion is **signed twice** (type `"assertion"`, §2):
 
 ### 4.1 Verification order (index)
 
-1. Parse and validate the assertion against the schema.
-2. Load the challenge by `challenge_id`; reject if unknown, already resolved, or expired.
-3. Check `nonce`, `rp_id`, and `acr` equal the challenge's. Check `reason_hash` equals the hash of the challenge's `reason` (both `null` for no reason).
-4. Look up `device_id`; reject if unknown or `status ≠ active`.
+1. Look up `device_id`; reject if unknown or `status ≠ active` (first, so every failure can be attributed to a device).
+2. Parse and validate the assertion against the schema.
+3. Load the challenge by `challenge_id`; reject if unknown, already resolved, or expired.
+4. Check `nonce`, `rp_id`, and `acr` equal the challenge's. Check `reason_hash` equals the hash of the challenge's `reason` (both `null` for no reason).
 5. Verify `device_sig` against the device's registered public key.
 6. Verify `site_sig` against `site_pubkey`; verify `sub == hash(site_pubkey)`.
 7. **TOFU binding.** Look up `(rp_id, sub)` in `site_bindings`. If absent, create it with `site_pubkey` and the device's `idz`. If present, require `site_pubkey` and `idz` to match; otherwise reject.
@@ -131,16 +131,16 @@ The index is an OpenID Provider implementing Authorization Code flow with PKCE (
 
 `id_token` claims:
 
-| Claim                                          | Value                                                   |
-| ---------------------------------------------- | ------------------------------------------------------- |
-| `iss`, `aud`, `iat`, `exp`, `nonce`, `at_hash` | Standard OIDC.                                          |
-| `sub`                                          | Per-site identifier (assertion `sub`).                  |
-| `sid`                                          | Session ID; used for back-channel logout.               |
-| `idz_handle`                                   | Optional human handle, only if the user released it.    |
-| `idz_device`                                   | Opaque device ID (`dev_…`).                             |
-| `idz_org`                                      | Org identifier for org identities; absent for personal. |
-| `amr`                                          | From the assertion.                                     |
-| `acr`                                          | `"idz:login"` or `"idz:mfa"`.                           |
+| Claim                                          | Value                                                                                                                                            |
+| ---------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `iss`, `aud`, `iat`, `exp`, `nonce`, `at_hash` | Standard OIDC.                                                                                                                                   |
+| `sub`                                          | Per-site identifier (assertion `sub`).                                                                                                           |
+| `sid`                                          | Session ID; used for back-channel logout.                                                                                                        |
+| `idz_handle`                                   | Optional human handle. Any site that asks for the `handle` scope receives it once the user has set one; unset, the user stays opaque everywhere. |
+| `idz_device`                                   | Opaque device ID (`dev_…`).                                                                                                                      |
+| `idz_org`                                      | Org identifier for org identities; absent for personal.                                                                                          |
+| `amr`                                          | From the assertion.                                                                                                                              |
+| `acr`                                          | `"idz:login"` or `"idz:mfa"`.                                                                                                                    |
 
 No email claim. Back-channel logout per OpenID Connect Back-Channel Logout 1.0; `sid` identifies the session.
 
@@ -148,7 +148,7 @@ No email claim. Back-channel logout per OpenID Connect Back-Channel Logout 1.0; 
 
 - **Step-up:** `GET /authorize?…&acr_values=idz:mfa&login_hint=<sub>`. The index resolves `(rp_id, sub)` through `site_bindings` to a device and pushes the challenge with `acr = idz:mfa`. If no binding exists, the response is the OIDC error `login_required`.
 - **Enrollment:** `GET /authorize?…&prompt=enroll`. Runs normal discovery; on approval the TOFU binding is created and the resulting `id_token` carries the new `sub`. The site's existing session is its proof of who the user is.
-- **Verification API:** `POST /v1/verify { sub, reason?, ttl? }` (bearer = site client secret) creates a ChallengeSession with `acr = idz:mfa` and pushes to the bound device. Results are polled at `GET /v1/verify/:id` or delivered by webhook as a signed JWT.
+- **Verification API:** `POST /v1/verify { sub, reason? }` (bearer = site client secret) creates a ChallengeSession with `acr = idz:mfa` and pushes to the bound device. A `ttl` field is accepted and reserved; v1 always uses the 60 s challenge lifetime. Results are polled at `GET /v1/verify/:id` or delivered by webhook as a signed JWT.
 
 ## 6. Discovery
 
@@ -174,7 +174,7 @@ The window is 900 s. The advertisement carries the service UUID and the local na
 
 ### 6.4 Browser pairing (all browsers)
 
-After a successful QR or BLE login, the browser generates a non-extractable P-256 ECDSA key in WebCrypto and sends the public key (raw, base64url) with its approval acknowledgement. The index issues a **pairing** record:
+For a QR or BLE login, the browser generates a non-extractable P-256 ECDSA key in WebCrypto and attaches the public key (raw, base64url) to the challenge (`browser_pubkey` on `POST /challenge`, or `POST /challenge/:id/browser-key` from the hosted page). On approval the index issues a **pairing** record:
 
 ```json
 {
@@ -190,11 +190,11 @@ signed by the index signing key (type `"pairing"`, §2). The SDK stores the pair
 
 On later logins the SDK signs the challenge ID with the browser key (ECDSA P-256, SHA-256, over `UTF8("identizen/v1/paired\n" + challenge_id)`) and calls `POST /discover/paired { pairing_id, sig }`. The index verifies, checks that both the pairing and its device are `active`, and pushes the challenge straight to the device. Pairing skips discovery only; the phone still shows `rp_name` and the code. Pairings are revoked explicitly or automatically when their device is.
 
-### 6.5 Passkey provider
+### 6.5 Passkey provider (planned, not in v1)
 
-On-device only (iOS 17+ credential provider extension, Android Credential Manager). Cross-device (hybrid) transport is assumed unavailable to third parties; nothing in the protocol depends on it.
+On-device only (iOS credential provider extension, Android Credential Manager). Cross-device (hybrid) transport is assumed unavailable to third parties; nothing in the protocol depends on it.
 
-### 6.6 Desktop companion
+### 6.6 Desktop companion (planned, not in v1)
 
 A Mac app plus browser extension intercepts `navigator.credentials` on plain-WebAuthn sites, relays through the index using the same ChallengeSession path, and returns the assertion. It never holds keys.
 
