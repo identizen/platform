@@ -65,15 +65,19 @@ Anything else the browser client caught; `cause` holds the original error.
 
 ### invalid_client
 
-The client secret is missing or wrong, or, on `/token` and `/authorize`, the `client_id` is unknown. On `/sites/:client_id` and `/v1/verify` an unknown `client_id` is `404 unknown_client` instead. For the Verification API send `Idz-Client-Id` plus `Authorization: Bearer <client_secret>` (or HTTP Basic).
+The client secret is missing, wrong, or malformed HTTP Basic, or, on `/token` and `/authorize`, the `client_id` is unknown. On `/token` this is a `401`; when the client used HTTP Basic the response carries `WWW-Authenticate: Basic`. On `/sites/:client_id` and `/v1/verify` an unknown `client_id` is `404 unknown_client` instead. For the Verification API send `Idz-Client-Id` plus `Authorization: Bearer <client_secret>` (or HTTP Basic).
 
 ### invalid_request
 
-A required parameter is missing or malformed (PKCE with S256 is required on `/authorize`; JSON bodies must match the schema — `issues` lists the fields).
+A required parameter is missing or malformed: on `/authorize` a missing `response_type`, PKCE with S256 (`code_challenge` of 43–128 unreserved characters), `acr_values=idz:mfa` without `login_hint`, or `prompt=none` combined with another prompt value; on `/token` a missing `grant_type`, `code`, or `code_verifier`; JSON bodies must match the schema — `issues` lists the fields.
 
 ### unsupported_response_type
 
-Only `response_type=code` is supported.
+Only `response_type=code` is supported (a missing `response_type` is `invalid_request`).
+
+### request_not_supported / request_uri_not_supported
+
+The `request` or `request_uri` parameter was sent on `/authorize`. Request objects are not supported (`request_parameter_supported: false` in discovery); pass the parameters in the query or form body.
 
 ### invalid_scope
 
@@ -81,7 +85,7 @@ Only `response_type=code` is supported.
 
 ### invalid_grant
 
-The code is unknown, expired, already used, issued to another client, the `redirect_uri` differs, PKCE verification failed, or the device is no longer active. Start the login again.
+The code is unknown, expired, already used (a reused code also revokes the session the first exchange created), issued to another client, the `redirect_uri` differs, PKCE verification failed, or the device is no longer active. Start the login again.
 
 ### unsupported_grant_type
 
@@ -101,7 +105,7 @@ Step-up (`acr_values=idz:mfa`) targeted a `sub` that is not bound to an active d
 
 ### invalid_token
 
-The bearer access token is invalid, expired, or its session was revoked.
+The bearer access token is missing, invalid, expired, not an access token (an id_token was sent), or its session was revoked. The `401` carries `WWW-Authenticate: Bearer …` per RFC 6750; with a token present the challenge includes `error="invalid_token"`.
 
 ### not_dashboard_client
 

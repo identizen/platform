@@ -50,6 +50,12 @@ export interface LogEntry {
 
 export interface FakePhoneOptions {
   indexUrl: string;
+  /**
+   * The index's public name as it appears in the `index` field of its challenges, when that
+   * differs from the URL this phone reaches it at (a Docker host alias, a tunnel). Defaults to
+   * indexUrl.
+   */
+  indexIssuer?: string | undefined;
   /** Public URL of this phone's HTTP server, used as the web push token (index POSTs {challenge_id}). */
   pushUrl?: string | null;
   policy?: Policy;
@@ -70,6 +76,7 @@ export interface ApproveResult {
 
 export class FakePhone {
   readonly indexUrl: string;
+  readonly indexIssuer: string;
   pushUrl: string | null;
   policy: Policy;
   amr: Amr[];
@@ -85,6 +92,7 @@ export class FakePhone {
 
   constructor(opts: FakePhoneOptions) {
     this.indexUrl = opts.indexUrl.replace(/\/+$/, '');
+    this.indexIssuer = (opts.indexIssuer ?? this.indexUrl).replace(/\/+$/, '');
     this.pushUrl = opts.pushUrl ?? null;
     this.policy = opts.policy ?? 'approve';
     this.amr = opts.amr ?? ['face', 'hwk'];
@@ -245,7 +253,7 @@ export class FakePhone {
       { payload: body.payload, sig: body.sig },
       fromBase64Url(this.state.indexPubkey),
       {
-        index: this.indexUrl,
+        index: this.indexIssuer,
       },
     );
     if (!verified.ok) throw new Error(`challenge rejected: ${verified.error}`);
@@ -265,6 +273,28 @@ export class FakePhone {
       else if (this.policy === 'deny') await this.deny(challengeId);
     }
     return pending;
+  }
+
+  /**
+   * Open a deep link (`/l/<challenge_id>`) the way a real phone does when the person taps it:
+   * fetch and verify the challenge, apply the policy, then wait for the index to resolve the
+   * login and hand back the site's redirect so the browser can follow it.
+   */
+  async openDeepLink(
+    challengeId: string,
+    timeoutMs = 15_000,
+  ): Promise<{ status: string; redirect: string | null }> {
+    await this.scan(challengeId);
+    const deadline = Date.now() + timeoutMs;
+    for (;;) {
+      const res = await this.fetchImpl(`${this.indexUrl}/challenge/${challengeId}/state`);
+      const state = (await res.json()) as { status?: string; redirect?: string | null };
+      const status = state.status ?? 'unknown';
+      if (status !== 'pending' || Date.now() >= deadline) {
+        return { status, redirect: state.redirect ?? null };
+      }
+      await new Promise((r) => setTimeout(r, 300));
+    }
   }
 
   /** Sign and submit the assertion. */

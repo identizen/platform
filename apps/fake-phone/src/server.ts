@@ -13,6 +13,7 @@ export interface PhoneServerOptions {
  * HTTP surface of the fake phone.
  *  POST /push            {challenge_id}   <- the index (web push token)
  *  POST /scan            {url | challenge_id}  simulate scanning a QR / opening a deep link
+ *  GET  /l/:id           open a deep link and follow the site's redirect once approved
  *  POST /approve/:id, POST /deny/:id        manual policy
  *  POST /policy          {policy}
  *  GET  /state, GET /log, GET /pending
@@ -81,6 +82,26 @@ export function createPhoneApp(phone: FakePhone): Hono {
     } catch (err) {
       return c.json({ ok: false, error: String(err) }, 400);
     }
+  });
+
+  /**
+   * GET /l/:id — open a deep link on this phone. What a real phone does when the person taps
+   * "Open in Identizen": fetch and verify the challenge, apply the policy, then send the browser
+   * on to the site's redirect once the index has resolved the login. Lets a headless browser
+   * (the OpenID conformance suite's, for one) complete a login by clicking the link on the
+   * hosted login page. Times out after ~15 s with the current state.
+   */
+  app.get('/l/:id', async (c) => {
+    const id = c.req.param('id');
+    let result: { status: string; redirect: string | null };
+    try {
+      result = await phone.openDeepLink(id);
+    } catch (err) {
+      return c.json({ ok: false, error: String(err) }, 400);
+    }
+    if (result.status === 'approved' && result.redirect) return c.redirect(result.redirect, 302);
+    if (result.status === 'pending') return c.json({ ok: false, status: 'pending' }, 202);
+    return c.json({ ok: false, status: result.status }, 409);
   });
 
   app.post('/approve/:id', async (c) => {

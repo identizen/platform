@@ -7,10 +7,13 @@ import {
   deriveSiteKey,
   generateKeyPair,
   generateSeed,
+  randomBytes,
+  sha256,
   signAssertion,
   signIdentityProof,
   signRequest,
   toBase64Url,
+  utf8Encode,
   type Challenge,
   type KeyPair,
   type SignedAssertion,
@@ -219,4 +222,161 @@ export async function approve(
     signed,
     Math.floor(Date.now() / 1000) + timestampOffset,
   );
+}
+
+// ---------------------------------------------------------------------------------------------
+// OIDC flow helpers (authorization code + PKCE against the hosted login page).
+
+export const REDIRECT_URI = 'https://app.example.com/callback';
+
+/** A fixed RFC 7636 verifier/challenge pair (the RFC's own S256 example). */
+export const PKCE = {
+  verifier: 'dBjftJeZ4CVP-mB92K27uhbUJU1p1r_wW1gFWFOEjXk',
+  challenge: toBase64Url(sha256(utf8Encode('dBjftJeZ4CVP-mB92K27uhbUJU1p1r_wW1gFWFOEjXk'))),
+};
+
+/** Fresh random PKCE pair. */
+export function pkcePair(): { verifier: string; challenge: string } {
+  const verifier = toBase64Url(randomBytes(32));
+  return { verifier, challenge: toBase64Url(sha256(utf8Encode(verifier))) };
+}
+
+export type AuthorizeParams = Record<string, string | undefined>;
+
+/** The standard valid authorization request for a site; override or delete (`undefined`) params. */
+export function authorizeParams(clientId: string, over: AuthorizeParams = {}): AuthorizeParams {
+  return {
+    response_type: 'code',
+    client_id: clientId,
+    redirect_uri: REDIRECT_URI,
+    scope: 'openid',
+    state: 'st4te',
+    nonce: 'n0nce',
+    code_challenge: PKCE.challenge,
+    code_challenge_method: 'S256',
+    ...over,
+  };
+}
+
+function toSearch(params: AuthorizeParams): URLSearchParams {
+  const q = new URLSearchParams();
+  for (const [k, v] of Object.entries(params)) if (v !== undefined) q.set(k, v);
+  return q;
+}
+
+/** `GET /authorize` (or `POST` with a form body) without following redirects. */
+export function authorize(
+  params: AuthorizeParams,
+  method: 'GET' | 'POST' = 'GET',
+): Promise<Response> {
+  const q = toSearch(params);
+  if (method === 'POST') {
+    return SELF.fetch(`${BASE}/authorize`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/x-www-form-urlencoded' },
+      body: q,
+      redirect: 'manual',
+    });
+  }
+  return SELF.fetch(`${BASE}/authorize?${q.toString()}`, { redirect: 'manual' });
+}
+
+/** Parsed OIDC error redirect from `/authorize`. */
+export function redirectParams(res: Response): URLSearchParams {
+  const location = res.headers.get('location');
+  if (!location) throw new Error(`no location header (status ${res.status})`);
+  return new URL(location).searchParams;
+}
+
+export interface ApprovedLogin {
+  html: string;
+  challengeId: string;
+  code: string;
+  state: string | null;
+  redirect: URL;
+  sub: string;
+}
+
+/** Drive `/authorize` -> fake-phone approval -> authorization code. */
+export async function authorizeAndApprove(
+  site: { client_id: string },
+  phone: Phone,
+  over: AuthorizeParams = {},
+  method: 'GET' | 'POST' = 'GET',
+): Promise<ApprovedLogin> {
+  const page = await authorize(authorizeParams(site.client_id, over), method);
+  if (page.status !== 200) throw new Error(`authorize: ${page.status} ${await page.text()}`);
+  const html = await page.text();
+  const challengeId = /"challengeId":"(ch_[0-9A-Z]{26})"/.exec(html)?.[1];
+  if (!challengeId) throw new Error('no challenge id in page');
+  const res = await approve(phone, challengeId);
+  if (res.status !== 200) throw new Error(`approve: ${res.status} ${await res.text()}`);
+  const body = await json<{ redirect: string; sub: string }>(res);
+  const redirect = new URL(body.redirect);
+  return {
+    html,
+    challengeId,
+    code: redirect.searchParams.get('code') ?? '',
+    state: redirect.searchParams.get('state'),
+    redirect,
+    sub: body.sub,
+  };
+}
+
+/** `POST /token` with client_secret_post (or none for public clients); override or delete fields. */
+export function exchange(
+  site: { client_id: string; client_secret: string | null },
+  code: string,
+  over: Record<string, string | undefined> = {},
+  headers: Record<string, string> = {},
+): Promise<Response> {
+  const form = toSearch({
+    grant_type: 'authorization_code',
+    code,
+    redirect_uri: REDIRECT_URI,
+    code_verifier: PKCE.verifier,
+    client_id: site.client_id,
+    ...(site.client_secret ? { client_secret: site.client_secret } : {}),
+    ...over,
+  });
+  return SELF.fetch(`${BASE}/token`, {
+    method: 'POST',
+    headers: { 'content-type': 'application/x-www-form-urlencoded', ...headers },
+    body: form,
+  });
+}
+
+export interface TokenResponse {
+  access_token: string;
+  id_token: string;
+  token_type: string;
+  expires_in: number;
+  scope: string;
+  refresh_token?: string;
+}
+
+/** Full login + exchange; throws unless the exchange succeeded. */
+export async function loginAndExchange(
+  site: RegisteredSite,
+  phone: Phone,
+  over: AuthorizeParams = {},
+): Promise<{ login: ApprovedLogin; tokens: TokenResponse; res: Response }> {
+  const login = await authorizeAndApprove(site, phone, over);
+  const res = await exchange(site, login.code);
+  if (res.status !== 200) throw new Error(`token: ${res.status} ${await res.text()}`);
+  return { login, tokens: await json<TokenResponse>(res.clone()), res };
+}
+
+export interface JwksDocument {
+  keys: Record<string, unknown>[];
+}
+
+export async function jwks(): Promise<JwksDocument> {
+  const res = await SELF.fetch(`${BASE}/.well-known/jwks.json`);
+  return json<JwksDocument>(res);
+}
+
+export async function discovery(): Promise<Record<string, unknown>> {
+  const res = await SELF.fetch(`${BASE}/.well-known/openid-configuration`);
+  return json<Record<string, unknown>>(res);
 }

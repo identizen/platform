@@ -402,7 +402,7 @@ export const OPENAPI_DOCUMENT: Record<string, unknown> = {
         ],
         "operationId": "authorize",
         "summary": "OIDC authorization endpoint (hosted login page)",
-        "description": "Authorization Code flow with PKCE. Creates a challenge session and renders the hosted\nlogin page (match code, QR, WebSocket to the session). After the phone approves, the\npage redirects the browser to `redirect_uri?code=…&state=…`. The code is single-use and\nbound to the client.\n\nValidation order: unknown `client_id` or unregistered `redirect_uri` is a JSON `400`\n(nothing is redirected to an unverified URI). Every later failure is an OIDC error\nredirect (`302` to `redirect_uri` with `error`, `error_description`, and `state`):\n`unsupported_response_type`, `invalid_scope`, `invalid_request` (missing PKCE,\nunsupported `acr_values`, `acr_values=idz:mfa` without `login_hint`),\n`interaction_required` (`prompt=none`), and `login_required` (no active device is\nbound to `login_hint`).\n\n`acr_values=idz:mfa` with `login_hint=<sub>` is step-up: the challenge is pushed to the\ndevice bound to `sub`. `login_hint` alone pushes to the bound device at `idz:login`.\n`prompt=enroll` marks an enrollment (the resulting `sub` is what the site stores).\nRate limited per source IP (`429 rate_limited`) and per client (`429 client_rate_limited`).\n",
+        "description": "Authorization Code flow with PKCE. Creates a challenge session and renders the hosted\nlogin page (match code, QR, WebSocket to the session). After the phone approves, the\npage redirects the browser to `redirect_uri?code=…&state=…`. The code is single-use and\nbound to the client.\n\nValidation order: unknown `client_id` or unregistered `redirect_uri` is a JSON `400`\n(nothing is redirected to an unverified URI). Every later failure is an OIDC error\nredirect (`302` to `redirect_uri` with `error`, `error_description`, and `state`):\n`invalid_request` (missing `response_type`, missing or malformed PKCE,\n`acr_values=idz:mfa` without `login_hint`, `prompt=none` combined with another value),\n`unsupported_response_type`, `request_not_supported`, `request_uri_not_supported`,\n`invalid_scope` (no `openid`), `interaction_required` (`prompt=none`), and\n`login_required` (no active device is bound to `login_hint`). Unknown scopes and\nunknown `acr_values` are ignored (RFC 6749 §3.3; `acr` is a voluntary claim).\n\n`acr_values=idz:mfa` with `login_hint=<sub>` is step-up: the challenge is pushed to the\ndevice bound to `sub`. `login_hint` alone pushes to the bound device at `idz:login`.\n`prompt=enroll` marks an enrollment (the resulting `sub` is what the site stores).\nRate limited per source IP (`429 rate_limited`) and per client (`429 client_rate_limited`).\nThe same request may be sent as `POST` with a form body (OpenID Connect Core §3.1.2.1).\n",
         "parameters": [
           {
             "name": "response_type",
@@ -506,55 +506,45 @@ export const OPENAPI_DOCUMENT: Record<string, unknown> = {
         ],
         "responses": {
           "200": {
-            "description": "The hosted login page.",
-            "headers": {
-              "Cache-Control": {
-                "schema": {
-                  "type": "string",
-                  "const": "no-store"
-                }
-              },
-              "X-Frame-Options": {
-                "schema": {
-                  "type": "string",
-                  "const": "DENY"
-                }
-              },
-              "Referrer-Policy": {
-                "schema": {
-                  "type": "string",
-                  "const": "no-referrer"
-                }
-              }
-            },
-            "content": {
-              "text/html": {
-                "schema": {
-                  "type": "string"
-                }
-              }
-            }
+            "$ref": "#/components/responses/LoginPage"
           },
           "302": {
-            "description": "OIDC error redirect to `redirect_uri` with `error`, `error_description`, and `state` query parameters.",
-            "headers": {
-              "Location": {
-                "schema": {
-                  "type": "string",
-                  "format": "uri"
-                }
-              }
-            }
+            "$ref": "#/components/responses/AuthorizeErrorRedirect"
           },
           "400": {
-            "description": "`invalid_client` — unknown `client_id`; `invalid_request` — `redirect_uri` is not registered for this client.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
+            "$ref": "#/components/responses/AuthorizeBadRequest"
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimited"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "OIDC"
+        ],
+        "operationId": "authorizePost",
+        "summary": "OIDC authorization endpoint (POST form)",
+        "description": "Identical to `GET /authorize` with the same parameters in an\n`application/x-www-form-urlencoded` body (OpenID Connect Core §3.1.2.1 requires both).\n",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "$ref": "#/components/schemas/AuthorizeRequest"
               }
             }
+          }
+        },
+        "responses": {
+          "200": {
+            "$ref": "#/components/responses/LoginPage"
+          },
+          "302": {
+            "$ref": "#/components/responses/AuthorizeErrorRedirect"
+          },
+          "400": {
+            "$ref": "#/components/responses/AuthorizeBadRequest"
           },
           "429": {
             "$ref": "#/components/responses/RateLimited"
@@ -569,7 +559,7 @@ export const OPENAPI_DOCUMENT: Record<string, unknown> = {
         ],
         "operationId": "token",
         "summary": "OIDC token endpoint",
-        "description": "`grant_type=authorization_code` with PKCE. Client authentication is\n`client_secret_basic` (HTTP Basic), `client_secret_post` (`client_id` + `client_secret`\nin the body), or `none` (`client_id` alone) for public clients; a confidential client\nthat omits or mismatches its secret gets `401 invalid_client`. The code is redeemed once\nat the challenge session; `redirect_uri` must equal the one used on the authorization\nrequest; `code_verifier` must hash (S256) to the request's `code_challenge`; the\napproving device must still be active. Each successful exchange creates a 30-day\nIdentizen session (`sid`).\n",
+        "description": "`grant_type=authorization_code` with PKCE. Client authentication is\n`client_secret_basic` (HTTP Basic), `client_secret_post` (`client_id` + `client_secret`\nin the body), or `none` (`client_id` alone) for public clients; a confidential client\nthat omits or mismatches its secret gets `401 invalid_client`. The code is redeemed once\nat the challenge session; `redirect_uri` must equal the one used on the authorization\nrequest; `code_verifier` must hash (S256) to the request's `code_challenge` (and must\nbe absent when the request had none, which only `OIDC_PKCE_OPTIONAL=true` allows); the\napproving device must still be active. Each successful exchange creates a 30-day\nIdentizen session (`sid`).\n",
         "security": [
           {},
           {
@@ -617,7 +607,7 @@ export const OPENAPI_DOCUMENT: Record<string, unknown> = {
             }
           },
           "400": {
-            "description": "`unsupported_grant_type`; `invalid_request` — `code` or `code_verifier` missing; `invalid_grant` — malformed, unknown, expired, or used code, code issued to another client, `redirect_uri` mismatch, PKCE failure, or the device no longer exists / is not active.",
+            "description": "`invalid_request` — `grant_type`, `code`, or `code_verifier` missing; `unsupported_grant_type` — any grant other than `authorization_code` (there are no refresh tokens); `invalid_grant` — malformed, unknown, expired, or used code, code issued to another client, `redirect_uri` mismatch, PKCE failure, or the device no longer exists / is not active.",
             "headers": {
               "Cache-Control": {
                 "schema": {
@@ -635,8 +625,13 @@ export const OPENAPI_DOCUMENT: Record<string, unknown> = {
             }
           },
           "401": {
-            "description": "`invalid_client` — `client_id` missing, unknown, or the client secret is wrong.",
+            "description": "`invalid_client` — `client_id` missing, unknown, malformed Basic credentials, or the client secret is wrong. When the client used HTTP Basic the response carries `WWW-Authenticate: Basic realm=\"identizen\"` (RFC 6749 §5.2).",
             "headers": {
+              "WWW-Authenticate": {
+                "schema": {
+                  "type": "string"
+                }
+              },
               "Cache-Control": {
                 "schema": {
                   "type": "string",
@@ -683,7 +678,7 @@ export const OPENAPI_DOCUMENT: Record<string, unknown> = {
         ],
         "operationId": "postUserinfo",
         "summary": "OIDC userinfo endpoint (POST form)",
-        "description": "Identical to `GET /userinfo`; the token still travels in the `Authorization` header.",
+        "description": "Identical to `GET /userinfo`; the token travels in the `Authorization` header or, per RFC 6750 §2.2, as `access_token` in an `application/x-www-form-urlencoded` body.",
         "security": [
           {
             "accessToken": []
@@ -2810,7 +2805,66 @@ export const OPENAPI_DOCUMENT: Record<string, unknown> = {
         }
       },
       "InvalidToken": {
-        "description": "`invalid_token` — bearer token missing, invalid, expired, or its session revoked.",
+        "description": "`invalid_token` — bearer token missing, invalid, expired, or its session revoked. Carries `WWW-Authenticate: Bearer …` (RFC 6750 §3); with a token present the challenge includes `error=\"invalid_token\"`.",
+        "headers": {
+          "WWW-Authenticate": {
+            "schema": {
+              "type": "string"
+            },
+            "example": "Bearer realm=\"identizen\", error=\"invalid_token\", error_description=\"session has been revoked\""
+          }
+        },
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      },
+      "LoginPage": {
+        "description": "The hosted login page.",
+        "headers": {
+          "Cache-Control": {
+            "schema": {
+              "type": "string",
+              "const": "no-store"
+            }
+          },
+          "X-Frame-Options": {
+            "schema": {
+              "type": "string",
+              "const": "DENY"
+            }
+          },
+          "Referrer-Policy": {
+            "schema": {
+              "type": "string",
+              "const": "no-referrer"
+            }
+          }
+        },
+        "content": {
+          "text/html": {
+            "schema": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "AuthorizeErrorRedirect": {
+        "description": "OIDC error redirect to `redirect_uri` with `error`, `error_description`, and `state` query parameters.",
+        "headers": {
+          "Location": {
+            "schema": {
+              "type": "string",
+              "format": "uri"
+            }
+          }
+        }
+      },
+      "AuthorizeBadRequest": {
+        "description": "`invalid_client` — unknown `client_id`; `invalid_request` — `redirect_uri` is not registered for this client.",
         "content": {
           "application/json": {
             "schema": {
@@ -4024,12 +4078,62 @@ export const OPENAPI_DOCUMENT: Record<string, unknown> = {
           }
         }
       },
+      "AuthorizeRequest": {
+        "type": "object",
+        "description": "The `GET /authorize` query parameters as a form body; see the GET operation for each field.",
+        "required": [
+          "response_type",
+          "client_id",
+          "redirect_uri",
+          "scope",
+          "code_challenge",
+          "code_challenge_method"
+        ],
+        "properties": {
+          "response_type": {
+            "type": "string",
+            "const": "code"
+          },
+          "client_id": {
+            "$ref": "#/components/schemas/ClientId"
+          },
+          "redirect_uri": {
+            "type": "string",
+            "format": "uri"
+          },
+          "scope": {
+            "type": "string",
+            "example": "openid handle"
+          },
+          "code_challenge": {
+            "type": "string"
+          },
+          "code_challenge_method": {
+            "type": "string",
+            "const": "S256"
+          },
+          "state": {
+            "type": "string"
+          },
+          "nonce": {
+            "type": "string"
+          },
+          "acr_values": {
+            "type": "string"
+          },
+          "login_hint": {
+            "type": "string"
+          },
+          "prompt": {
+            "type": "string"
+          }
+        }
+      },
       "TokenRequest": {
         "type": "object",
         "required": [
           "grant_type",
-          "code",
-          "code_verifier"
+          "code"
         ],
         "properties": {
           "grant_type": {
@@ -4041,7 +4145,8 @@ export const OPENAPI_DOCUMENT: Record<string, unknown> = {
             "description": "`<challenge_id>.<secret>` from the authorization redirect."
           },
           "code_verifier": {
-            "type": "string"
+            "type": "string",
+            "description": "Required whenever the authorization request carried a `code_challenge`, which is every request unless the index runs with `OIDC_PKCE_OPTIONAL=true` and the client is confidential."
           },
           "redirect_uri": {
             "type": "string",

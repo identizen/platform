@@ -16,6 +16,7 @@ const ORDER = [
   'guides/plain-html',
   'reference/sdk',
   'reference/oidc',
+  'reference/oidc-conformance',
   'reference/verification-api',
   'reference/index-api',
   'reference/openapi',

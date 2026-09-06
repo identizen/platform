@@ -60,6 +60,7 @@ export default defineConfig({
           items: [
             { label: 'Verification API', link: '/reference/verification-api/' },
             { label: 'OIDC', link: '/reference/oidc/' },
+            { label: 'OIDC conformance', link: '/reference/oidc-conformance/' },
             { label: 'SDK and CLI', link: '/reference/sdk/' },
             { label: 'Index API', link: '/reference/index-api/' },
             { label: 'OpenAPI', link: '/reference/openapi/' },

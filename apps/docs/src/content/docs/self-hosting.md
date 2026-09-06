@@ -23,6 +23,7 @@ Put the Hyperdrive id in `apps/index/wrangler.jsonc` (`hyperdrive[0].id`) and se
 | `APP_URL`                          | Where deep links point (`https://app.example.com/l/<id>`); the dashboard PWA                                                                         |
 | `PUSH_PROVIDER`                    | `noop` (default; inbox only, no provider pushes). Any other value enables the real senders, chosen per device by its token and the credentials below |
 | `OPEN_SITE_REGISTRATION`           | `true` lets anyone `POST /sites`; otherwise set `SITE_REGISTRATION_TOKEN`                                                                            |
+| `OIDC_PKCE_OPTIONAL`               | `true` lets confidential clients omit PKCE. Only for running the [OpenID conformance suite](/reference/oidc-conformance/); leave unset otherwise     |
 | `DASHBOARD_CLIENT_IDS`             | Comma-separated client ids allowed to call `/me` with a bearer token (`*` for dev only)                                                              |
 | `RATE_LIMIT_CHALLENGES_PER_CLIENT` | Challenges one site may start per minute (default `300`)                                                                                             |
 | `RATE_LIMIT_REQUESTS_PER_IP`       | Challenge and discovery requests one IP may make per minute (default `60`)                                                                           |

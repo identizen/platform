@@ -35,6 +35,7 @@ export const GET: APIRoute = async () => {
   section('Reference', [
     'reference/sdk',
     'reference/oidc',
+    'reference/oidc-conformance',
     'reference/verification-api',
     'reference/index-api',
     'reference/openapi',

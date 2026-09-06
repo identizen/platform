@@ -3,7 +3,7 @@ title: OIDC
 description: The index as an OpenID Provider — discovery, endpoints, PKCE, id_token claims, step-up, enrollment, and back-channel logout.
 ---
 
-The index is a standard OpenID Provider implementing the Authorization Code flow with PKCE (S256, required for every client). Any OIDC library works; the specifics below are what makes Identizen different from a password IdP.
+The index is a standard OpenID Provider implementing the Authorization Code flow with PKCE (S256, required for every client; a self-hosted index can set `OIDC_PKCE_OPTIONAL=true` to relax it for confidential clients when running the [OpenID conformance suite](/reference/oidc-conformance/), and should not otherwise). Any OIDC library works; the specifics below are what makes Identizen different from a password IdP.
 
 ## Discovery
 
@@ -23,27 +23,28 @@ The index is a standard OpenID Provider implementing the Authorization Code flow
 | `acr_values_supported`                                                      | `["idz:login", "idz:mfa"]`                                           |
 | `backchannel_logout_supported` / `backchannel_logout_session_supported`     | `true`                                                               |
 
-`request`, `request_uri`, and the `claims` parameter are not supported.
+`request`, `request_uri`, and the `claims` parameter are not supported: a `request` or `request_uri` parameter is answered with `error=request_not_supported` / `request_uri_not_supported`. The [OIDC conformance](/reference/oidc-conformance/) page lists every specification section the index is tested against and the deliberate deviations.
 
 ## `GET /authorize`
 
-Required: `response_type=code`, `client_id`, a registered `redirect_uri` (exact match), `scope` containing `openid`, `code_challenge` + `code_challenge_method=S256`. Recommended: `state`, `nonce`.
+`GET` with query parameters or `POST` with an `application/x-www-form-urlencoded` body; both are the same request. Required: `response_type=code`, `client_id`, a registered `redirect_uri` (exact match), `scope` containing `openid`, `code_challenge` (43–128 unreserved characters) + `code_challenge_method=S256`. Recommended: `state`, `nonce`. Scopes other than `openid` and `handle` are ignored and left out of the token response's `scope`; `acr_values` other than `idz:login` / `idz:mfa` are ignored (`acr` is a voluntary claim). `display`, `ui_locales`, `claims_locales`, `max_age`, and `id_token_hint` are accepted and have no effect.
 
 Optional Identizen parameters:
 
-| Parameter                                 | Effect                                                                                                         |
-| ----------------------------------------- | -------------------------------------------------------------------------------------------------------------- |
-| `acr_values=idz:mfa` + `login_hint=<sub>` | Step-up: push straight to the device bound to `sub`. Without a binding the response is `error=login_required`. |
-| `login_hint=<sub>` alone                  | Repeat login pushed to the bound device (still `acr: idz:login`).                                              |
-| `prompt=enroll`                           | Enrollment: normal discovery; the resulting `sub` is the binding the site should store.                        |
-| `prompt=none`                             | Always `error=interaction_required` — approval on the phone is mandatory.                                      |
-| `scope=openid handle`                     | Releases `idz_handle` when the user has set one.                                                               |
+| Parameter                                 | Effect                                                                                                                    |
+| ----------------------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
+| `acr_values=idz:mfa` + `login_hint=<sub>` | Step-up: push straight to the device bound to `sub`. Without a binding the response is `error=login_required`.            |
+| `login_hint=<sub>` alone                  | Repeat login pushed to the bound device (still `acr: idz:login`).                                                         |
+| `acr_values=idz:login idz:mfa`, no hint   | A normal login; the id_token says `acr: idz:login`. `acr_values=idz:mfa` alone without `login_hint` is `invalid_request`. |
+| `prompt=enroll`                           | Enrollment: normal discovery; the resulting `sub` is the binding the site should store.                                   |
+| `prompt=none`                             | Always `error=interaction_required` — approval on the phone is mandatory.                                                 |
+| `scope=openid handle`                     | Releases `idz_handle` when the user has set one.                                                                          |
 
-Validation errors with a valid `redirect_uri` are returned as OIDC error redirects (`invalid_request`, `unsupported_response_type`, `invalid_scope`, `login_required`, `interaction_required`); an unknown client or unregistered `redirect_uri` is a `400` JSON error (`invalid_client` / `invalid_request`), not a page. On success the index renders the hosted login page (match code, the QR, a WebSocket to the session). The QR is always rendered; when the challenge was pushed to a bound device the hint "We sent it to your phone. Approve there, or scan this code." appears above it. After approval the page redirects to `redirect_uri?code=…&state=…`. The code is single-use, bound to the client, and redeemable for about five minutes after approval.
+Validation errors with a valid `redirect_uri` are returned as OIDC error redirects (`invalid_request`, `unsupported_response_type`, `invalid_scope`, `request_not_supported`, `request_uri_not_supported`, `login_required`, `interaction_required`), always with `error_description` and the request's `state`; an unknown client or unregistered `redirect_uri` is a `400` JSON error (`invalid_client` / `invalid_request`), not a page and never a redirect. On success the index renders the hosted login page (match code, the QR, a WebSocket to the session). The QR is always rendered; when the challenge was pushed to a bound device the hint "We sent it to your phone. Approve there, or scan this code." appears above it. After approval the page redirects to `redirect_uri?code=…&state=…`. The code is single-use, bound to the client, and redeemable for about five minutes after approval.
 
 ## `POST /token`
 
-`application/x-www-form-urlencoded` with `grant_type=authorization_code`, `code`, `redirect_uri`, `code_verifier`, and client authentication: `client_id` + `client_secret` in the body, HTTP Basic, or `client_id` alone for public clients. Errors follow RFC 6749 (`invalid_client` 401, `invalid_grant` 400 for a used/unknown code, redirect mismatch, or failed PKCE, `unsupported_grant_type`).
+`application/x-www-form-urlencoded` with `grant_type=authorization_code`, `code`, `redirect_uri`, `code_verifier`, and client authentication: `client_id` + `client_secret` in the body, HTTP Basic, or `client_id` alone for public clients. Errors follow RFC 6749: `invalid_client` 401 (with `WWW-Authenticate: Basic` when the client used HTTP Basic), `invalid_grant` 400 for a used/unknown/expired code, a code issued to another client, redirect mismatch, or failed PKCE, `invalid_request` 400 for a missing `grant_type`, `code`, or `code_verifier`, and `unsupported_grant_type` 400 for any other grant. Every response, success or error, is `Cache-Control: no-store`. A code is redeemed once; presenting it a second time is `invalid_grant` and, per RFC 6749 §4.1.2, revokes the session the first exchange created (its access token stops working at `/userinfo` and a back-channel logout is sent), because a code seen twice has probably leaked.
 
 ```json
 {
@@ -97,7 +98,7 @@ Verify with the JWKS at `/.well-known/jwks.json`; two ES256 keys are published s
 
 ## `GET /userinfo`
 
-`Authorization: Bearer <access_token>`. Returns `sub`, `idz_device`, `idz_handle` (with the `handle` scope), `idz_org`. Returns `401 invalid_token` once the session has been revoked, so it doubles as a liveness check.
+`GET` or `POST` with `Authorization: Bearer <access_token>`. Returns `sub`, `idz_device`, `idz_handle` (with the `handle` scope), `idz_org`. Returns `401 invalid_token` with a `WWW-Authenticate: Bearer …` challenge (RFC 6750) when the token is missing, malformed, an id_token, or its session has been revoked, so it doubles as a liveness check.
 
 ## Sessions and back-channel logout
 

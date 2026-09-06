@@ -6,6 +6,7 @@ import {
   getSite,
   isSessionLive,
   recordAudit,
+  revokeSession,
 } from '@identizen/db';
 import {
   AcrSchema,
@@ -18,7 +19,7 @@ import {
 } from '@identizen/protocol';
 import { Hono, type Context } from 'hono';
 import type { AppEnv } from '../app';
-import { ApiError, badRequest, unauthorized } from '../lib/errors';
+import { ApiError, badRequest } from '../lib/errors';
 import { bearer, hashSecret, randomToken, safeEqual } from '../lib/util';
 import { loadKeyring, publicJwks, OIDC_ALG } from '../oidc/keys';
 import { renderLoginPage } from '../oidc/login-page';
@@ -30,9 +31,36 @@ import {
 } from '../oidc/tokens';
 import { startChallenge } from '../services/challenge';
 import { ipRateLimit } from '../middleware/rate-limit';
-import { buildRedirect } from '../services/sessions';
+import { buildRedirect, fireBackchannelLogout } from '../services/sessions';
 
 export const SESSION_TTL_SECONDS = 30 * 24 * 60 * 60;
+
+/** Scopes the OP grants; anything else in `scope` is ignored (RFC 6749 §3.3). */
+export const SCOPES_SUPPORTED = ['openid', 'handle'] as const;
+
+/** RFC 7636 §4.2: code_challenge is 43–128 unreserved characters. */
+const CODE_CHALLENGE_RE = /^[A-Za-z0-9._~-]{43,128}$/;
+
+/**
+ * PKCE (S256) is mandatory for every client. The one exception is a conformance run: with
+ * `OIDC_PKCE_OPTIONAL=true` a confidential client may omit it, because the OpenID Foundation's
+ * Basic OP plan sends plain Core requests. Public clients never get the exception.
+ */
+export function pkceRequired(
+  env: { OIDC_PKCE_OPTIONAL?: string | undefined },
+  site: { clientSecretHash: string | null },
+): boolean {
+  return env.OIDC_PKCE_OPTIONAL !== 'true' || site.clientSecretHash === null;
+}
+
+/** Authorization request parameters from the query (GET) or the form body (POST), Core §3.1.2.1. */
+async function authorizeParams(c: Context<AppEnv>): Promise<Record<string, string>> {
+  if (c.req.method !== 'POST') return c.req.query();
+  const form = await c.req.parseBody();
+  const out: Record<string, string> = {};
+  for (const [k, v] of Object.entries(form)) if (typeof v === 'string') out[k] = v;
+  return out;
+}
 
 export function oidcRoutes(): Hono<AppEnv> {
   const r = new Hono<AppEnv>();
@@ -50,7 +78,7 @@ export function oidcRoutes(): Hono<AppEnv> {
       grant_types_supported: ['authorization_code'],
       subject_types_supported: ['pairwise'],
       id_token_signing_alg_values_supported: [OIDC_ALG],
-      scopes_supported: ['openid', 'handle'],
+      scopes_supported: [...SCOPES_SUPPORTED],
       token_endpoint_auth_methods_supported: ['client_secret_basic', 'client_secret_post', 'none'],
       claims_supported: [
         'iss',
@@ -88,9 +116,9 @@ export function oidcRoutes(): Hono<AppEnv> {
    * - `acr_values=idz:mfa&login_hint=<sub>`: step-up, pushes to the bound device.
    * - `prompt=enroll`: discovery flow whose resulting `sub` the site stores as the binding.
    */
-  r.get('/authorize', ipRateLimit(), async (c) => {
+  r.on(['GET', 'POST'], '/authorize', ipRateLimit(), async (c) => {
     const services = c.get('services');
-    const q = c.req.query();
+    const q = await authorizeParams(c);
     const site = q.client_id ? await getSite(services.db, q.client_id) : null;
     if (!site) throw badRequest('invalid_client', 'unknown client_id');
     const redirectUri = q.redirect_uri;
@@ -101,24 +129,54 @@ export function oidcRoutes(): Hono<AppEnv> {
     const fail = (error: string, description: string): Response =>
       c.redirect(buildRedirect(redirectUri, { error, error_description: description, state }), 302);
 
+    // RFC 6749 §4.1.2.1: a missing required parameter is invalid_request; an unsupported
+    // response_type is unsupported_response_type.
+    if (!q.response_type) return fail('invalid_request', 'response_type is required');
     if (q.response_type !== 'code')
       return fail('unsupported_response_type', 'response_type must be code');
-    const scopes = (q.scope ?? '').split(/\s+/).filter(Boolean);
-    if (!scopes.includes('openid')) return fail('invalid_scope', 'scope must include openid');
-    if (!q.code_challenge || q.code_challenge_method !== 'S256') {
-      return fail('invalid_request', 'PKCE with code_challenge_method=S256 is required');
+    // Core §6.1 / §3.1.2.6: request objects are not supported (discovery says so).
+    if (q.request !== undefined)
+      return fail('request_not_supported', 'the request parameter is not supported');
+    if (q.request_uri !== undefined)
+      return fail('request_uri_not_supported', 'the request_uri parameter is not supported');
+    const requested = (q.scope ?? '').split(/\s+/).filter(Boolean);
+    if (!requested.includes('openid')) return fail('invalid_scope', 'scope must include openid');
+    // RFC 6749 §3.3: unknown scopes are ignored; the token response carries the granted scope.
+    const scopes = requested.filter((s) => (SCOPES_SUPPORTED as readonly string[]).includes(s));
+    const usesPkce =
+      q.code_challenge !== undefined ||
+      q.code_challenge_method !== undefined ||
+      pkceRequired(c.env, site);
+    if (usesPkce) {
+      if (!q.code_challenge || q.code_challenge_method !== 'S256') {
+        return fail('invalid_request', 'PKCE with code_challenge_method=S256 is required');
+      }
+      if (!CODE_CHALLENGE_RE.test(q.code_challenge))
+        return fail('invalid_request', 'code_challenge must be 43-128 unreserved characters');
     }
-    const acrValues = (q.acr_values ?? '').split(/\s+/).filter(Boolean);
-    const acr: Acr = acrValues.includes(ACR_MFA) ? ACR_MFA : ACR_LOGIN;
-    if (acrValues.some((a) => !AcrSchema.safeParse(a).success))
-      return fail('invalid_request', 'unsupported acr_values');
+    // Core §3.1.2.1: acr_values requests acr as a voluntary claim; unknown values are ignored.
+    const acrValues = (q.acr_values ?? '')
+      .split(/\s+/)
+      .filter((a) => AcrSchema.safeParse(a).success);
+    // acr_values is voluntary: satisfy the strongest value the request can. Step-up (idz:mfa)
+    // needs login_hint to know which phone to push to; when idz:login is also listed the login
+    // proceeds at that level, and only a request for idz:mfa alone without a hint is refused.
+    const acr: Acr =
+      acrValues.includes(ACR_MFA) && (q.login_hint || !acrValues.includes(ACR_LOGIN))
+        ? ACR_MFA
+        : ACR_LOGIN;
     if (acr === ACR_MFA && !q.login_hint)
       return fail('invalid_request', 'acr_values=idz:mfa requires login_hint');
-    if (q.prompt === 'none')
+    const prompts = (q.prompt ?? '').split(/\s+/).filter(Boolean);
+    if (prompts.includes('none')) {
+      // Core §3.1.2.1: `none` MUST NOT be combined with other prompt values.
+      if (prompts.length > 1)
+        return fail('invalid_request', 'prompt=none cannot be combined with other values');
       return fail(
         'interaction_required',
         'Identizen always requires the user to approve on their phone',
       );
+    }
 
     let started;
     try {
@@ -135,8 +193,7 @@ export function oidcRoutes(): Hono<AppEnv> {
             redirect_uri: redirectUri,
             ...(state !== undefined && { state }),
             ...(q.nonce !== undefined && { nonce: q.nonce }),
-            code_challenge: q.code_challenge,
-            code_challenge_method: 'S256',
+            ...(usesPkce && { code_challenge: q.code_challenge, code_challenge_method: 'S256' }),
             scope: scopes.join(' '),
             ...(q.prompt !== undefined && { prompt: q.prompt }),
             ...(q.login_hint !== undefined && { login_hint: q.login_hint }),
@@ -177,25 +234,44 @@ export function oidcRoutes(): Hono<AppEnv> {
     const form = await c.req.parseBody();
     const get = (k: string): string | undefined =>
       typeof form[k] === 'string' ? form[k] : undefined;
+    const auth = c.req.header('authorization');
+    const usedBasic = /^basic(\s|$)/i.test(auth ?? '');
     const tokenError = (error: string, description: string, status: 400 | 401 = 400): Response =>
-      c.json({ error, error_description: description }, status, { 'cache-control': 'no-store' });
+      c.json({ error, error_description: description }, status, {
+        'cache-control': 'no-store',
+        pragma: 'no-cache',
+        // RFC 6749 §5.2: a 401 to a client that authenticated via the Authorization header
+        // carries a WWW-Authenticate challenge for the scheme it used.
+        ...(status === 401 && usedBasic ? { 'www-authenticate': 'Basic realm="identizen"' } : {}),
+      });
 
-    if (get('grant_type') !== 'authorization_code')
+    // RFC 6749 §5.2: a missing grant_type is invalid_request; an unknown one is unsupported.
+    const grantType = get('grant_type');
+    if (!grantType) return tokenError('invalid_request', 'grant_type is required');
+    if (grantType !== 'authorization_code')
       return tokenError('unsupported_grant_type', 'only authorization_code is supported');
     const code = get('code');
     const verifier = get('code_verifier');
-    if (!code || !verifier)
-      return tokenError('invalid_request', 'code and code_verifier are required');
+    if (!code) return tokenError('invalid_request', 'code is required');
 
     // Client authentication.
     let clientId = get('client_id');
     let clientSecret = get('client_secret');
-    const auth = c.req.header('authorization');
-    if (auth?.toLowerCase().startsWith('basic ')) {
-      const decoded = atob(auth.slice(6));
+    if (usedBasic && auth) {
+      let decoded: string;
+      try {
+        decoded = atob(auth.slice(5).trim());
+      } catch {
+        return tokenError('invalid_client', 'malformed Basic credentials', 401);
+      }
       const i = decoded.indexOf(':');
-      clientId = decodeURIComponent(decoded.slice(0, i));
-      clientSecret = decodeURIComponent(decoded.slice(i + 1));
+      if (i < 0) return tokenError('invalid_client', 'malformed Basic credentials', 401);
+      try {
+        clientId = decodeURIComponent(decoded.slice(0, i));
+        clientSecret = decodeURIComponent(decoded.slice(i + 1));
+      } catch {
+        return tokenError('invalid_client', 'malformed Basic credentials', 401);
+      }
     }
     if (!clientId) return tokenError('invalid_client', 'client_id is required', 401);
     const site = await getSite(services.db, clientId);
@@ -211,17 +287,41 @@ export function oidcRoutes(): Hono<AppEnv> {
     if (!challengeId || !secret) return tokenError('invalid_grant', 'malformed code');
     const stub = c.env.CHALLENGE_SESSION.getByName(challengeId);
     const state = await stub.redeemCode(code, site.clientId);
-    if (!state?.oidc || !state.assertion)
+    if (!state?.oidc || !state.assertion) {
+      // RFC 6749 §4.1.2: a code presented twice has probably leaked; revoke the session the
+      // first exchange created so the attacker and the victim both lose it.
+      const leaked = await stub.exchangedSessionFor(code);
+      if (leaked) {
+        const session = await getSession(services.db, leaked);
+        if (session && session.revokedAt === null) {
+          const revoked = await revokeSession(services.db, leaked);
+          await recordAudit(services.db, {
+            kind: 'session.revoked',
+            idz: revoked.idz,
+            deviceId: revoked.deviceId,
+            clientId: revoked.clientId,
+            detail: { sid: leaked, via: 'code_reuse' },
+          });
+          services.defer(fireBackchannelLogout(services, [revoked], c.env));
+        }
+      }
       return tokenError('invalid_grant', 'code is invalid, expired, or already used');
+    }
     if (state.clientId !== site.clientId)
       return tokenError('invalid_grant', 'code was issued to another client');
     const redirectUri = get('redirect_uri');
     if (state.oidc.redirect_uri && redirectUri !== state.oidc.redirect_uri) {
       return tokenError('invalid_grant', 'redirect_uri does not match the authorization request');
     }
-    const expected = state.oidc.code_challenge ?? '';
-    if (toBase64Url(sha256(utf8Encode(verifier))) !== expected)
-      return tokenError('invalid_grant', 'PKCE verification failed');
+    // RFC 7636 §4.6: a code issued against a code_challenge needs the matching verifier. A code
+    // issued without one (only possible with OIDC_PKCE_OPTIONAL) must not be exchanged with one.
+    if (state.oidc.code_challenge !== undefined) {
+      if (!verifier) return tokenError('invalid_request', 'code_verifier is required');
+      if (toBase64Url(sha256(utf8Encode(verifier))) !== state.oidc.code_challenge)
+        return tokenError('invalid_grant', 'PKCE verification failed');
+    } else if (verifier !== undefined) {
+      return tokenError('invalid_grant', 'code was issued without PKCE');
+    }
 
     const assertion = state.assertion;
     const device = await getDevice(services.db, assertion.device_id);
@@ -245,6 +345,7 @@ export function oidcRoutes(): Hono<AppEnv> {
       clientId: site.clientId,
       detail: { sid, acr: assertion.acr },
     });
+    await stub.markExchanged(sid);
 
     const ring = await loadKeyring(c.env);
     const scope = state.oidc.scope ?? 'openid';
@@ -285,14 +386,35 @@ export function oidcRoutes(): Hono<AppEnv> {
 
   const userinfo = async (c: Context<AppEnv>): Promise<Response> => {
     const services = c.get('services');
-    const token = bearer(c.req.header('authorization'));
-    if (!token) throw unauthorized('invalid_token', 'bearer access token required');
+    // RFC 6750 §3: every 401 carries a `WWW-Authenticate: Bearer` challenge; when the request
+    // had no token at all the challenge has no error code (§3.1).
+    const tokenError = (description: string, challenge: string): Response =>
+      c.json({ error: 'invalid_token', error_description: description }, 401, {
+        'www-authenticate': challenge,
+        'cache-control': 'no-store',
+      });
+    // RFC 6750 §2.1 (Authorization header) and §2.2 (form-encoded body on POST). Query strings
+    // (§2.3) are not accepted: they leak into logs.
+    let token = bearer(c.req.header('authorization'));
+    if (
+      !token &&
+      c.req.method === 'POST' &&
+      /^application\/x-www-form-urlencoded/i.test(c.req.header('content-type') ?? '')
+    ) {
+      const form = await c.req.parseBody();
+      if (typeof form.access_token === 'string') token = form.access_token;
+    }
+    if (!token) return tokenError('bearer access token required', 'Bearer realm="identizen"');
+    const invalid = (description: string): Response =>
+      tokenError(
+        description,
+        `Bearer realm="identizen", error="invalid_token", error_description="${description}"`,
+      );
     const ring = await loadKeyring(c.env);
     const claims = await verifyAccessToken(ring, services.indexUrl, token);
-    if (!claims) throw unauthorized('invalid_token', 'access token is invalid or expired');
+    if (!claims) return invalid('access token is invalid or expired');
     const session = await getSession(services.db, claims.sid);
-    if (!session || !isSessionLive(session))
-      throw unauthorized('invalid_token', 'session has been revoked');
+    if (!session || !isSessionLive(session)) return invalid('session has been revoked');
     const identity = await getIdentity(services.db, session.idz);
     return c.json({
       sub: claims.sub,

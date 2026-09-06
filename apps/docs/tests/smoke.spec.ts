@@ -14,6 +14,7 @@ const PAGES = [
   '/ai-assistants/',
   '/reference/verification-api/',
   '/reference/oidc/',
+  '/reference/oidc-conformance/',
   '/reference/sdk/',
   '/reference/index-api/',
   '/reference/openapi/',

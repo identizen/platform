@@ -21,6 +21,12 @@ export interface Env {
   EXPO_ACCESS_TOKEN?: string;
   /** "true" allows unauthenticated POST /sites (dev / self-host). Otherwise SITE_REGISTRATION_TOKEN is required. */
   OPEN_SITE_REGISTRATION?: string;
+  /**
+   * "true" lets confidential clients (those with a client_secret) omit PKCE on /authorize, which
+   * the OpenID Foundation's Basic OP conformance plan needs (it predates PKCE). Public clients
+   * always need S256. Leave unset on any index that serves real sites; the hosted index never sets it.
+   */
+  OIDC_PKCE_OPTIONAL?: string;
   SITE_REGISTRATION_TOKEN?: string;
   /** Per-minute abuse limits (M10.2); defaults in middleware/rate-limit.ts. */
   RATE_LIMIT_CHALLENGES_PER_CLIENT?: string;

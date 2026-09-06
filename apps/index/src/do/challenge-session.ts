@@ -60,6 +60,8 @@ export interface SessionState {
   /** Redirect for the waiting browser after approval (code + state), or null. */
   redirect: string | null;
   codeUsed: boolean;
+  /** Session (sid) the code was exchanged for, so a reuse of the code can revoke it. */
+  sid?: string | null;
   resolvedAt: number | null;
 }
 
@@ -103,6 +105,7 @@ export class ChallengeSession extends DurableObject<Env> {
       code: null,
       redirect: null,
       codeUsed: false,
+      sid: null,
       resolvedAt: null,
       signed: init.signed,
     };
@@ -176,6 +179,24 @@ export class ChallengeSession extends DurableObject<Env> {
     s.codeUsed = true;
     await this.save(s);
     return this.publicState(s);
+  }
+
+  /** Record the session the code was exchanged for (see `exchangedSessionFor`). */
+  async markExchanged(sid: string): Promise<void> {
+    const s = await this.load();
+    if (!s) return;
+    s.sid = sid;
+    await this.save(s);
+  }
+
+  /**
+   * RFC 6749 §4.1.2: a code presented a second time is a sign it leaked, and the server SHOULD
+   * revoke what the first exchange produced. Returns that session's sid when `code` was already
+   * redeemed here, null otherwise.
+   */
+  async exchangedSessionFor(code: string): Promise<string | null> {
+    const s = await this.load();
+    return s && s.codeUsed && s.code === code ? (s.sid ?? null) : null;
   }
 
   override async alarm(): Promise<void> {
