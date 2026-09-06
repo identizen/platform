@@ -9,6 +9,7 @@ const PAGES = [
   { to: '/docs/register', label: '2 · Register your site', exact: false },
   { to: '/docs/login', label: '3 · The login button', exact: false },
   { to: '/docs/step-up', label: '4 · Approve a transaction', exact: false },
+  { to: '/docs/customers', label: '5 · Link an identity to a customer', exact: false },
 ] as const;
 
 export interface DocsLayoutProps {

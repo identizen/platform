@@ -53,6 +53,10 @@ const notes = [
     a: 'Which identities are registered and which sites they sign in to, because it routes the requests. Sites cannot correlate a person across each other. If routing metadata should not leave your organisation, run the index yourself.',
   },
   {
+    q: 'How does an app attach a name, email, or billing to an accountless identity?',
+    a: 'Through the sub claim, which is unique to the app, stable across phones and restores, and bound by the index to the key that produced it. A login with an unknown sub is a sign-up: the app asks for what it needs, once, and stores it under that sub. Identizen never receives it. See the demo bank at jtmerlin.com for the flow and its source.',
+  },
+  {
     q: 'What if the phone is lost?',
     a: 'Restore on a new phone from the 24 words, then revoke the old phone from the dashboard or another device. Revocation signs it out of every site and unpairs every browser it had paired.',
   },

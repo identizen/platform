@@ -27,7 +27,12 @@ export default defineConfig({
     starlight({
       title: 'Identizen',
       description: 'Login with your phone. Standard OIDC on the outside.',
-      logo: { light: './src/assets/logo-light.svg', dark: './src/assets/logo-dark.svg', replacesTitle: true, alt: 'Identizen' },
+      logo: {
+        light: './src/assets/logo-light.svg',
+        dark: './src/assets/logo-dark.svg',
+        replacesTitle: true,
+        alt: 'Identizen',
+      },
       favicon: '/favicon.svg',
       customCss: ['./src/styles/theme.css'],
       components: { Hero: './src/components/Hero.astro' },
@@ -37,6 +42,7 @@ export default defineConfig({
       lastUpdated: false,
       sidebar: [
         { label: 'Quickstart', link: '/quickstart/' },
+        { label: 'Users, sign-up, and linking identities', link: '/users/' },
         { label: 'Add MFA to your existing login', link: '/add-mfa/' },
         { label: 'React (any app)', link: '/guides/react/' },
         {

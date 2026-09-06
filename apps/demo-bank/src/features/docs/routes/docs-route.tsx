@@ -53,9 +53,10 @@ export function DocsRoute() {
         </ul>
       </div>
       <P>
-        Four short pages cover the integration in the order you would do it: the CLI quickstart for
-        a fresh app, registering a site by hand, the login button and callback, and transaction
-        approval. Each shows terminal steps or the actual file from this site.
+        Five short pages cover the integration in the order you would do it: the CLI quickstart for
+        a fresh app, registering a site by hand, the login button and callback, transaction
+        approval, and linking the identity to a customer record with a name and contact details.
+        Each shows terminal steps or the actual file from this site.
       </P>
       <div className="flex gap-2">
         <Button asChild>

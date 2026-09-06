@@ -49,7 +49,8 @@ export function LoginRoute() {
         <CardContent className="flex flex-col gap-4">
           <IdentizenLogin />
           <p className="text-center text-xs text-fg-muted">
-            First time here? The same button creates your account. Read{' '}
+            First time here? The same button opens your account: your phone approves, then we ask
+            for your name and contact details once. Read{' '}
             <Link to="/docs/login" className="text-accent underline">
               how this page is built
             </Link>

@@ -1,9 +1,14 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate } from '@tanstack/react-router';
 import { Button } from '@identizen/ui';
+import { findCustomer } from '@/features/customers';
 import { completeSignInOnce } from '../api/oidc';
 
-/** /callback: exchanges the authorization code for tokens, then lands in the bank. */
+/**
+ * /callback: exchanges the authorization code for tokens, then lands in the bank.
+ * The branch every accountless login takes: a known `sub` is a customer, an unknown one is a
+ * sign-up. Identizen proved the identity; the bank decides what it knows about it.
+ */
 export function CallbackRoute() {
   const navigate = useNavigate();
   const [error, setError] = useState<string | null>(null);
@@ -11,8 +16,10 @@ export function CallbackRoute() {
   useEffect(() => {
     let cancelled = false;
     completeSignInOnce(new URLSearchParams(location.search))
-      .then(() => {
-        if (!cancelled) void navigate({ to: '/app', replace: true });
+      .then((session) => {
+        if (cancelled) return;
+        const known = findCustomer(session.claims.sub) !== null;
+        void navigate({ to: known ? '/app' : '/signup', replace: true });
       })
       .catch((err: unknown) => {
         if (!cancelled) setError(err instanceof Error ? err.message : String(err));

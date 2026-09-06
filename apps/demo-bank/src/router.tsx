@@ -14,14 +14,15 @@ import { OverviewRoute } from '@/features/accounts';
 import { CallbackRoute, LoginRoute, setSession, useSession } from '@/features/auth';
 import {
   DocsRoute,
+  LinkIdentityRoute,
   LoginDocsRoute,
   QuickstartRoute,
   RegisterRoute,
   StepUpRoute,
 } from '@/features/docs';
 import { HomeRoute } from '@/features/marketing';
+import { SignupRoute, findCustomer, firstName } from '@/features/customers';
 import { ActivityRoute, TransferRoute } from '@/features/transfers';
-import { shortId } from '@/lib/format';
 
 function Root() {
   const session = useSession();
@@ -46,9 +47,9 @@ function Root() {
 function AppLayout() {
   const session = useSession();
   if (!session) return <Navigate to="/login" replace />;
-  const who = session.claims.idz_handle
-    ? `@${session.claims.idz_handle}`
-    : shortId(session.claims.sub, 8);
+  const customer = findCustomer(session.claims.sub);
+  if (!customer) return <Navigate to="/signup" replace />;
+  const who = firstName(customer);
   return (
     <AppShell who={who}>
       <Outlet />
@@ -59,7 +60,8 @@ function AppLayout() {
 function Overview() {
   const session = useSession();
   if (!session) return null;
-  const who = session.claims.idz_handle ? `@${session.claims.idz_handle}` : 'there';
+  const customer = findCustomer(session.claims.sub);
+  const who = customer ? firstName(customer) : 'there';
   return <OverviewRoute who={who} amr={session.claims.amr} />;
 }
 
@@ -85,6 +87,16 @@ const callbackRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/callback',
   component: CallbackRoute,
+});
+const signupRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/signup',
+  component: SignupRoute,
+});
+const docsCustomersRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/docs/customers',
+  component: LinkIdentityRoute,
 });
 const docsRoute = createRoute({
   getParentRoute: () => rootRoute,
@@ -141,7 +153,9 @@ const routeTree = rootRoute.addChildren([
   homeRoute,
   loginRoute,
   callbackRoute,
+  signupRoute,
   docsRoute,
+  docsCustomersRoute,
   docsQuickstartRoute,
   docsRegisterRoute,
   docsLoginRoute,

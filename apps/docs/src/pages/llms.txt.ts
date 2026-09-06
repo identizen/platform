@@ -24,7 +24,7 @@ export const GET: APIRoute = async () => {
       out += `- [${d.data.title}](${SITE_URL}${markdownPath(d)}): ${d.data.description ?? ''}\n`;
     out += '\n';
   };
-  section('Start here', ['quickstart', 'add-mfa', 'guides/react']);
+  section('Start here', ['quickstart', 'users', 'add-mfa', 'guides/react']);
   section('Framework guides', [
     'guides/nextjs',
     'guides/express',
@@ -43,6 +43,9 @@ export const GET: APIRoute = async () => {
   out += `Everything in one file: ${SITE_URL}/llms-full.txt\n`;
 
   return new Response(out, {
-    headers: { 'content-type': 'text/plain; charset=utf-8', 'cache-control': 'public, max-age=3600' },
+    headers: {
+      'content-type': 'text/plain; charset=utf-8',
+      'cache-control': 'public, max-age=3600',
+    },
   });
 };

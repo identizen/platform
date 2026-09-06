@@ -1,6 +1,6 @@
 ---
 title: Index API
-description: The non-OIDC surface of the index — device registration, challenges, discovery, account management, and Idz-Signature request authentication.
+description: The non-OIDC surface of the index — device registration, challenges, discovery, identity management, and Idz-Signature request authentication.
 ---
 
 Everything a phone, the SDK, or the dashboard calls that is not plain OIDC. Sites normally never call these directly; the SDK and the app do. Bodies are JSON; errors are `{ "error": "<code>", "error_description": "…" }` (see [Errors](/errors/)).

@@ -54,6 +54,12 @@ export const FAQ_GROUPS: readonly { heading: string; items: readonly Faq[] }[] =
           'A request from your server for the user to approve one specific action, such as “Wire $12,000.00 to Acme Supply Co.” The phone shows exactly that text, the user approves it with biometrics, and the signature covers the text, so the approval cannot be reused for a different amount or payee. Your server acts on the result the index returns, and can re-verify the assertion itself.',
       },
       {
+        question:
+          'How do I link an accountless identity to a real user with a name, email, and billing details?',
+        answer:
+          'Key your user record on the sub claim. It is unique to your site, identical on every phone that holds the identity (a restore from the 24 words yields the same value), and rejected by the index if anyone else tries to use it. A login whose sub is unknown to your database is a sign-up: ask for the name, contact, and billing details your product needs, once, and store them under that sub. Identizen never sees them. The demo bank at jtmerlin.com shows the whole flow with its source.',
+      },
+      {
         question: 'What does the site learn about the user?',
         answer:
           'A stable identifier that is unique to your site, and nothing else unless the user has set a public handle and your site asks for the handle scope. No email, name, phone number, or identifiers that other sites could correlate. Your app decides what profile data to ask for after sign-in.',

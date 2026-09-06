@@ -6,6 +6,7 @@ export const SITE_URL = 'https://docs.identizen.com';
 const ORDER = [
   'index',
   'quickstart',
+  'users',
   'guides/react',
   'add-mfa',
   'guides/nextjs',
