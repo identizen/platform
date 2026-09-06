@@ -1,3 +1,4 @@
 .verify/
 .lighthouseci/
 src/content/docs/protocol/index.md
+src/content/docs/protocol/threat-model.md

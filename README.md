@@ -38,4 +38,8 @@ npm run gate                    # lint + typecheck + unit + e2e
 
 Planning documents and the milestone checklist are kept in a private companion repository.
 
+## Contributing and security
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for how to get a change in, [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md) for how we treat each other, and [SECURITY.md](SECURITY.md) for reporting vulnerabilities. The threat model is in [spec/THREAT-MODEL.md](spec/THREAT-MODEL.md).
+
 License: Apache-2.0.

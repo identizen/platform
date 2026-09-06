@@ -74,6 +74,7 @@ export default defineConfig({
           items: [
             { label: 'Protocol v1', link: '/protocol/' },
             { label: 'Test vectors', link: '/protocol/vectors/' },
+            { label: 'Threat model', link: '/protocol/threat-model/' },
           ],
         },
       ],

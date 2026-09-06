@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Switch, Text, TextInput, View } from 'react-native';
+import { Linking, Switch, Text, TextInput, View } from 'react-native';
 import { biometricName } from '../biometrics';
 import type { ThemePreference } from '../theme/useTheme';
 import { Button, Card, ErrorText, Heading, Muted, Screen } from '../components/ui';
@@ -44,6 +44,9 @@ export interface AboutInfo {
 }
 
 /** "0.1.0 (4) · built 3 Sep 2026, 10:34 · 2d84922", or "development build" for a local run. */
+/** Help for people using the app; the same page is the store listings' support URL. */
+export const HELP_URL = 'https://identizen.com/help/';
+
 export function formatAbout(a: AboutInfo): string {
   const parts: string[] = [];
   if (a.version) parts.push(a.build ? `${a.version} (${a.build})` : a.version);
@@ -240,7 +243,15 @@ export function SettingsScreen(p: SettingsScreenProps) {
         )}
       </Card>
 
-      <View className="items-center pt-2">
+      <View className="items-center gap-2 pt-2">
+        <Text
+          className="text-sm text-accent dark:text-accent-dark"
+          accessibilityRole="link"
+          onPress={() => void Linking.openURL(HELP_URL)}
+          testID="help-link"
+        >
+          Help and support
+        </Text>
         <Text
           className="font-mono text-xs text-fg-subtle dark:text-fg-subtle-dark"
           testID="about-line"

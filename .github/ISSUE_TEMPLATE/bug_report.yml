@@ -1,0 +1,48 @@
+name: Bug report
+description: Something does not behave as documented.
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: If this is a security problem, stop and use https://github.com/identizen/platform/security/advisories/new instead.
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options:
+        - index (apps/index)
+        - dashboard (apps/web)
+        - phone app (apps/mobile)
+        - SDK or React (packages/sdk, packages/react)
+        - CLI (packages/cli)
+        - protocol (spec, packages/protocol)
+        - docs or website
+        - demo bank (jtmerlin.com)
+    validations:
+      required: true
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened
+      description: What you did, what you expected, what you saw. Error text verbatim if there is any.
+    validations:
+      required: true
+  - type: textarea
+    id: repro
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. …
+        2. …
+    validations:
+      required: true
+  - type: input
+    id: versions
+    attributes:
+      label: Versions
+      description: Package versions, app build number (Settings screen), browser, OS, and whether you use the hosted index or your own.
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs or screenshots
+      description: Redact anything private. Never paste a recovery phrase, a client secret, or a token.

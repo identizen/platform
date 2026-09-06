@@ -1,0 +1,194 @@
+---
+import Base from '../layouts/Base.astro';
+import PageHeader from '../components/PageHeader.astro';
+import Icon from '../components/Icon.astro';
+import type { IconName } from '../lib/icons';
+import { SITE } from '../lib/site';
+
+const threatModel = `${SITE.docs}/protocol/threat-model/`;
+
+const holds: { icon: IconName; title: string; text: string }[] = [
+  {
+    icon: 'key',
+    title: 'Keys never leave the phone',
+    text: 'A 256-bit seed is generated on the device and stays in the platform keychain or keystore, gated by the biometric. Everything else is derived from it. The index, the site, and we never see it.',
+  },
+  {
+    icon: 'shield',
+    title: 'Phishing fails by construction',
+    text: 'The phone signs the site’s registered host into every approval, and the per-site key is derived from that host. A signature for a lookalike domain never verifies for the real one.',
+  },
+  {
+    icon: 'lock',
+    title: 'Nothing replays',
+    text: 'Every challenge carries a nonce, is accepted once, and expires after 60 seconds. Signed requests from the phone carry a timestamp and are rejected if seen twice.',
+  },
+  {
+    icon: 'fingerprint',
+    title: 'What you see is what gets signed',
+    text: 'For a sensitive action the site’s server composes the text, the phone shows it, and its hash is inside the signature. An approval for one amount and payee is useless for another.',
+  },
+  {
+    icon: 'server',
+    title: 'The index is safe to leak',
+    text: 'It stores public keys, push tokens, rotating Bluetooth keys, per-site identifiers, revocation state, and an audit trail. Client and webhook secrets are stored as hashes. A full database breach yields nothing that can sign in as anyone.',
+  },
+  {
+    icon: 'globe',
+    title: 'Sites cannot correlate you',
+    text: 'Each site receives its own identifier, a hash of a key derived for that site alone. The cross-site identifier the index uses is never released, and there is no email in any token.',
+  },
+];
+
+const honest = [
+  {
+    title: 'The index operator is trusted for routing',
+    text: 'The operator can send a challenge for any site to any device, and could mint a token for a site that does not verify the double-signed assertion. The person still has to approve on the phone with the match code shown. If that trust is unacceptable, run the index yourself; it is the same code.',
+  },
+  {
+    title: 'Hardware-isolated keys are planned, not shipped',
+    text: 'Keys sit behind the platform keychain or keystore and the device biometric. Secure Enclave and StrongBox wrapping is on the roadmap, and until it ships the hardware-key value in the amr claim should be read as advisory.',
+  },
+  {
+    title: 'No external audit yet',
+    text: 'The threat model is public and every line of code is open, but nobody outside the project has reviewed it. An independent review is planned before 1.0. Until then, read the code rather than our claims.',
+  },
+  {
+    title: 'The recovery phrase is the only recovery',
+    text: 'Lose the phone and the 24 words and the identity is gone. That is deliberate: nothing at Identizen can vouch for a person, so nothing at Identizen can be tricked into handing an identity over.',
+  },
+];
+
+const verify = [
+  {
+    label: 'Threat model',
+    href: threatModel,
+    text: 'Assets, attackers, mitigations, residual risks, open items.',
+  },
+  {
+    label: 'Protocol specification',
+    href: `${SITE.docs}/protocol/`,
+    text: 'Every format and every check, as implemented.',
+  },
+  {
+    label: 'Test vectors',
+    href: `${SITE.docs}/protocol/vectors/`,
+    text: 'Known-answer vectors for signing, canonical encoding, and key derivation.',
+  },
+  {
+    label: 'Source code',
+    href: SITE.github,
+    text: 'The index, the apps, the SDKs, and this site. Apache-2.0.',
+  },
+  {
+    label: 'Self-hosting',
+    href: `${SITE.docs}/self-hosting/`,
+    text: 'Run the same index on your own Cloudflare account or in Docker.',
+  },
+];
+---
+
+<Base
+  title="Security"
+  description="How Identizen holds up: keys that never leave the phone, phishing that fails by construction, an index that is safe to leak, and the risks we still accept. Read the threat model and the code, not our claims."
+>
+  <PageHeader
+    eyebrow="Security"
+    title="Don't trust our claims. Inspect the design."
+    lede="A new identity system has to earn trust. Everything below is either enforced by code you can read or listed honestly as a risk we still carry."
+  />
+
+  <section class="container-site pb-16" aria-labelledby="holds">
+    <h2 id="holds" class="headline text-3xl">What holds, and where in the code</h2>
+    <ul class="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+      {
+        holds.map((h) => (
+          <li class="card p-6">
+            <span class="icon-tile">
+              <Icon name={h.icon} />
+            </span>
+            <h3 class="mt-5 font-semibold tracking-tight">{h.title}</h3>
+            <p class="mt-2 text-sm leading-relaxed text-fg-muted">{h.text}</p>
+          </li>
+        ))
+      }
+    </ul>
+    <p class="mt-6 max-w-2xl text-sm text-fg-muted">
+      Each row of the <a href={threatModel} class="link" rel="noopener">threat model</a> names the function
+      that enforces it.
+    </p>
+  </section>
+
+  <section class="section border-t border-border bg-surface-1" aria-labelledby="honest">
+    <div class="container-site">
+      <div class="max-w-2xl">
+        <p class="eyebrow">What we do not claim</p>
+        <h2 id="honest" class="headline mt-3 text-3xl sm:text-4xl">The risks we still carry</h2>
+      </div>
+      <dl class="mt-10 grid gap-5 sm:grid-cols-2">
+        {
+          honest.map((h) => (
+            <div class="card p-6">
+              <dt class="font-semibold tracking-tight">{h.title}</dt>
+              <dd class="mt-2 text-sm leading-relaxed text-fg-muted">{h.text}</dd>
+            </div>
+          ))
+        }
+      </dl>
+    </div>
+  </section>
+
+  <section class="section" aria-labelledby="verify">
+    <div class="container-site grid gap-12 lg:grid-cols-[0.9fr_1.1fr]">
+      <div>
+        <p class="eyebrow">Verify it yourself</p>
+        <h2 id="verify" class="headline mt-3 text-3xl sm:text-4xl">Everything is public</h2>
+        <p class="mt-4 text-lg text-fg-muted">
+          The specification, the vectors, the threat model, and the code are the security
+          documentation. Marketing pages, including this one, are downstream of them.
+        </p>
+      </div>
+      <ul class="grid gap-3">
+        {
+          verify.map((v) => (
+            <li>
+              <a
+                href={v.href}
+                rel="noopener"
+                class="card card-hover flex items-center justify-between gap-4 p-5"
+              >
+                <span>
+                  <span class="font-semibold tracking-tight">{v.label}</span>
+                  <span class="mt-1 block text-sm text-fg-muted">{v.text}</span>
+                </span>
+                <Icon name="arrow-right" size={16} class="shrink-0 text-fg-muted" />
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+    </div>
+  </section>
+
+  <section class="container-site pb-24" aria-labelledby="disclose">
+    <div class="card-gradient bg-glow relative overflow-hidden px-6 py-14 sm:px-12">
+      <div class="relative grid gap-8 md:grid-cols-[1fr_auto] md:items-center">
+        <div class="max-w-2xl">
+          <h2 id="disclose" class="headline text-3xl">Found something?</h2>
+          <p class="mt-4 text-lg text-fg-muted">
+            Report it privately. We acknowledge within two business days and publish a fix plan
+            within ten for anything affecting the hosted index, the apps, or the protocol. Credit is
+            yours if you want it.
+          </p>
+          <p class="mt-3 font-mono text-xs text-fg-muted">
+            /.well-known/security.txt · SECURITY.md · GitHub private advisories
+          </p>
+        </div>
+        <a href={`${SITE.github}/security/advisories/new`} rel="noopener" class="btn btn-primary">
+          Report a vulnerability
+          <Icon name="arrow-right" />
+        </a>
+      </div>
+    </div>
+  </section>
+</Base>

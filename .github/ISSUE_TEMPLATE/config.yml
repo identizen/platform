@@ -1,0 +1,11 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Security vulnerability
+    url: https://github.com/identizen/platform/security/advisories/new
+    about: Please report security problems privately, never as a public issue.
+  - name: Documentation
+    url: https://docs.identizen.com
+    about: Quickstart, guides, and the reference. Check here before filing a question.
+  - name: Ask a question
+    url: https://identizen.com/contact/
+    about: Anything that is not a bug or a feature request.

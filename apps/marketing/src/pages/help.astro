@@ -1,0 +1,177 @@
+---
+import Base from '../layouts/Base.astro';
+import PageHeader from '../components/PageHeader.astro';
+import { SITE } from '../lib/site';
+
+/**
+ * Help for people who use the Identizen app. Written for the person, not the developer.
+ * Linked from the app's Settings screen, the dashboard, and the app store listings.
+ */
+const sections: { id: string; heading: string; items: { q: string; a: string }[] }[] = [
+  {
+    id: 'start',
+    heading: 'Getting started',
+    items: [
+      {
+        q: 'How do I get the app?',
+        a: 'The iOS app is in App Store review and the Android app is coming to Google Play. The download page has the current status. Until they are listed, the playground at identizen.com/playground lets you try a login with a virtual phone.',
+      },
+      {
+        q: 'What happens when I create an identity?',
+        a: 'The app generates a secret on your phone and shows it to you once as 24 words. Those words are the only copy. Write them down and keep them somewhere safe. Nobody, including us, can recover them for you.',
+      },
+      {
+        q: 'Why does the app ask for Face ID or my fingerprint?',
+        a: 'Your identity is locked with it. Each time you approve a sign-in, the phone asks for your biometric and then signs the request. Without it, nothing signs. If your phone has no biometric, the device passcode is used instead.',
+      },
+      {
+        q: 'What is the dashboard?',
+        a: 'app.identizen.com shows the devices, browsers, and sessions that belong to your identity, and lets you revoke any of them. You sign in to it the same way as any other site: with your phone.',
+      },
+    ],
+  },
+  {
+    id: 'signin',
+    heading: 'Signing in',
+    items: [
+      {
+        q: 'How do I sign in to a website?',
+        a: 'Click the site’s Continue with Identizen button. The first time from a computer, it shows a QR code and a two-digit code. Open the app, scan the QR, check that the app shows the same site name and the same two digits, and approve with your biometric. The site signs you in.',
+      },
+      {
+        q: 'What is the two-digit code for?',
+        a: 'It proves the request on your phone is the one on your screen. If the digits differ, someone else started that request. Deny it.',
+      },
+      {
+        q: 'Why did my second login skip the QR code?',
+        a: 'After your first approval, that browser is paired with your phone. Later sign-ins from it go straight to your phone as a notification. You can see and unpair every browser in the app or the dashboard.',
+      },
+      {
+        q: 'What is nearby sign-in?',
+        a: 'On a computer with Bluetooth, a site can find your phone without a QR code when you click the option. Your phone broadcasts an identifier that changes every 15 minutes and only the Identizen index can resolve. You can turn this off in Settings.',
+      },
+      {
+        q: 'Signing in on the phone itself?',
+        a: 'Tap Continue with Identizen on the site and then Open in Identizen. The approval happens in the app, and the site finishes signing you in when you return to the browser.',
+      },
+      {
+        q: 'A request arrived that I did not start.',
+        a: 'Deny it. Nothing happens to a denied request, and the site never sees anything. If it keeps happening, revoke the paired browser it came from in the Browsers tab.',
+      },
+    ],
+  },
+  {
+    id: 'approvals',
+    heading: 'Approving actions',
+    items: [
+      {
+        q: 'A site asked me to approve a transfer or another action. What am I signing?',
+        a: 'Exactly the text on your screen. The site’s server wrote it, your phone shows it, and your approval is bound to that text. If the amount, the payee, or the action is not what you expected, deny it.',
+      },
+    ],
+  },
+  {
+    id: 'phones',
+    heading: 'New phones and lost phones',
+    items: [
+      {
+        q: 'I have a new phone.',
+        a: 'Install the app, choose Restore, and enter your 24 words. Your identity is identical on the new phone, and every site recognises you. Then revoke the old phone from the Devices tab or the dashboard.',
+      },
+      {
+        q: 'I lost my phone.',
+        a: 'Sign in to app.identizen.com from another device, or use another phone that holds your identity, and revoke the lost phone. It is signed out of every site immediately and can no longer approve anything. A locked phone cannot sign without your biometric or passcode in the meantime.',
+      },
+      {
+        q: 'I lost my phone and my 24 words.',
+        a: 'The identity cannot be recovered. Create a new one on your new phone. Sites that knew the old identity will treat you as a new person; contact each site and go through its own verification to link your new identity to your existing account there.',
+      },
+      {
+        q: 'Can I use two phones?',
+        a: 'Yes. Restore the same 24 words on the second phone. Both phones hold the same identity and either can be revoked from the other.',
+      },
+    ],
+  },
+  {
+    id: 'privacy',
+    heading: 'Privacy and your data',
+    items: [
+      {
+        q: 'What does a website learn about me?',
+        a: 'An identifier that is unique to that site, and nothing else. No email, name, or phone number, and no identifier another site could match. If a site needs those, it asks you directly.',
+      },
+      {
+        q: 'What is a handle?',
+        a: 'An optional public name, like @jordan, that you can set in Settings. Sites that ask for it receive it once you have set one. Leave it empty to stay anonymous everywhere.',
+      },
+      {
+        q: 'What does Identizen store?',
+        a: 'Public keys, a token to send notifications, the identifiers each site knows you by, and a record of approvals and revocations. Never your secret, your 24 words, or anything that could sign in as you. The privacy policy has the full list.',
+      },
+      {
+        q: 'How do I delete everything?',
+        a: 'Forget the identity in the app’s Settings, revoke the phone from the dashboard, and ask us to delete the remaining records. The steps are on the delete page.',
+      },
+    ],
+  },
+];
+---
+
+<Base
+  title="Help"
+  description="Help for people using the Identizen app: getting started, signing in, approving actions, new and lost phones, and what happens to your data."
+>
+  <PageHeader
+    eyebrow="Help"
+    title="Using Identizen"
+    lede="Answers for people who use the app. Developers integrating Identizen should read the documentation instead."
+  />
+
+  <div class="container-site grid gap-12 pb-24 lg:grid-cols-[220px_1fr]">
+    <nav aria-label="Help sections" class="hidden lg:block">
+      <ul class="sticky top-24 space-y-2 text-sm">
+        {
+          sections.map((s) => (
+            <li>
+              <a href={`#${s.id}`} class="text-fg-muted hover:text-fg">
+                {s.heading}
+              </a>
+            </li>
+          ))
+        }
+        <li class="pt-4">
+          <a href="/download" class="link">Download the app</a>
+        </li>
+        <li>
+          <a href="/legal/delete" class="link">Delete your data</a>
+        </li>
+        <li>
+          <a href="/contact" class="link">Contact us</a>
+        </li>
+      </ul>
+    </nav>
+    <div class="max-w-3xl">
+      {
+        sections.map((s) => (
+          <section aria-labelledby={s.id} class="not-first:mt-14">
+            <h2 id={s.id} class="headline text-2xl sm:text-3xl">
+              {s.heading}
+            </h2>
+            <dl class="mt-6 divide-y divide-border">
+              {s.items.map((item) => (
+                <div class="py-6">
+                  <dt class="text-lg font-semibold tracking-tight">{item.q}</dt>
+                  <dd class="mt-3 leading-relaxed text-fg-muted">{item.a}</dd>
+                </div>
+              ))}
+            </dl>
+          </section>
+        ))
+      }
+      <p class="mt-14 border-t border-border pt-6 text-sm text-fg-muted">
+        Still stuck? <a href="/contact" class="link">Contact us</a>. Building a site?
+        <a href={SITE.docs} class="link" rel="noopener">Read the documentation</a>.
+      </p>
+    </div>
+  </div>
+</Base>

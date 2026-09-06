@@ -1,0 +1,136 @@
+---
+import Base from '../layouts/Base.astro';
+import PageHeader from '../components/PageHeader.astro';
+import Icon from '../components/Icon.astro';
+import { SITE } from '../lib/site';
+
+/**
+ * Store status, in one place. When a listing goes live, replace the status line and add the
+ * store link; the deep-link page on the dashboard and the app's Help link both point here.
+ */
+const stores = [
+  {
+    name: 'iPhone',
+    store: 'App Store',
+    status: 'In App Store review',
+    detail:
+      'Submitted and waiting on Apple. Needs iOS with Face ID or Touch ID. The listing appears here the moment it is approved.',
+    unlock: 'Face ID or Touch ID',
+    href: null as string | null,
+  },
+  {
+    name: 'Android',
+    store: 'Google Play',
+    status: 'Coming soon to Google Play',
+    detail:
+      'The Android app is built and being prepared for the Play listing. Needs Android with a fingerprint or face unlock and a screen lock set.',
+    unlock: 'Fingerprint or face unlock',
+    href: null as string | null,
+  },
+];
+
+const needs = [
+  'A phone with a fingerprint or face unlock and a screen lock',
+  'A camera, to scan a sign-in code the first time from a computer',
+  'Bluetooth, only if you want nearby sign-in without a code',
+];
+---
+
+<Base
+  title="Download"
+  description="Get the Identizen app. The iOS app is in App Store review and the Android app is coming to Google Play. Both are coming soon; try the playground meanwhile."
+>
+  <PageHeader
+    eyebrow="Download"
+    title="The Identizen app is coming soon."
+    lede="One app holds your identity, approves sign-ins, and lets you see and revoke every device and browser. Both stores are on the way."
+  />
+
+  <section class="container-site pb-16" aria-labelledby="stores">
+    <h2 id="stores" class="sr-only">Store status</h2>
+    <ul class="grid gap-5 md:grid-cols-2">
+      {
+        stores.map((s) => (
+          <li class="card flex flex-col p-6">
+            <div class="flex items-center justify-between gap-4">
+              <div class="flex items-center gap-3">
+                <span class="icon-tile">
+                  <Icon name="smartphone" />
+                </span>
+                <div>
+                  <h3 class="font-semibold tracking-tight">{s.name}</h3>
+                  <p class="text-sm text-fg-muted">{s.store}</p>
+                </div>
+              </div>
+              <span class="inline-flex items-center gap-1.5 rounded-full border border-accent/30 bg-accent-soft px-2.5 py-0.5 text-xs font-medium text-accent-soft-fg">
+                <span class="h-1.5 w-1.5 rounded-full bg-accent" aria-hidden="true" />
+                {s.status}
+              </span>
+            </div>
+            <p class="mt-5 text-sm leading-relaxed text-fg-muted">{s.detail}</p>
+            <p class="mt-4 font-mono text-xs text-fg-muted">Unlocks with {s.unlock}</p>
+            {s.href ? (
+              <a href={s.href} class="btn btn-primary mt-6 self-start" rel="noopener">
+                Get it on the {s.store}
+              </a>
+            ) : (
+              <span
+                class="btn btn-secondary mt-6 cursor-default self-start opacity-70"
+                aria-disabled="true"
+              >
+                Coming soon
+              </span>
+            )}
+          </li>
+        ))
+      }
+    </ul>
+  </section>
+
+  <section class="section border-t border-border bg-surface-1" aria-labelledby="meanwhile">
+    <div class="container-site grid gap-12 lg:grid-cols-2">
+      <div>
+        <p class="eyebrow">Meanwhile</p>
+        <h2 id="meanwhile" class="headline mt-3 text-3xl">Try it without the app</h2>
+        <p class="mt-4 text-lg text-fg-muted">
+          The playground runs a real login against the hosted index with a virtual phone in your
+          browser, so you can see the match code, the approval, and the token today.
+        </p>
+        <div class="mt-6 flex flex-wrap gap-3">
+          <a href="/playground" class="btn btn-primary">
+            <Icon name="smartphone" />
+            Open the playground
+          </a>
+          <a href="/contact" class="btn btn-secondary">Ask about early access</a>
+        </div>
+      </div>
+      <div>
+        <p class="eyebrow">What you need</p>
+        <ul class="mt-4 space-y-3 text-sm">
+          {
+            needs.map((n) => (
+              <li class="flex items-start gap-3">
+                <span class="mt-0.5 inline-flex h-5 w-5 items-center justify-center rounded-full bg-success-soft text-success-soft-fg">
+                  <Icon name="check" size={12} />
+                </span>
+                <span class="text-fg-muted">{n}</span>
+              </li>
+            ))
+          }
+        </ul>
+        <p class="mt-6 text-sm text-fg-muted">
+          Once installed, the <a href="/help" class="link">help page</a> covers the first sign-in, paired
+          browsers, new phones, and lost phones.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <section class="container-site pb-24 pt-16">
+    <p class="max-w-2xl text-sm text-fg-muted">
+      Building a site? You do not need the app to integrate: the CLI ships a fake phone for
+      development and CI. Start with the
+      <a href={`${SITE.docs}/quickstart`} class="link" rel="noopener">quickstart</a>.
+    </p>
+  </section>
+</Base>

@@ -23,6 +23,7 @@ const ORDER = [
   'examples',
   'enterprise',
   'protocol',
+  'protocol/threat-model',
   'ai-assistants',
 ];
 

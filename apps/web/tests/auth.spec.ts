@@ -45,13 +45,14 @@ test('callback exchanges the code and lands on the overview', async ({ page }) =
 });
 
 test('callback with a bad state explains and offers a way back', async ({ page }) => {
-  await page.goto('/');
-  await page.evaluate(() =>
-    sessionStorage.setItem(
-      'idz:oidc-tx',
-      JSON.stringify({ state: 'expected', verifier: 'v', returnTo: '/' }),
-    ),
-  );
+  // Seed the transaction before any page script runs, so no other route can consume it first.
+  await page.addInitScript(() => {
+    if (!sessionStorage.getItem('idz:oidc-tx'))
+      sessionStorage.setItem(
+        'idz:oidc-tx',
+        JSON.stringify({ state: 'expected', verifier: 'v', returnTo: '/' }),
+      );
+  });
   await page.goto('/callback?code=good-code&state=nope');
   await expect(page.getByRole('status')).toContainText('state mismatch');
   await page.getByRole('button', { name: 'Back to sign in' }).click();

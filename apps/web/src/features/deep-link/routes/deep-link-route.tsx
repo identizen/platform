@@ -69,7 +69,7 @@ export function DeepLinkRoute() {
                 </Button>
                 <p className="text-center text-xs text-fg-muted">
                   Do not have the app?{' '}
-                  <a href="https://identizen.com/" className="text-accent underline">
+                  <a href="https://identizen.com/download/" className="text-accent underline">
                     Get the Identizen app
                   </a>{' '}
                   (App Store and Google Play links coming with the first release).
