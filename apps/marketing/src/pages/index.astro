@@ -299,15 +299,20 @@ const platforms = [
       </div>
       <div class="relative mt-12">
         <div
-          class="absolute top-6 right-[16%] left-[16%] hidden h-px bg-gradient-to-r from-accent/40 via-border-strong to-accent/40 md:block"
+          class="how-track pointer-events-none absolute top-6 right-[calc((100%-3rem)/3-1.5rem)] left-6 hidden h-px md:block"
           aria-hidden="true"
         >
+          <span class="how-rail"></span>
+          <span class="how-comet"></span>
         </div>
         <ol class="relative grid gap-8 md:grid-cols-3 md:gap-6">
           {
             steps.map((s, i) => (
               <li class="relative">
-                <span class="tabular relative inline-flex h-12 w-12 items-center justify-center rounded-full border border-border bg-surface-0 font-mono text-sm font-semibold text-accent shadow-xs">
+                <span
+                  class="how-node tabular relative inline-flex h-12 w-12 items-center justify-center rounded-full border border-border bg-surface-0 font-mono text-sm font-semibold text-accent shadow-xs"
+                  style={`--i: ${i}`}
+                >
                   0{i + 1}
                 </span>
                 <h3 class="mt-5 text-lg font-semibold tracking-tight">{s.title}</h3>
@@ -484,3 +489,112 @@ const platforms = [
     </div>
   </section>
 </Base>
+
+<style>
+  /*
+   * "How it works": one pulse travels the rail from step 01 to 03 and rings each node as it
+   * arrives. Period 4.8s; the comet's head moves linearly so the node rings can be timed to it.
+   */
+  .how-rail {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      90deg,
+      color-mix(in oklch, var(--color-accent) 40%, transparent),
+      var(--color-border-strong),
+      color-mix(in oklch, var(--color-accent) 40%, transparent)
+    );
+  }
+  .how-comet {
+    position: absolute;
+    top: -3px;
+    left: -140px;
+    width: 140px;
+    height: 7px;
+    border-radius: 9999px;
+    opacity: 0;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      color-mix(in oklch, var(--color-accent) 55%, transparent) 60%,
+      var(--color-accent)
+    );
+    filter: drop-shadow(0 0 6px color-mix(in oklch, var(--color-accent) 70%, transparent));
+    animation: how-comet 4.8s linear infinite;
+  }
+  .how-node {
+    animation: how-node 4.8s ease-out infinite;
+    animation-delay: calc(var(--i) * 1.6s + 0.2s);
+  }
+  .how-node::after {
+    content: '';
+    position: absolute;
+    inset: -2px;
+    border-radius: 9999px;
+    border: 2px solid var(--color-accent);
+    opacity: 0;
+    animation: how-ring 4.8s ease-out infinite;
+    animation-delay: calc(var(--i) * 1.6s + 0.2s);
+  }
+  @keyframes how-comet {
+    0%,
+    4% {
+      left: -140px;
+      opacity: 0;
+    }
+    8% {
+      opacity: 1;
+    }
+    71% {
+      left: calc(100% - 140px);
+      opacity: 1;
+    }
+    76%,
+    100% {
+      left: calc(100% - 140px);
+      opacity: 0;
+    }
+  }
+  @keyframes how-ring {
+    0% {
+      opacity: 0.9;
+      transform: scale(0.9);
+    }
+    22% {
+      opacity: 0;
+      transform: scale(1.9);
+    }
+    100% {
+      opacity: 0;
+      transform: scale(1.9);
+    }
+  }
+  @keyframes how-node {
+    0%,
+    2% {
+      border-color: var(--color-accent);
+      box-shadow: 0 0 0 4px color-mix(in oklch, var(--color-accent) 18%, transparent);
+    }
+    16%,
+    100% {
+      border-color: var(--color-border);
+      box-shadow: var(--shadow-xs, 0 1px 2px oklch(0 0 0 / 0.05));
+    }
+  }
+  @media (max-width: 767px) {
+    .how-node,
+    .how-node::after {
+      animation: none;
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .how-comet,
+    .how-node,
+    .how-node::after {
+      animation: none;
+    }
+    .how-comet {
+      opacity: 0;
+    }
+  }
+</style>
