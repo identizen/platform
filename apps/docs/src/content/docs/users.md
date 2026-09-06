@@ -7,7 +7,7 @@ Identizen proves that a specific phone-held identity approved a request. It does
 
 ## The one claim to build on: `sub`
 
-Every id_token, and every approval from the Verification API, carries `sub`, the person's identifier at your site.
+Every id_token, and every approval from the Verification API, carries `sub`, the person's identifier at your site. The full claim list with an example token is in the [OIDC reference](/reference/oidc/#id_token-claims); the approval JSON is in the [Verification API](/reference/verification-api/).
 
 | Property                   | Why it holds                                                                                                                                                                 |
 | -------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |

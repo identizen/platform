@@ -59,6 +59,25 @@ Validation errors with a valid `redirect_uri` are returned as OIDC error redirec
 
 Exactly these claims are issued; there is never an `email`.
 
+A decoded id_token after a login from the demo bank looks like this (values shortened):
+
+```json
+{
+  "iss": "https://index.identizen.com",
+  "aud": "idz_live_01M1M3G92MD1J0GQDRK9F5SB2W",
+  "iat": 1757116800,
+  "exp": 1757120400,
+  "nonce": "…",
+  "sub": "NcSuRV6Y3pDcgKd0-mbxGnDqXf9E9k5w",
+  "sid": "ses_01M1…",
+  "acr": "idz:login",
+  "amr": ["face", "hwk"],
+  "idz_device": "dev_01M1…"
+}
+```
+
+`sub` is the value to store: it is the person's identifier at your site and stays the same across phones, restores, and sessions. See [Users, sign-up, and linking identities](/users/) for how to build on it.
+
 | Claim        | Value                                                                                 |
 | ------------ | ------------------------------------------------------------------------------------- |
 | `iss`        | index URL                                                                             |
