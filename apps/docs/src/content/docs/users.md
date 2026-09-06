@@ -15,7 +15,7 @@ Every id_token, and every approval from the Verification API, carries `sub`, the
 | Stable across phones       | The seed is the identity. A phone restored from the 24 words derives the same key, so the same `sub`. A second phone holding the same identity also produces the same `sub`. |
 | Stable across sessions     | `sid`, the session id, changes on every login. `sub` does not.                                                                                                               |
 | Cannot be forged or reused | The index binds `(your site, sub)` to the per-site public key on first sight and rejects any later assertion for that `sub` signed by a different key.                       |
-| Not correlatable           | Two sites comparing their `sub` values learn nothing.                                                                                                                        |
+| Not correlatable by `sub`  | Two sites comparing their `sub` values learn nothing. (`idz_device` is not yet per-site; see the [threat model](/protocol/threat-model/).)                                   |
 
 Treat `sub` as the primary key of your user table, or as a unique column on an existing one. Keep `sid` and `idz_device` for audit and session management, never as the identity. Do not key on `idz_handle`: it is optional, the person can change it, and it only arrives when you ask for the `handle` scope.
 

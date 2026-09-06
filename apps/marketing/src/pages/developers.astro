@@ -24,7 +24,7 @@ const done = await idz.waitForVerification(v.verification_id);
 if (done.status === 'approved') { /* the assertion binds the reason hash */ }`;
 
 const claims = [
-  ['sub', 'Stable per-site identifier (derived key hash). Two sites cannot correlate a user.'],
+  ['sub', 'Stable per-site identifier (derived key hash). Two sites cannot match a user by it.'],
   ['sid', 'Session id; back-channel logout revokes by it.'],
   ['acr', 'idz:login (primary) or idz:mfa (step-up).'],
   ['amr', '["face","hwk"], ["fingerprint","hwk"], …'],

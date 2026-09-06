@@ -113,7 +113,7 @@ The bearer token belongs to a client that is not listed in the index's `DASHBOAR
 
 ### registration_closed
 
-`POST /sites` needs `Authorization: Bearer <SITE_REGISTRATION_TOKEN>` on this index. Self-hosters can set `OPEN_SITE_REGISTRATION=true`.
+`POST /sites` needs `Authorization: Bearer <SITE_REGISTRATION_TOKEN>` on this index (`identizen init --token …` / `register-site --token …`). The hosted index at `index.identizen.com` is closed: ask for a token at [contact@identizen.com](mailto:contact@identizen.com) with the host you want to register, or run your own index. Self-hosters can set `OPEN_SITE_REGISTRATION=true` for development only.
 
 ### unknown_client
 

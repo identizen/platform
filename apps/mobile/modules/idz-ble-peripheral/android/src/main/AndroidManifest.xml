@@ -1,0 +1,10 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Android 12+ (API 31): advertising and serving a GATT characteristic are runtime permissions. -->
+    <uses-permission android:name="android.permission.BLUETOOTH_ADVERTISE" />
+    <uses-permission android:name="android.permission.BLUETOOTH_CONNECT" />
+    <!-- Older Android: the legacy pair, install-time only. -->
+    <uses-permission android:name="android.permission.BLUETOOTH" android:maxSdkVersion="30" />
+    <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" android:maxSdkVersion="30" />
+    <!-- Phones without BLE can still install; nearby sign-in just reports unsupported. -->
+    <uses-feature android:name="android.hardware.bluetooth_le" android:required="false" />
+</manifest>

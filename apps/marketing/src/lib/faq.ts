@@ -62,7 +62,7 @@ export const FAQ_GROUPS: readonly { heading: string; items: readonly Faq[] }[] =
       {
         question: 'What does the site learn about the user?',
         answer:
-          'A stable identifier that is unique to your site, and nothing else unless the user has set a public handle and your site asks for the handle scope. No email, name, phone number, or identifiers that other sites could correlate. Your app decides what profile data to ask for after sign-in.',
+          'A stable identifier that is unique to your site, and nothing else unless the user has set a public handle and your site asks for the handle scope. No email, name, or phone number. The token also carries a session id and an opaque device id; the device id is the same at every site today and is being made per-site. Your app decides what profile data to ask for after sign-in.',
       },
       {
         question: 'What does Identizen cost?',

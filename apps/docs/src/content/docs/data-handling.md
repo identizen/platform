@@ -7,7 +7,7 @@ This page is for the person at a relying party who has to answer "what does Iden
 
 ## What the index never has
 
-No name, email address, phone number, or password. No private key: the seed, the master key, the per-site keys, and the device key live on the phone and are never sent. No plaintext secret: a site's client secret and webhook secret are stored as SHA-256 hashes. A person is known to the index by `idz`, a hash of their master public key, and to each site by a different `sub`, a hash of a key derived for that site's host. Sites cannot correlate a person across each other, and the index never sends `idz` to a site.
+No name, email address, phone number, or password. No private key: the seed, the master key, the per-site keys, and the device key live on the phone and are never sent. No plaintext secret: a site's client secret and webhook secret are stored as SHA-256 hashes. A person is known to the index by `idz`, a hash of their master public key, and to each site by a different `sub`, a hash of a key derived for that site's host. Sites cannot correlate a person across each other by `sub`, and the index never sends `idz` to a site. The opaque device id (`idz_device`) is currently the same at every site; the [threat model](/protocol/threat-model/) lists making it per-site as an open item.
 
 ## Every record, in one table
 

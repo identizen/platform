@@ -50,7 +50,7 @@ const rows: { topic: string; passkeys: string; identizen: string }[] = [
     passkeys:
       'Whatever the account holds. The passkey adds a credential id and a public key; the account still has the email, name, and whatever else the site collected.',
     identizen:
-      'A per-site identifier and nothing else. No email, name, or phone number in the token. Sites cannot correlate a person across each other. The site asks for profile data itself, once, if it needs it.',
+      'A per-site identifier, a session id, and an opaque device id. No email, name, or phone number in the token. Sites cannot match a person by identifier; the device id is not yet per-site (see the security page). The site asks for profile data itself, once, if it needs it.',
   },
   {
     topic: 'Approving a specific action',

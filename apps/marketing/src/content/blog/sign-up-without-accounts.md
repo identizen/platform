@@ -21,11 +21,11 @@ Accountless identity separates them. The profile stays with the business. The cr
 
 After a person approves a sign-in, the site gets a standard OpenID Connect token. The claim that matters is `sub`. It is the hash of a public key that the phone derives from its seed and the site's own registered host. Three properties fall out of that construction, and they are the whole story:
 
-- It is unique to your site. Another site derives a different key from the same seed, so it gets a different `sub`. No two sites can compare notes.
+- It is unique to your site. Another site derives a different key from the same seed, so it gets a different `sub`. No two sites can match a person by it.
 - It is stable across phones. Restore the 24 words on a new phone and the same key comes out, so the same `sub`. Your records do not move.
 - It cannot be hijacked. The index binds your site and that `sub` to the key that first produced it, and rejects any later assertion signed by a different key.
 
-There is no email in the token, no name, no phone number. That is not an omission. It is what makes the identifier impossible to correlate.
+There is no email in the token, no name, no phone number. That is not an omission. It is what keeps the identifier from being matched across sites. (The token also carries an opaque device id, which is the same at every site today; we are making it per-site.)
 
 ## Sign-up is a lookup miss
 

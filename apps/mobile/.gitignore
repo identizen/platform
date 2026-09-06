@@ -1,7 +1,7 @@
 .expo/
 .hermes/
-ios/
-android/
+/ios/
+/android/
 dist/
 web-build/
 expo-env.d.ts

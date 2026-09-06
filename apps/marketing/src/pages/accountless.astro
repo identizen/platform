@@ -20,7 +20,7 @@ const properties: { icon: IconName; title: string; text: string }[] = [
   {
     icon: 'key',
     title: 'A different identity for every application',
-    text: 'Each site gets its own derived key and its own stable identifier. Two sites cannot correlate a person, and the index never hands a site an email or phone number.',
+    text: 'Each site gets its own derived key and its own stable identifier. Two sites cannot match a person by identifier, and the index never hands a site an email or phone number.',
   },
   {
     icon: 'globe',
@@ -50,7 +50,7 @@ const notes = [
   },
   {
     q: 'What does the hosted index learn?',
-    a: 'Which identities are registered and which sites they sign in to, because it routes the requests. Sites cannot correlate a person across each other. If routing metadata should not leave your organisation, run the index yourself.',
+    a: 'Which identities are registered and which sites they sign in to, because it routes the requests. Sites cannot match a person across each other by identifier; the one exception today is the opaque device id in the token, which is the same at every site and is being made per-site (see the security page). If routing metadata should not leave your organisation, run the index yourself.',
   },
   {
     q: 'How does an app attach a name, email, or billing to an accountless identity?',
