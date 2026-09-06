@@ -36,10 +36,13 @@ const bound = [
     'The action',
     'A hash of the exact text shown on the phone. Change one character and the signature fails.',
   ],
-  ['The moment', 'A nonce and a 60-second window, so nothing can be captured and replayed later.'],
+  [
+    'The moment',
+    'A nonce and a short expiry: 60 seconds by default, up to ten minutes when your server asks. Nothing can be captured and replayed later.',
+  ],
   [
     'The proof',
-    'How it was approved: face, fingerprint, and a hardware-backed key, in the amr claim.',
+    'How it was approved, face or fingerprint, in the amr claim, plus the device that signed.',
   ],
 ];
 ---
@@ -70,9 +73,9 @@ const bound = [
       }
     </ul>
     <p class="mt-6 max-w-2xl text-fg-muted">
-      The person sees the action on the device they trust, approves it biometrically, and your
-      server receives a signature it can verify against the index's public key. Human intent,
-      cryptographically verified.
+      The person sees the action on the device they trust and approves it biometrically. The index
+      checks both signatures on the assertion before it answers, and your server receives the result
+      together with the assertion itself. Human intent, cryptographically verified.
     </p>
   </section>
 
@@ -131,8 +134,8 @@ const bound = [
         }
       </dl>
       <p class="mt-8 max-w-2xl text-sm text-fg-muted">
-        The formats are specified and the test vectors are public, so anyone can verify an assertion
-        without trusting us. See the
+        The formats are specified, the test vectors are public, and the index is open source and
+        self-hostable, so nothing here depends on trusting us. See the
         <a href={`${SITE.docs}/protocol/`} class="link" rel="noopener">protocol</a>.
       </p>
     </div>

@@ -41,8 +41,8 @@ const rules = [
     text: 'The request goes to the phone, not to the chat window the agent controls. There is no button the agent can press for the person.',
   },
   {
-    title: 'The receipt is portable',
-    text: 'The signed assertion names the site, the person, the action text, and the moment. Anyone with the index’s public key can verify it later, including an auditor or a counterparty.',
+    title: 'There is a record',
+    text: 'The signed assertion names the site, the person, the action text, and the moment. The index verifies both signatures and writes an audit event, and the webhook that reports the result is a JWT signed with the index’s published key, so the outcome can be checked later.',
   },
   {
     title: 'Set the boundary, not the agent',
