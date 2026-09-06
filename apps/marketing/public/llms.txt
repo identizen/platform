@@ -14,6 +14,10 @@ The documentation, including the complete React + TypeScript integration inline,
 - [OIDC reference](https://docs.identizen.com/reference/oidc.md): endpoints, PKCE, id_token claims, step-up, back-channel logout
 - [SDK and CLI](https://docs.identizen.com/reference/sdk.md): @identizen/sdk, @identizen/sdk/server, @identizen/react, identizen CLI
 - [Protocol](https://docs.identizen.com/protocol/): key derivation, challenge and assertion formats, Bluetooth discovery
+- [Testing and CI](https://docs.identizen.com/testing.md): the fake phone, its policies and HTTP API, GitHub Actions
+- [Running an index in production](https://docs.identizen.com/self-hosting-production.md): keys, upgrades, monitoring, backups, moving off the hosted index
+- [Data handling for relying parties](https://docs.identizen.com/data-handling.md): every record, retention, hosting region, subprocessors, DPA status
+- [Versioning and changelog](https://docs.identizen.com/versioning.md): what protocol v1 freezes, semver for 0.x packages, how breaking changes are announced
 
 ## This site
 

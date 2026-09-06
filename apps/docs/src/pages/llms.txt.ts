@@ -38,14 +38,16 @@ export const GET: APIRoute = async () => {
     'reference/verification-api',
     'reference/index-api',
     'errors',
+    'testing',
   ]);
-  section('Optional', [
+  section('Operating', [
     'self-hosting',
+    'self-hosting-production',
+    'data-handling',
     'enterprise',
-    'protocol',
-    'protocol/threat-model',
-    'ai-assistants',
+    'versioning',
   ]);
+  section('Optional', ['protocol', 'protocol/threat-model', 'ai-assistants']);
   out += `Everything in one file: ${SITE_URL}/llms-full.txt\n`;
 
   return new Response(out, {

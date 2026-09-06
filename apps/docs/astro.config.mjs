@@ -65,10 +65,14 @@ export default defineConfig({
             { label: 'Errors', link: '/errors/' },
           ],
         },
+        { label: 'Testing and CI with the fake phone', link: '/testing/' },
         { label: 'Self-hosting', link: '/self-hosting/' },
+        { label: 'Running an index in production', link: '/self-hosting-production/' },
         { label: 'Examples', link: '/examples/' },
         { label: 'AI assistants and llms.txt', link: '/ai-assistants/' },
         { label: 'Enterprise', link: '/enterprise/' },
+        { label: 'Data handling for relying parties', link: '/data-handling/' },
+        { label: 'Versioning, stability, and changelog', link: '/versioning/' },
         {
           label: 'Protocol',
           items: [
