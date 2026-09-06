@@ -65,7 +65,7 @@ test('llms.txt, llms-full.txt and per-page markdown are served', async ({ reques
   expect(index.headers()['content-type']).toContain('text/plain');
   const text = await index.text();
   expect(text.startsWith('# Identizen')).toBe(true);
-  expect(text).toContain('> Identizen is open-source');
+  expect(text).toContain('> Identizen is accountless identity, open source');
   expect(text).toContain('## Add Identizen to a React + TypeScript app');
   expect(text).toContain('npx identizen register-site');
   expect(text).toContain('https://docs.identizen.com/quickstart.md');

@@ -1,0 +1,172 @@
+---
+import Base from '../layouts/Base.astro';
+import PageHeader from '../components/PageHeader.astro';
+import Icon from '../components/Icon.astro';
+import type { IconName } from '../lib/icons';
+import { SITE } from '../lib/site';
+import { CATEGORY, CLARIFICATION, DEFINITION, VERBS } from '../lib/positioning';
+
+const properties: { icon: IconName; title: string; text: string }[] = [
+  {
+    icon: 'smartphone',
+    title: 'The phone holds the identity',
+    text: 'A 256-bit seed is generated on the phone and stays there. Everything else is derived from it. The seed is shown once as 24 words so it can be restored on a new phone.',
+  },
+  {
+    icon: 'fingerprint',
+    title: 'The biometric unlocks it',
+    text: 'Face ID or a fingerprint authorises one signature for one request. The biometric never leaves the device and is never the identity; the key is.',
+  },
+  {
+    icon: 'key',
+    title: 'A different identity for every application',
+    text: 'Each site gets its own derived key and its own stable identifier. Two sites cannot correlate a person, and the index never hands a site an email or phone number.',
+  },
+  {
+    icon: 'globe',
+    title: 'Applications consume standard OIDC',
+    text: 'Your app is an OpenID Connect relying party with PKCE. Any OIDC library works. The id_token carries a per-site sub, session id, and how the person approved.',
+  },
+  {
+    icon: 'server',
+    title: 'The index is a phonebook, not a vault',
+    text: 'The index stores public keys, push tokens, per-site identifiers, and an audit trail. It routes requests and verifies signatures. It cannot approve a login by itself.',
+  },
+  {
+    icon: 'git-branch',
+    title: 'Open, self-hostable, federated',
+    text: 'Apache-2.0. Run your own index on Cloudflare or in a container; handles resolve across indexes with WebFinger. Sites talk to one index; a phone can hold identities on several.',
+  },
+];
+
+const notes = [
+  {
+    q: 'Is this the same as passwordless?',
+    a: 'Passwordless replaces the credential and keeps the account. Accountless removes the identity-provider account. Passkeys are a good passwordless credential; they still authenticate an account that a platform or a site owns.',
+  },
+  {
+    q: 'What about passkeys specifically?',
+    a: 'Passkeys are phishing-resistant credentials synced through Apple, Google, or a password manager and bound to one site each. Identizen keeps one identity on the phone, uses it from any browser through a QR code, push, or Bluetooth, gives every site its own identifier, and can approve a specific action with the details shown. It is a different layer, not a competing credential.',
+  },
+  {
+    q: 'What does the hosted index learn?',
+    a: 'Which identities are registered and which sites they sign in to, because it routes the requests. Sites cannot correlate a person across each other. If routing metadata should not leave your organisation, run the index yourself.',
+  },
+  {
+    q: 'What if the phone is lost?',
+    a: 'Restore on a new phone from the 24 words, then revoke the old phone from the dashboard or another device. Revocation signs it out of every site and unpairs every browser it had paired.',
+  },
+];
+---
+
+<Base title="Accountless identity" description={DEFINITION} pageType="AboutPage">
+  <PageHeader eyebrow={CATEGORY} title="What is accountless identity?" lede={DEFINITION} />
+
+  <section class="container-site max-w-3xl pb-16" aria-labelledby="begins">
+    <h2 id="begins" class="headline text-3xl">
+      Traditional authentication begins with an account.
+    </h2>
+    <div class="prose-idz mt-6">
+      <p>
+        Someone stores an identity record. The person establishes credentials for it. Logging in
+        proves possession of those credentials. Passwordless improves the credential. Multi-factor
+        adds more of them. The account, and the database of accounts, stays.
+      </p>
+      <p>
+        Accountless identity removes the account. There is no record at a provider that a credential
+        protects, so there is nothing to reset, phish, stuff, or breach. What exists is a key on the
+        person's phone and a signature the phone produces when the person approves a request.
+      </p>
+      <p><strong>{CLARIFICATION}</strong></p>
+    </div>
+  </section>
+
+  <section class="section border-t border-border bg-surface-1" aria-labelledby="props">
+    <div class="container-site">
+      <div class="max-w-2xl">
+        <p class="eyebrow">The properties</p>
+        <h2 id="props" class="headline mt-3 text-3xl sm:text-4xl">
+          What has to be true for it to work
+        </h2>
+      </div>
+      <ul class="mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+        {
+          properties.map((p) => (
+            <li class="card p-6">
+              <span class="icon-tile">
+                <Icon name={p.icon} />
+              </span>
+              <h3 class="mt-5 font-semibold tracking-tight">{p.title}</h3>
+              <p class="mt-2 text-sm leading-relaxed text-fg-muted">{p.text}</p>
+            </li>
+          ))
+        }
+      </ul>
+    </div>
+  </section>
+
+  <section class="section" aria-labelledby="verbs">
+    <div class="container-site">
+      <div class="max-w-2xl">
+        <p class="eyebrow">What the identity can do</p>
+        <h2 id="verbs" class="headline mt-3 text-3xl sm:text-4xl">
+          Authenticate. Verify. Authorize.
+        </h2>
+      </div>
+      <ol class="mt-10 grid gap-5 md:grid-cols-3">
+        {
+          VERBS.map((v) => (
+            <li class="card p-6">
+              <p class="font-mono text-xs text-accent">“{v.quote}”</p>
+              <h3 class="mt-2 font-semibold tracking-tight">{v.verb}</h3>
+              <p class="mt-2 text-sm leading-relaxed text-fg-muted">{v.text}</p>
+            </li>
+          ))
+        }
+      </ol>
+    </div>
+  </section>
+
+  <section class="section border-t border-border bg-surface-1" aria-labelledby="notes">
+    <div class="container-site max-w-3xl">
+      <p class="eyebrow">Fair comparisons</p>
+      <h2 id="notes" class="headline mt-3 text-3xl">Where it sits next to what you know</h2>
+      <dl class="mt-8 divide-y divide-border">
+        {
+          notes.map((n) => (
+            <div class="py-6">
+              <dt class="text-lg font-semibold tracking-tight">{n.q}</dt>
+              <dd class="mt-2 leading-relaxed text-fg-muted">{n.a}</dd>
+            </div>
+          ))
+        }
+      </dl>
+      <p class="mt-6 text-sm text-fg-muted">
+        More in the <a href="/faq" class="link">FAQ</a> and the
+        <a href={`${SITE.docs}/protocol/`} class="link" rel="noopener">protocol specification</a>.
+      </p>
+    </div>
+  </section>
+
+  <section class="container-site pb-24 pt-16">
+    <div class="card-gradient bg-glow relative overflow-hidden px-6 py-14 text-center sm:px-12">
+      <div class="relative">
+        <h2 class="headline text-3xl">See it work before you read more.</h2>
+        <p class="mx-auto mt-4 max-w-xl text-lg text-fg-muted">
+          The playground runs a real login against the hosted index with a virtual phone in your
+          browser.
+        </p>
+        <div class="mt-8 flex flex-wrap items-center justify-center gap-3">
+          <a href="/playground" class="btn btn-primary">
+            <Icon name="smartphone" />
+            Try the playground
+          </a>
+          <a href={`${SITE.docs}/quickstart`} class="btn btn-secondary">
+            Read the quickstart
+            <Icon name="arrow-right" />
+          </a>
+        </div>
+      </div>
+    </div>
+  </section>
+</Base>

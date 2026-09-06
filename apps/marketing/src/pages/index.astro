@@ -6,6 +6,13 @@ import Icon from '../components/Icon.astro';
 import type { IconName } from '../lib/icons';
 import { SITE } from '../lib/site';
 import { softwareApplication } from '../lib/seo';
+import {
+  CATEGORY,
+  CLARIFICATION,
+  IDENTIZEN_STACK,
+  TRADITIONAL_STACK,
+  VERBS,
+} from '../lib/positioning';
 
 const reactSnippet = `
 import { IdentizenProvider, IdentizenButton } from '@identizen/react';
@@ -58,7 +65,7 @@ const features: { icon: IconName; title: string; text: string }[] = [
   {
     icon: 'key',
     title: 'The phone is the identity',
-    text: 'A seed on the device derives one key per site. Two sites cannot correlate a user, and there is no account with us to take over.',
+    text: 'A seed on the device derives one key per site. Two sites cannot correlate a user, and there is no account with us to take over. Lose the phone: restore from 24 words and revoke the old one.',
   },
   {
     icon: 'shield',
@@ -90,8 +97,8 @@ const features: { icon: IconName; title: string; text: string }[] = [
 const platforms = [
   ['Web (any framework)', 'OIDC + @identizen/sdk', '@identizen/react'],
   ['Next.js, Remix, SvelteKit', 'Guides + CLI scaffolds', 'npx identizen init'],
-  ['iPhone', 'Identizen app · App Store soon', 'Face ID'],
-  ['Android', 'Identizen app · next', 'Fingerprint'],
+  ['iPhone', 'Identizen app · in App Store review', 'Face ID'],
+  ['Android', 'Identizen app · Google Play soon', 'Fingerprint'],
   ['Your own index', 'Cloudflare Worker or Docker', 'WebFinger federation'],
 ];
 ---
@@ -102,15 +109,15 @@ const platforms = [
     <div class="container-site pt-16 pb-16 text-center sm:pt-24 lg:pb-24">
       <p class="eyebrow justify-center">
         <span class="h-1.5 w-1.5 rounded-full bg-accent" aria-hidden="true"></span>
-        Open source · Standard OIDC · Apache-2.0
+        {CATEGORY} · Open source · Standard OIDC
       </p>
       <h1 class="display mx-auto mt-5 max-w-4xl text-5xl sm:text-6xl lg:text-7xl">
-        Login with your <span class="accent-text">phone</span>.
+        Identity without the <span class="accent-text">account</span>.
       </h1>
       <p class="mx-auto mt-6 max-w-2xl text-lg leading-relaxed text-fg-muted sm:text-xl">
-        Device-based identity for any website. Your users tap once and confirm with Face ID. Your
-        app receives a standard OpenID Connect token. No password, no email, no big-tech account,
-        and nothing on our servers worth stealing.
+        Your phone holds your identity. Your biometric unlocks it. Your app receives a standard
+        OpenID Connect token. No password, no email, and no identity-provider account to create,
+        reset, or breach.
       </p>
       <div class="mt-9 flex flex-wrap items-center justify-center gap-3">
         <a href={`${SITE.docs}/quickstart`} class="btn btn-primary">
@@ -180,8 +187,107 @@ const platforms = [
     </dl>
   </section>
 
+  <!-- Category -->
+  <section class="section" aria-labelledby="accountless">
+    <div class="container-site grid items-start gap-12 lg:grid-cols-[0.9fr_1.1fr]">
+      <div>
+        <p class="eyebrow">{CATEGORY}</p>
+        <h2 id="accountless" class="headline mt-3 text-3xl sm:text-4xl">
+          Passwordless still has an account.
+        </h2>
+        <p class="mt-4 text-lg text-fg-muted">
+          Replacing the password does not remove the identity-provider account behind it. Identizen
+          does. There is no master account holding your identity. Your phone holds a cryptographic
+          identity and derives a different one for every application you use. Your biometric lets
+          the phone prove it, once, for one request.
+        </p>
+        <p class="mt-4 text-sm leading-relaxed text-fg-muted">{CLARIFICATION}</p>
+        <a href="/accountless" class="link mt-6 inline-flex items-center gap-1 text-sm">
+          What accountless means, in full <Icon name="arrow-right" size={14} />
+        </a>
+      </div>
+      <div class="grid gap-4 sm:grid-cols-2">
+        {
+          (
+            [
+              ['Traditional identity', TRADITIONAL_STACK, false],
+              ['Identizen', IDENTIZEN_STACK, true],
+            ] as const
+          ).map(([title, stack, ours]) => (
+            <div class:list={['card p-5', ours && 'border-accent/40']}>
+              <p class="eyebrow">{title}</p>
+              <ol class="mt-4">
+                {stack.map((s, i) => (
+                  <li class="relative pl-6">
+                    <span
+                      class:list={[
+                        'absolute top-1.5 left-0 h-2.5 w-2.5 rounded-full',
+                        ours ? 'bg-accent' : 'bg-border-strong',
+                      ]}
+                      aria-hidden="true"
+                    />
+                    {i < stack.length - 1 && (
+                      <span
+                        class="absolute top-4 left-[4px] h-[calc(100%-0.5rem)] w-px bg-border"
+                        aria-hidden="true"
+                      />
+                    )}
+                    <p class="text-sm font-medium">{s.node}</p>
+                    <p class="min-h-4 pb-3 text-xs text-fg-muted">{s.note}</p>
+                  </li>
+                ))}
+              </ol>
+            </div>
+          ))
+        }
+        <p class="text-sm text-fg-muted sm:col-span-2">
+          The phone is not another factor in front of an account. It holds the identity. The index
+          is in the picture because it exists: it routes requests and verifies signatures, and it
+          never holds anything that could sign in as you.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Three verbs -->
+  <section class="section border-t border-border bg-surface-1" aria-labelledby="verbs">
+    <div class="container-site">
+      <div class="max-w-2xl">
+        <p class="eyebrow">One identity, three questions</p>
+        <h2 id="verbs" class="headline mt-3 text-3xl sm:text-4xl">
+          Authenticate. Verify. Authorize.
+        </h2>
+        <p class="mt-4 text-lg text-fg-muted">
+          The same phone-held key answers all three. Start with login, add the other two when an
+          action deserves them.
+        </p>
+      </div>
+      <ul class="mt-12 grid gap-5 md:grid-cols-3">
+        {
+          VERBS.map((v) => (
+            <li class="card card-hover p-6">
+              <span class="icon-tile">
+                <Icon name={v.icon} />
+              </span>
+              <h3 class="mt-5 font-semibold tracking-tight">{v.verb}</h3>
+              <p class="mt-1 font-mono text-xs text-accent">“{v.quote}”</p>
+              <p class="mt-3 text-sm leading-relaxed text-fg-muted">{v.text}</p>
+              <a
+                href={v.href}
+                class="link mt-4 inline-flex items-center gap-1 text-sm"
+                rel={v.href.startsWith('http') ? 'noopener' : undefined}
+              >
+                Learn more <Icon name="arrow-right" size={14} />
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+    </div>
+  </section>
+
   <!-- How it works -->
-  <section class="section" aria-labelledby="how">
+  <section class="section border-t border-border" aria-labelledby="how">
     <div class="container-site">
       <div class="max-w-2xl">
         <p class="eyebrow">How it works</p>
@@ -295,18 +401,23 @@ const platforms = [
         class="order-2 lg:order-1"
       />
       <div class="order-1 lg:order-2">
-        <p class="eyebrow">Path B</p>
+        <p class="eyebrow">Authorize</p>
         <h2 id="pathb" class="headline mt-3 text-3xl sm:text-4xl">
-          Keep your login. Add the factor.
+          Don't just authenticate the user. Prove they approved the action.
         </h2>
         <p class="mt-4 text-lg text-fg-muted">
-          Bind a user's phone once, then ask it to approve anything: a login from a new country, a
-          wire transfer, a production deploy. The reason is shown on the phone and bound into the
-          signature, so an approval cannot be replayed for something else.
+          Keep your existing login if you like. Bind a person's phone once, then send it the exact
+          action: a wire transfer, a production deploy, an admin grant. The text is shown on the
+          phone and bound into the signature, so an approval cannot be replayed for something else.
         </p>
-        <a href={`${SITE.docs}/add-mfa`} class="link mt-6 inline-flex items-center gap-1 text-sm">
-          Add MFA to an existing app <Icon name="arrow-right" size={14} />
-        </a>
+        <div class="mt-6 flex flex-wrap gap-4">
+          <a href="/authorization" class="link inline-flex items-center gap-1 text-sm">
+            Signed authorization <Icon name="arrow-right" size={14} />
+          </a>
+          <a href={`${SITE.docs}/add-mfa`} class="link inline-flex items-center gap-1 text-sm">
+            Add MFA to an existing app <Icon name="arrow-right" size={14} />
+          </a>
+        </div>
       </div>
     </div>
   </section>
@@ -354,7 +465,7 @@ const platforms = [
     >
       <div class="bg-dots absolute inset-0 -z-0" aria-hidden="true"></div>
       <div class="relative">
-        <h2 class="headline text-3xl sm:text-4xl">Ship login this afternoon.</h2>
+        <h2 class="headline text-3xl sm:text-4xl">Add accountless identity this afternoon.</h2>
         <p class="mx-auto mt-4 max-w-xl text-lg text-fg-muted">
           Register a site, drop in the button, and approve your first login with the phone in your
           pocket. Free for personal identities, forever.

@@ -1,8 +1,8 @@
 export const SITE = {
   name: 'Identizen',
-  tagline: 'Login with your phone.',
+  tagline: 'Accountless identity. Login with your phone.',
   description:
-    'Identizen is an open-source, device-based identity system. Your phone holds the key; sites integrate standard OIDC. One tap, Face ID, in. No password, no email, no big-tech account.',
+    'Identizen is accountless identity, open source. Your phone holds your identity, your biometric unlocks it, and applications receive standard OpenID Connect. No password, no email, no identity-provider account to create, reset, or breach.',
   url: 'https://identizen.com',
   docs: 'https://docs.identizen.com',
   app: 'https://app.identizen.com',
@@ -17,6 +17,7 @@ export interface NavItem {
 }
 
 export const NAV: readonly NavItem[] = [
+  { href: '/accountless', label: 'Accountless' },
   { href: '/developers', label: 'Developers' },
   { href: '/pricing', label: 'Pricing' },
   { href: '/blog', label: 'Blog' },
@@ -28,6 +29,9 @@ export const FOOTER: readonly { heading: string; items: readonly NavItem[] }[] =
   {
     heading: 'Product',
     items: [
+      { href: '/accountless', label: 'Accountless identity' },
+      { href: '/authorization', label: 'Signed authorization' },
+      { href: '/agent-authorization', label: 'Agent authorization' },
       { href: '/developers', label: 'Developers' },
       { href: '/pricing', label: 'Pricing' },
       { href: '/playground', label: 'Playground' },

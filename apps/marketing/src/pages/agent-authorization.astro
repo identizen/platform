@@ -1,0 +1,157 @@
+---
+import Base from '../layouts/Base.astro';
+import PageHeader from '../components/PageHeader.astro';
+import Code from '../components/Code.astro';
+import Icon from '../components/Icon.astro';
+import { SITE } from '../lib/site';
+
+const flow = [
+  { who: 'AI agent', what: 'Purchase 500 units from Vendor X for $14,200' },
+  { who: 'Your application', what: 'Policy says: human approval required above $5,000' },
+  { who: 'Identizen', what: 'Pushes the request to the person’s phone' },
+  { who: 'Phone', what: 'Approve purchase? Vendor X · 500 units · $14,200 · [ Face ID ]' },
+  { who: 'Signed approval', what: 'Assertion bound to that exact text, verified by your server' },
+  { who: 'Agent continues', what: 'or stops, with a record either way' },
+];
+
+const tool = `
+// A tool boundary in your app. The agent calls it; your server decides and composes the text.
+import { createIdentizenServer } from '@identizen/sdk/server';
+const idz = createIdentizenServer({ indexUrl, clientId, clientSecret });
+
+export async function purchase(agent: Agent, order: Order) {
+  if (order.total > policy.autoApproveLimit) {
+    const v = await idz.verify({
+      sub: agent.owner.idzSub,
+      reason: \`Let \${agent.name} buy \${order.qty} units from \${order.vendor} for \${money(order.total)}?\`,
+    });
+    const done = await idz.waitForVerification(v.verification_id);
+    if (done.status !== 'approved') return { ok: false, reason: 'not approved by owner' };
+  }
+  return vendor.placeOrder(order);
+}`;
+
+const rules = [
+  {
+    title: 'The agent never writes the prompt',
+    text: 'Your server composes the text from the order it is about to execute. A prompt-injected agent cannot ask for one thing and do another, because the person approves what the server will do.',
+  },
+  {
+    title: 'Approval happens off the agent’s screen',
+    text: 'The request goes to the phone, not to the chat window the agent controls. There is no button the agent can press for the person.',
+  },
+  {
+    title: 'The receipt is portable',
+    text: 'The signed assertion names the site, the person, the action text, and the moment. Anyone with the index’s public key can verify it later, including an auditor or a counterparty.',
+  },
+  {
+    title: 'Set the boundary, not the agent',
+    text: 'Decide which actions need a human: amounts, destinations, roles, deletions. Everything under the line runs; everything over it waits for a phone.',
+  },
+];
+---
+
+<Base
+  title="Agent authorization"
+  description="Add cryptographically verified human approval to consequential AI-agent actions. When an agent reaches a boundary you define, the exact action goes to the person's phone for biometric approval."
+>
+  <PageHeader
+    eyebrow="Agents"
+    title="Let agents act. Keep humans in control."
+    lede="When an agent reaches a boundary you define, Identizen sends the exact action to the person's phone for biometric approval, and the agent continues only with a signed approval in hand. Give agents authority without giving them your authority."
+  />
+
+  <section class="container-site pb-16" aria-labelledby="flow">
+    <h2 id="flow" class="sr-only">The flow</h2>
+    <ol class="grid gap-3 md:grid-cols-3 lg:grid-cols-6">
+      {
+        flow.map((f, i) => (
+          <li class:list={['card relative p-4', i === 3 && 'border-accent/40 bg-accent-soft/40']}>
+            <p class="font-mono text-2xs uppercase tracking-wider text-fg-muted">
+              0{i + 1} · {f.who}
+            </p>
+            <p class="mt-2 text-sm leading-snug">{f.what}</p>
+            {i < flow.length - 1 && (
+              <span
+                class="absolute top-1/2 -right-3 hidden -translate-y-1/2 text-fg-muted lg:block"
+                aria-hidden="true"
+              >
+                <Icon name="arrow-right" size={14} />
+              </span>
+            )}
+          </li>
+        ))
+      }
+    </ol>
+  </section>
+
+  <section class="section border-t border-border bg-surface-1" aria-labelledby="how">
+    <div class="container-site grid items-start gap-12 lg:grid-cols-[0.9fr_1.1fr]">
+      <div>
+        <p class="eyebrow">How it works today</p>
+        <h2 id="how" class="headline mt-3 text-3xl sm:text-4xl">
+          A tool boundary and one API call.
+        </h2>
+        <p class="mt-4 text-lg text-fg-muted">
+          This is the Verification API that already powers step-up for wires and deploys, called
+          from the place in your app where an agent's tool call becomes a real action. No new
+          protocol, no agent SDK to adopt.
+        </p>
+        <p class="mt-4 text-sm leading-relaxed text-fg-muted">
+          Scoped standing grants, so a person can pre-approve a class of actions up to a limit and
+          skip the prompt for each one, are on the roadmap and will be specified in the protocol
+          before they ship.
+        </p>
+        <a
+          href={`${SITE.docs}/reference/verification-api/`}
+          class="link mt-6 inline-flex items-center gap-1 text-sm"
+          rel="noopener"
+        >
+          Verification API reference <Icon name="arrow-right" size={14} />
+        </a>
+      </div>
+      <Code code={tool} lang="ts" title="tools/purchase.ts" />
+    </div>
+  </section>
+
+  <section class="section" aria-labelledby="rules">
+    <div class="container-site">
+      <div class="max-w-2xl">
+        <p class="eyebrow">Why it holds up</p>
+        <h2 id="rules" class="headline mt-3 text-3xl sm:text-4xl">Four rules that make it safe</h2>
+      </div>
+      <ul class="mt-10 grid gap-5 sm:grid-cols-2">
+        {
+          rules.map((r) => (
+            <li class="card p-6">
+              <h3 class="font-semibold tracking-tight">{r.title}</h3>
+              <p class="mt-2 text-sm leading-relaxed text-fg-muted">{r.text}</p>
+            </li>
+          ))
+        }
+      </ul>
+      <p class="mt-8 max-w-2xl text-sm text-fg-muted">
+        Identizen is an identity system that agents can use, not an agent platform. This page
+        describes one use of the <a href="/authorization" class="link">authorization primitive</a>.
+      </p>
+    </div>
+  </section>
+
+  <section class="container-site pb-24 pt-8">
+    <div class="card-gradient bg-glow relative overflow-hidden px-6 py-14 text-center sm:px-12">
+      <div class="relative">
+        <h2 class="headline text-3xl">Put a person between your agent and the money.</h2>
+        <p class="mx-auto mt-4 max-w-xl text-lg text-fg-muted">
+          Bind the owner's phone with the quickstart, then add one call at the boundary.
+        </p>
+        <div class="mt-8 flex flex-wrap items-center justify-center gap-3">
+          <a href={`${SITE.docs}/quickstart`} class="btn btn-primary" rel="noopener">
+            Read the quickstart
+            <Icon name="arrow-right" />
+          </a>
+          <a href="/contact" class="btn btn-secondary">Talk to us about agents</a>
+        </div>
+      </div>
+    </div>
+  </section>
+</Base>

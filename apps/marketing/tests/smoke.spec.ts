@@ -2,7 +2,11 @@ import AxeBuilder from '@axe-core/playwright';
 import { expect, test } from '@playwright/test';
 
 const PAGES = [
-  ['/', 'Login with your phone.'],
+  ['/', 'Identity without the account.'],
+  ['/accountless', 'What is accountless identity?'],
+  ['/authorization', "Don't just authenticate the user. Prove they approved the action."],
+  ['/agent-authorization', 'Let agents act. Keep humans in control.'],
+  ['/faq', 'Questions, answered plainly.'],
   ['/developers', 'Built for the afternoon you have.'],
   ['/pricing', 'Free to run. Paid to not have to.'],
   ['/blog', 'Blog'],

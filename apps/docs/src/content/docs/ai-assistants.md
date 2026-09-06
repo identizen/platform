@@ -19,6 +19,7 @@ Both files are generated from the same sources as the pages you are reading, so 
 
 ## What a model needs to know
 
+- Identizen is accountless identity: there is no identity-provider account to create, protect, reset, or breach. The phone holds the identity, the biometric unlocks it for one request, and the app receives standard OIDC. Apps still keep their own user data under the per-site `sub`.
 - The site is a standard OpenID Connect relying party with PKCE (S256, required). The index at `https://index.identizen.com` is the OpenID Provider; `/.well-known/openid-configuration` is live.
 - The id_token has `sub` (stable per site), `sid`, `acr`, `amr`, and `idz_device`. It never contains an email.
 - `@identizen/react` renders the login in-page; `@identizen/sdk/server` verifies tokens and exchanges codes on the server; the `identizen` CLI registers sites and runs a fake phone.

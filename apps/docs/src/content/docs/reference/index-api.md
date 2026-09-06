@@ -72,7 +72,7 @@ Challenges live 60 seconds. `acr` is `idz:login` or `idz:mfa`; `reason` (≤ 140
 
 Pairings are issued on approval when the browser supplied a public key and are returned in the `approved` event as a signed pairing record `{ payload: { type, pairing_id, device_id, browser_pubkey, issued_at }, sig }`.
 
-## Account management: `/me`
+## Identity management: `/me`
 
 Authenticated with `Idz-Signature` (the phone) **or** `Authorization: Bearer <access_token>` issued to a client listed in the index's `DASHBOARD_CLIENT_IDS` ([the dashboard](https://app.identizen.com), a public PKCE client). Bearer sessions are checked for revocation on every call.
 

@@ -1,0 +1,178 @@
+---
+import Base from '../layouts/Base.astro';
+import PageHeader from '../components/PageHeader.astro';
+import Code from '../components/Code.astro';
+import Icon from '../components/Icon.astro';
+import { SITE } from '../lib/site';
+import { APPROVAL_EXAMPLES } from '../lib/positioning';
+
+const bind = `
+// 1. Bind once. The person signs in with their phone (or enrolls next to your existing login).
+//    Store the per-site identifier from the id_token.
+const { claims } = await idz.exchangeCode({ code, codeVerifier, redirectUri });
+await users.update(userId, { idzSub: claims.sub });`;
+
+const approve = `
+// 2. Later, from any backend, send the exact action. Your server composes the text.
+import { createIdentizenServer } from '@identizen/sdk/server';
+const idz = createIdentizenServer({ indexUrl, clientId, clientSecret });
+
+const v = await idz.verify({
+  sub: user.idzSub,
+  reason: 'Approve wire of $82,419.00 to Acme Manufacturing?',
+});
+const done = await idz.waitForVerification(v.verification_id);
+
+// 3. Act only on an approval. The assertion binds the hash of the reason the person read.
+if (done.status === 'approved') await wires.release(wire.id);`;
+
+const bound = [
+  [
+    'The site',
+    'The registered client and its origin. An approval for one site is meaningless to another.',
+  ],
+  ['The person', 'The per-site identifier, signed by a key only that phone holds.'],
+  [
+    'The action',
+    'A hash of the exact text shown on the phone. Change one character and the signature fails.',
+  ],
+  ['The moment', 'A nonce and a 60-second window, so nothing can be captured and replayed later.'],
+  [
+    'The proof',
+    'How it was approved: face, fingerprint, and a hardware-backed key, in the amr claim.',
+  ],
+];
+---
+
+<Base
+  title="Signed authorization"
+  description="Send the exact action to a person's phone, get a biometric approval back, and hold a signed assertion bound to that action. Step-up for wires, deploys, admin grants, and agent actions."
+>
+  <PageHeader
+    eyebrow="Authorize"
+    title="Don't just authenticate the user. Prove they approved the action."
+    lede="Authentication proves who is present. Some actions need more. Identizen sends the exact action to a person's trusted phone, asks for a biometric approval, and returns a signed assertion bound to that request."
+  />
+
+  <section class="container-site pb-16" aria-labelledby="examples">
+    <h2 id="examples" class="sr-only">Examples</h2>
+    <ul class="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
+      {
+        APPROVAL_EXAMPLES.map((e) => (
+          <li class="card p-4">
+            <p class="font-mono text-2xs uppercase tracking-wider text-fg-muted">On the phone</p>
+            <p class="mt-2 text-sm font-medium leading-snug">{e}</p>
+            <p class="mt-3 inline-flex items-center gap-1.5 text-xs text-accent">
+              <Icon name="fingerprint" size={14} /> Approve
+            </p>
+          </li>
+        ))
+      }
+    </ul>
+    <p class="mt-6 max-w-2xl text-fg-muted">
+      The person sees the action on the device they trust, approves it biometrically, and your
+      server receives a signature it can verify against the index's public key. Human intent,
+      cryptographically verified.
+    </p>
+  </section>
+
+  <section class="section border-t border-border bg-surface-1" aria-labelledby="how">
+    <div class="container-site grid items-start gap-12 lg:grid-cols-[0.9fr_1.1fr]">
+      <div>
+        <p class="eyebrow">How it works</p>
+        <h2 id="how" class="headline mt-3 text-3xl sm:text-4xl">Bind once. Ask any time.</h2>
+        <p class="mt-4 text-lg text-fg-muted">
+          Works as the primary login or next to the one you already have. After the phone is bound,
+          any backend can request an approval through the Verification API and wait for the answer
+          by polling or a signed webhook.
+        </p>
+        <p class="mt-4 text-sm leading-relaxed text-fg-muted">
+          One rule keeps the guarantee honest: your server composes the text the person reads. Never
+          let a client, a form, or an agent write it.
+        </p>
+        <div class="mt-6 flex flex-wrap gap-4">
+          <a
+            href={`${SITE.docs}/reference/verification-api/`}
+            class="link inline-flex items-center gap-1 text-sm"
+            rel="noopener"
+          >
+            Verification API <Icon name="arrow-right" size={14} />
+          </a>
+          <a
+            href={`${SITE.docs}/add-mfa/`}
+            class="link inline-flex items-center gap-1 text-sm"
+            rel="noopener"
+          >
+            Add to an existing login <Icon name="arrow-right" size={14} />
+          </a>
+        </div>
+      </div>
+      <div class="grid gap-4">
+        <Code code={bind} lang="ts" title="auth/callback.ts" />
+        <Code code={approve} lang="ts" title="wires/release.ts" />
+      </div>
+    </div>
+  </section>
+
+  <section class="section" aria-labelledby="bound">
+    <div class="container-site">
+      <div class="max-w-2xl">
+        <p class="eyebrow">What the signature covers</p>
+        <h2 id="bound" class="headline mt-3 text-3xl sm:text-4xl">Five things, all at once.</h2>
+      </div>
+      <dl class="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-5">
+        {
+          bound.map(([k, v]) => (
+            <div class="card p-5">
+              <dt class="font-semibold tracking-tight">{k}</dt>
+              <dd class="mt-2 text-sm leading-relaxed text-fg-muted">{v}</dd>
+            </div>
+          ))
+        }
+      </dl>
+      <p class="mt-8 max-w-2xl text-sm text-fg-muted">
+        The formats are specified and the test vectors are public, so anyone can verify an assertion
+        without trusting us. See the
+        <a href={`${SITE.docs}/protocol/`} class="link" rel="noopener">protocol</a>.
+      </p>
+    </div>
+  </section>
+
+  <section class="section border-t border-border bg-surface-1" aria-labelledby="agents">
+    <div class="container-site grid items-center gap-8 lg:grid-cols-[1fr_auto]">
+      <div class="max-w-2xl">
+        <p class="eyebrow">Agents</p>
+        <h2 id="agents" class="headline mt-3 text-3xl">Let agents act. Keep humans in control.</h2>
+        <p class="mt-4 text-lg text-fg-muted">
+          The same primitive puts a person between an AI agent and any action you decide is
+          consequential. The agent asks, the app's server composes the request, the phone shows it,
+          and the agent continues only with a signed approval in hand.
+        </p>
+      </div>
+      <a href="/agent-authorization" class="btn btn-secondary">
+        Agent authorization <Icon name="arrow-right" />
+      </a>
+    </div>
+  </section>
+
+  <section class="container-site pb-24 pt-16">
+    <div class="card-gradient bg-glow relative overflow-hidden px-6 py-14 text-center sm:px-12">
+      <div class="relative">
+        <h2 class="headline text-3xl">See a wire approved at the demo bank.</h2>
+        <p class="mx-auto mt-4 max-w-xl text-lg text-fg-muted">
+          JT Merlin Bank is a fictional bank that uses exactly this flow for every wire and for any
+          transfer of $1,000 or more. Its developer pages show the source.
+        </p>
+        <div class="mt-8 flex flex-wrap items-center justify-center gap-3">
+          <a href="https://jtmerlin.com" class="btn btn-primary" rel="noopener">
+            Open jtmerlin.com
+            <Icon name="arrow-right" />
+          </a>
+          <a href={`${SITE.docs}/add-mfa`} class="btn btn-secondary" rel="noopener"
+            >Read the guide</a
+          >
+        </div>
+      </div>
+    </div>
+  </section>
+</Base>

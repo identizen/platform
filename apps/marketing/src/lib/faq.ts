@@ -9,9 +9,14 @@ export const FAQ_GROUPS: readonly { heading: string; items: readonly Faq[] }[] =
     heading: 'What it is',
     items: [
       {
+        question: 'What does accountless identity mean?',
+        answer:
+          'It means there is no identity-provider account to create, protect, reset, or breach. The person’s phone holds a cryptographic identity, their biometric unlocks it for one request, and every application receives a standard OpenID Connect assertion with its own per-site identifier. Applications can still keep whatever user data they need under that identifier; what does not exist is a credential account at a provider that could sign in as the person.',
+      },
+      {
         question: 'What is Identizen?',
         answer:
-          'Identizen is an open-source, device-based login system. A private key is created on the user’s phone and never leaves it. Websites integrate Identizen as a standard OpenID Connect provider, and each sign-in is a signature the user approves on the phone with Face ID or a fingerprint. There is no password, no email address, and no Google or Microsoft account involved.',
+          'Identizen is accountless identity, open source. A private key is created on the user’s phone and never leaves it. Websites integrate Identizen as a standard OpenID Connect provider, and each sign-in is a signature the user approves on the phone with Face ID or a fingerprint. There is no password, no email address, and no Google or Microsoft account involved.',
       },
       {
         question: 'How is Identizen different from passkeys?',
@@ -64,6 +69,11 @@ export const FAQ_GROUPS: readonly { heading: string; items: readonly Faq[] }[] =
     heading: 'Security and recovery',
     items: [
       {
+        question: 'Can Identizen approve actions taken by an AI agent?',
+        answer:
+          'Yes, with the same Verification API used for wire transfers. When an agent reaches a boundary the application defines, the application’s server composes the exact action text, Identizen pushes it to the owner’s phone, and the agent continues only if a signed biometric approval comes back. The agent never writes the text and never sees a button it could press itself.',
+      },
+      {
         question: 'What happens if the user loses their phone?',
         answer:
           'They restore the identity on a new phone from the 24-word recovery phrase shown when it was created, and revoke the lost phone from the dashboard at app.identizen.com or from another device. Revoking signs the lost phone out of every site and unpairs every browser it had paired.',
@@ -81,7 +91,7 @@ export const FAQ_GROUPS: readonly { heading: string; items: readonly Faq[] }[] =
       {
         question: 'Which phones are supported?',
         answer:
-          'iOS 16 and later with Face ID or Touch ID, and Android 10 and later with a fingerprint or face unlock. Nearby sign-in over Bluetooth needs a phone that can advertise as a Bluetooth peripheral, which most phones from the last few years can.',
+          'iPhones with Face ID or Touch ID on a current iOS, and Android phones with a fingerprint or face unlock and a screen lock set. Nearby sign-in over Bluetooth needs a phone that can advertise as a Bluetooth peripheral, which most phones from the last few years can.',
       },
     ],
   },

@@ -79,7 +79,7 @@ export function renderPage(entry: DocEntry): string {
 
 export const INTRO = `# Identizen
 
-> Identizen is open-source, device-based login. The user's phone holds the key, your site is a standard OpenID Connect relying party with PKCE, and the hosted index at https://index.identizen.com is the OpenID Provider. One tap plus Face ID. No password, no email, no Google or Microsoft account, and nothing on the index worth stealing. Apache-2.0.
+> Identizen is accountless identity, open source: there is no identity-provider account to create, protect, reset, or breach. The user's phone holds the key, your site is a standard OpenID Connect relying party with PKCE, and the hosted index at https://index.identizen.com is the OpenID Provider. One tap plus Face ID. No password, no email, no Google or Microsoft account, and nothing on the index worth stealing. Apache-2.0.
 
 Facts that shape every integration:
 
