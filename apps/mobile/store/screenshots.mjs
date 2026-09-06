@@ -34,8 +34,10 @@ const font = (pkg, file) =>
 const SIZES = [
   { dir: 'iphone-6.7', w: 1290, h: 2796, platform: 'ios' },
   { dir: 'iphone-6.5', w: 1242, h: 2688, platform: 'ios' },
-  // Play accepts 320–3840 px with the long side at most twice the short side; 1:2 fits the design.
-  { dir: 'android-phone', w: 1080, h: 2160, platform: 'android' },
+  // Play wants 9:16 for phone and tablet listings; the design is centred with side margins.
+  { dir: 'android-phone', w: 1080, h: 1920, platform: 'android' },
+  { dir: 'android-tablet-7', w: 1080, h: 1920, platform: 'android' },
+  { dir: 'android-tablet-10', w: 1440, h: 2560, platform: 'android' },
 ];
 
 /** Apple's names on iOS; the generic term on Android (mirrors src/biometrics biometricName). */
