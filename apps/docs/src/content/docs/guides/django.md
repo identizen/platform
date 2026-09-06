@@ -54,7 +54,7 @@ class IdentizenBackend(OIDCAuthenticationBackend):
         return "sub" in claims
 ```
 
-`acr` (`idz:login` or `idz:mfa`), `amr`, `sid`, `idz_device`, and `idz_handle` (with the `handle` scope) are available in the claims; keep `sid` on the session so you can honour back-channel logout.
+`acr` (`idz:login` or `idz:mfa`), `amr`, `auth_time`, `sid`, `idz_device`, and `idz_handle` (with the `handle` scope) are available in the claims; keep `sid` on the session so you can honour back-channel logout.
 
 ## Step-up
 

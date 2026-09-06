@@ -50,6 +50,7 @@ export interface Claims {
   sid: string; // Identizen session id (back-channel logout refers to it)
   acr: 'idz:login' | 'idz:mfa';
   amr: string[]; // e.g. ['face', 'hwk']
+  auth_time: number; // when the person approved on the phone, unix seconds
   idz_device: string;
   idz_handle?: string;
   nonce?: string;

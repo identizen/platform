@@ -41,6 +41,7 @@ const server = setupServer(
         nonce: 'n1',
         acr: 'idz:login',
         amr: ['face', 'hwk'],
+        auth_time: Math.floor(Date.now() / 1000),
         idz_device: 'dev_x',
       },
       'JWT',

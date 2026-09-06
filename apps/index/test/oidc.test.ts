@@ -192,6 +192,7 @@ describe('authorization code flow', () => {
       'amr',
       'at_hash',
       'aud',
+      'auth_time',
       'exp',
       'iat',
       'idz_device',

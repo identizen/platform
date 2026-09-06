@@ -15,6 +15,8 @@ export interface IdTokenInput {
   nonce?: string | undefined;
   amr: string[];
   acr: string;
+  /** When the person approved on the phone (the assertion's iat), unix seconds. */
+  authTime: number;
   deviceId: string;
   handle?: string | null | undefined;
   orgId?: string | null | undefined;
@@ -22,12 +24,17 @@ export interface IdTokenInput {
   now: number;
 }
 
-/** id_token claims per PRD 8.3: sub, sid, amr, acr, idz_device, idz_handle?, idz_org?, at_hash. No email. */
+/**
+ * id_token claims per PRD 8.3: sub, sid, amr, acr, auth_time, idz_device, idz_handle?, idz_org?,
+ * at_hash. No email. auth_time (Core §2) is always issued: every login is a fresh phone approval,
+ * so it is the moment the person approved, which is what a max_age check wants.
+ */
 export async function mintIdToken(ring: OidcKeyring, input: IdTokenInput): Promise<string> {
   const claims: JWTPayload & Record<string, unknown> = {
     sid: input.sid,
     amr: input.amr,
     acr: input.acr,
+    auth_time: input.authTime,
     idz_device: input.deviceId,
     at_hash: await atHash(input.accessToken),
     ...(input.nonce !== undefined && { nonce: input.nonce }),

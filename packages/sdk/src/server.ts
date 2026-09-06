@@ -27,6 +27,8 @@ export interface IdentizenIdToken extends JWTPayload {
   sid: string;
   acr: 'idz:login' | 'idz:mfa';
   amr: string[];
+  /** When the person approved on the phone, unix seconds (OIDC `auth_time`). */
+  auth_time: number;
   idz_device: string;
   idz_handle?: string;
   idz_org?: string;

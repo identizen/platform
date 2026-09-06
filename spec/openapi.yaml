@@ -2601,7 +2601,7 @@ components:
           const: 3600
         id_token:
           type: string
-          description: 'JWT (ES256, 1 hour) with claims `iss`, `sub`, `aud`, `iat`, `exp`, `sid`, `amr`, `acr`, `at_hash`, `idz_device`, and optionally `nonce`, `idz_handle`, `idz_org`. Never an email.'
+          description: 'JWT (ES256, 1 hour) with claims `iss`, `sub`, `aud`, `iat`, `exp`, `sid`, `amr`, `acr`, `auth_time`, `at_hash`, `idz_device`, and optionally `nonce`, `idz_handle`, `idz_org`. Never an email.'
         scope:
           type: string
 
@@ -2684,7 +2684,22 @@ components:
           type: array
           items:
             type: string
-          const: [iss, sub, aud, exp, iat, nonce, sid, amr, acr, idz_device, idz_handle, idz_org]
+          const:
+            [
+              iss,
+              sub,
+              aud,
+              exp,
+              iat,
+              nonce,
+              sid,
+              amr,
+              acr,
+              auth_time,
+              idz_device,
+              idz_handle,
+              idz_org,
+            ]
         claims_parameter_supported:
           type: boolean
           const: false

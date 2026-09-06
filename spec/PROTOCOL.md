@@ -131,16 +131,17 @@ The index is an OpenID Provider implementing Authorization Code flow with PKCE (
 
 `id_token` claims:
 
-| Claim                                          | Value                                                                                                                                            |
-| ---------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `iss`, `aud`, `iat`, `exp`, `nonce`, `at_hash` | Standard OIDC.                                                                                                                                   |
-| `sub`                                          | Per-site identifier (assertion `sub`).                                                                                                           |
-| `sid`                                          | Session ID; used for back-channel logout.                                                                                                        |
-| `idz_handle`                                   | Optional human handle. Any site that asks for the `handle` scope receives it once the user has set one; unset, the user stays opaque everywhere. |
-| `idz_device`                                   | Opaque device ID (`dev_…`).                                                                                                                      |
-| `idz_org`                                      | Org identifier for org identities; absent for personal.                                                                                          |
-| `amr`                                          | From the assertion.                                                                                                                              |
-| `acr`                                          | `"idz:login"` or `"idz:mfa"`.                                                                                                                    |
+| Claim                                          | Value                                                                                                                                                |
+| ---------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `iss`, `aud`, `iat`, `exp`, `nonce`, `at_hash` | Standard OIDC.                                                                                                                                       |
+| `sub`                                          | Per-site identifier (assertion `sub`).                                                                                                               |
+| `sid`                                          | Session ID; used for back-channel logout.                                                                                                            |
+| `idz_handle`                                   | Optional human handle. Any site that asks for the `handle` scope receives it once the user has set one; unset, the user stays opaque everywhere.     |
+| `idz_device`                                   | Opaque device ID (`dev_…`).                                                                                                                          |
+| `idz_org`                                      | Org identifier for org identities; absent for personal.                                                                                              |
+| `amr`                                          | From the assertion.                                                                                                                                  |
+| `acr`                                          | `"idz:login"` or `"idz:mfa"`.                                                                                                                        |
+| `auth_time`                                    | When the person approved on the phone: the assertion `iat`. Every login is a fresh approval, so this is what a `max_age` check wants (OIDC Core §2). |
 
 No email claim. Back-channel logout per OpenID Connect Back-Channel Logout 1.0; `sid` identifies the session.
 

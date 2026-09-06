@@ -318,14 +318,19 @@ describe('OpenID Connect Core 1.0 §3.1.2 authorization endpoint', () => {
   });
 
   // Core §3.1.2.1 (max_age) and §2 (auth_time): "auth_time ... REQUIRED when a max_age request
-  // is made". The index does not issue auth_time yet; adding an id_token claim is a design
-  // decision (CLAUDE.md: ask before changing id_token claims), so this stays skipped and is
-  // listed as a deviation in reference/oidc-conformance.
-  it.skip('Core §2 / §3.1.2.1: auth_time is present in the id_token when max_age was requested', async () => {
+  // is made". Every login is a fresh phone approval, so auth_time is the assertion's iat and is
+  // issued on every id_token, max_age or not.
+  it('Core §2 / §3.1.2.1: auth_time is present in the id_token when max_age was requested, and is the time of the phone approval', async () => {
     const site = await registerSite();
     const phone = await registerPhone();
+    const before = Math.floor(Date.now() / 1000);
     const { tokens } = await loginAndExchange(site, phone, { max_age: '3600' });
-    expect(typeof decodeJwt(tokens.id_token).auth_time).toBe('number');
+    const claims = decodeJwt(tokens.id_token) as { auth_time?: number; iat?: number };
+    expect(typeof claims.auth_time).toBe('number');
+    expect(claims.auth_time).toBeGreaterThanOrEqual(before - 5);
+    expect(claims.auth_time).toBeLessThanOrEqual(claims.iat ?? 0);
+    const plain = await loginAndExchange(site, phone);
+    expect(typeof decodeJwt(plain.tokens.id_token).auth_time).toBe('number');
   });
 
   it('RFC 7636 §4.3: code_challenge is required and code_challenge_method must be S256 (plain and missing are rejected; discovery agrees)', async () => {

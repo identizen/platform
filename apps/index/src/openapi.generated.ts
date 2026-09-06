@@ -4187,7 +4187,7 @@ export const OPENAPI_DOCUMENT: Record<string, unknown> = {
           },
           "id_token": {
             "type": "string",
-            "description": "JWT (ES256, 1 hour) with claims `iss`, `sub`, `aud`, `iat`, `exp`, `sid`, `amr`, `acr`, `at_hash`, `idz_device`, and optionally `nonce`, `idz_handle`, `idz_org`. Never an email."
+            "description": "JWT (ES256, 1 hour) with claims `iss`, `sub`, `aud`, `iat`, `exp`, `sid`, `amr`, `acr`, `auth_time`, `at_hash`, `idz_device`, and optionally `nonce`, `idz_handle`, `idz_org`. Never an email."
           },
           "scope": {
             "type": "string"
@@ -4321,6 +4321,7 @@ export const OPENAPI_DOCUMENT: Record<string, unknown> = {
               "sid",
               "amr",
               "acr",
+              "auth_time",
               "idz_device",
               "idz_handle",
               "idz_org"

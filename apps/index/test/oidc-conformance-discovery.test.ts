@@ -41,6 +41,7 @@ const DOCUMENTED_ID_TOKEN_CLAIMS = [
   'sid',
   'amr',
   'acr',
+  'auth_time',
   'at_hash',
   'idz_device',
   'idz_handle',

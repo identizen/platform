@@ -46,7 +46,7 @@ There is no scheduled job in the index. Rows in `sessions`, `verifications`, and
 
 ## What a site receives
 
-The id_token and `/userinfo` carry `sub` (per site), `sid`, `idz_device` (an opaque device id), `amr`, `acr`, and `idz_handle` when the site asks for the `handle` scope and the person has set one. `idz_org` appears for org identities; nothing assigns one today. The full list is on the [OIDC reference](/reference/oidc/#id_token-claims). A Verification API response adds the `reason` you sent back to you and the double-signed assertion. Nothing else about the person reaches a site, and a site cannot call `/me`: bearer access to account management is limited to the client ids in the index's `DASHBOARD_CLIENT_IDS`.
+The id_token and `/userinfo` carry `sub` (per site), `sid`, `idz_device` (an opaque device id), `amr`, `acr`, `auth_time` (when the person approved), and `idz_handle` when the site asks for the `handle` scope and the person has set one. `idz_org` appears for org identities; nothing assigns one today. The full list is on the [OIDC reference](/reference/oidc/#id_token-claims). A Verification API response adds the `reason` you sent back to you and the double-signed assertion. Nothing else about the person reaches a site, and a site cannot call `/me`: bearer access to account management is limited to the client ids in the index's `DASHBOARD_CLIENT_IDS`.
 
 What you store under `sub` (profile, billing, KYC) is yours. The index never sees it. See [Users, sign-up, and linking identities](/users/).
 
