@@ -12,3 +12,4 @@ db/migrations/**/*.sql
 apps/mobile/ios
 apps/mobile/android
 spec/vectors/*.json
+apps/index/src/openapi.generated.ts

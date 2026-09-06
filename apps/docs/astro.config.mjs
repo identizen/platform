@@ -62,6 +62,7 @@ export default defineConfig({
             { label: 'OIDC', link: '/reference/oidc/' },
             { label: 'SDK and CLI', link: '/reference/sdk/' },
             { label: 'Index API', link: '/reference/index-api/' },
+            { label: 'OpenAPI', link: '/reference/openapi/' },
             { label: 'Errors', link: '/errors/' },
           ],
         },

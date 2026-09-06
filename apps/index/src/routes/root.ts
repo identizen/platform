@@ -1,5 +1,6 @@
 import { Hono } from 'hono';
 import type { AppEnv } from '../app';
+import { OPENAPI_DOCUMENT } from '../openapi.generated';
 
 const DOCS_URL = 'https://docs.identizen.com';
 const SITE_URL = 'https://identizen.com';
@@ -20,6 +21,7 @@ const ENDPOINTS: Endpoint[] = [
     what: 'Resolve a handle to an identity',
   },
   { path: '/health', what: 'Service and database status' },
+  { path: '/openapi.json', what: 'OpenAPI 3.1 description of this API' },
 ];
 
 /** Path (without query) -> description, for the JSON descriptor. */
@@ -118,6 +120,12 @@ export function rootRoutes(): Hono<AppEnv> {
       });
     }
     return c.html(page(indexUrl, appUrl));
+  });
+
+  /** The API description (spec/openapi.yaml), embedded at build time. */
+  r.get('/openapi.json', (c) => {
+    c.header('Cache-Control', 'public, max-age=300');
+    return c.json(OPENAPI_DOCUMENT);
   });
 
   return r;

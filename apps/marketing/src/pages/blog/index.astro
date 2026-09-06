@@ -7,7 +7,7 @@ import Icon from '../../components/Icon.astro';
 const posts = (await getCollection('blog', ({ data }) => !data.draft)).sort(
   (a, b) => b.data.date.getTime() - a.data.date.getTime(),
 );
-const fmt = new Intl.DateTimeFormat('en', { dateStyle: 'long' });
+const fmt = new Intl.DateTimeFormat('en', { dateStyle: 'long', timeZone: 'UTC' });
 ---
 
 <Base

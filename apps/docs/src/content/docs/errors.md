@@ -65,7 +65,7 @@ Anything else the browser client caught; `cause` holds the original error.
 
 ### invalid_client
 
-Unknown `client_id`, or the client secret is missing or wrong. For the Verification API send `Idz-Client-Id` plus `Authorization: Bearer <client_secret>` (or HTTP Basic).
+The client secret is missing or wrong, or, on `/token` and `/authorize`, the `client_id` is unknown. On `/sites/:client_id` and `/v1/verify` an unknown `client_id` is `404 unknown_client` instead. For the Verification API send `Idz-Client-Id` plus `Authorization: Bearer <client_secret>` (or HTTP Basic).
 
 ### invalid_request
 
@@ -133,7 +133,7 @@ HTTP 409. The object cannot move to the requested state (for example revoking a 
 
 ### rate_limited
 
-HTTP 429. Too many challenge or discovery requests from one IP address in a minute (`RATE_LIMIT_REQUESTS_PER_IP`, default 60). Try again in a minute.
+HTTP 429. Too many challenge, discovery, or `/authorize` requests from one IP address in a minute (`RATE_LIMIT_REQUESTS_PER_IP`, default 60). Try again in a minute.
 
 ### client_rate_limited
 

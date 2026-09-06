@@ -10,6 +10,14 @@ export default defineWorkersConfig({
     testTimeout: 30_000,
     hookTimeout: 60_000,
     globalSetup: ['./test/global-setup.ts'],
+    deps: {
+      optimizer: {
+        ssr: {
+          enabled: true,
+          include: ['@readme/openapi-parser', 'yaml'],
+        },
+      },
+    },
     poolOptions: {
       workers: {
         singleWorker: true,

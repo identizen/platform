@@ -25,3 +25,4 @@ Both files are generated from the same sources as the pages you are reading, so 
 - `@identizen/react` renders the login in-page; `@identizen/sdk/server` verifies tokens and exchanges codes on the server; the `identizen` CLI registers sites and runs a fake phone.
 - The user's phone must approve every login. `prompt=none` always fails with `interaction_required`.
 - Nothing secret is stored on the index; a public client needs no secret at all.
+- The whole index API is described in OpenAPI 3.1 at `https://index.identizen.com/openapi.json` (source: `spec/openapi.yaml`); see [OpenAPI](/reference/openapi/) for which endpoints need which credential.

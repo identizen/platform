@@ -32,14 +32,14 @@ Push tokens: every challenge is queued in the device's inbox (`GET /devices/:id/
 
 ### Signed device endpoints
 
-| Method | Path                      | Purpose                                                                                       |
-| ------ | ------------------------- | --------------------------------------------------------------------------------------------- |
-| `POST` | `/identities`             | `{ "handle": "george" \| null }` — set or clear the handle (`409 handle_taken`)               |
-| `POST` | `/devices/:id/push-token` | `{ push_token, push_platform }` for the calling device                                        |
-| `GET`  | `/devices/:id/inbox`      | Drain queued challenge ids (`{ challenge_ids: [] }`); the delivery of record for every device |
-| `POST` | `/devices/:id/revoke`     | Revoke another device of the same identity                                                    |
-| `POST` | `/challenge/:id/assert`   | Submit the double-signed assertion                                                            |
-| `POST` | `/challenge/:id/deny`     | Decline a challenge                                                                           |
+| Method | Path                      | Purpose                                                                                          |
+| ------ | ------------------------- | ------------------------------------------------------------------------------------------------ |
+| `POST` | `/identities`             | `{ "handle": "george" \| null }` — set or clear the handle (`409 handle_taken`)                  |
+| `POST` | `/devices/:id/push-token` | `{ push_token, push_platform }` for the calling device; both keys are required and may be `null` |
+| `GET`  | `/devices/:id/inbox`      | Drain queued challenge ids (`{ challenge_ids: [] }`); the delivery of record for every device    |
+| `POST` | `/devices/:id/revoke`     | Revoke another device of the same identity                                                       |
+| `POST` | `/challenge/:id/assert`   | Submit the double-signed assertion                                                               |
+| `POST` | `/challenge/:id/deny`     | Decline a challenge                                                                              |
 
 ### `Idz-Signature` request authentication
 

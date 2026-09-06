@@ -6,10 +6,16 @@
   "license": "Apache-2.0",
   "type": "module",
   "scripts": {
+    "openapi": "tsx scripts/gen-openapi.ts",
+    "predev": "npm run openapi",
     "dev": "wrangler dev --env dev",
+    "prebuild": "npm run openapi",
     "build": "tsc -p tsconfig.json --noEmit",
+    "pretypecheck": "npm run openapi",
     "typecheck": "tsc -p tsconfig.json --noEmit",
+    "pretest:unit": "npm run openapi",
     "test:unit": "vitest run",
+    "predeploy": "npm run openapi",
     "deploy": "wrangler deploy",
     "types": "wrangler types",
     "keys": "tsx scripts/gen-oidc-keys.ts",
@@ -26,8 +32,11 @@
   "devDependencies": {
     "@cloudflare/vitest-pool-workers": "^0.8.60",
     "@cloudflare/workers-types": "^4.20250906.0",
+    "@readme/openapi-parser": "^9.0.0",
+    "tsx": "^4.23.13",
     "typescript": "^5.9.2",
     "vitest": "^3.2.4",
-    "wrangler": "^4.34.0"
+    "wrangler": "^4.34.0",
+    "yaml": "^2.9.0"
   }
 }

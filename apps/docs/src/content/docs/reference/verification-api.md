@@ -54,7 +54,7 @@ Response `201`:
 
 `code` is the two-digit match code shown on the phone; show it to the user if your flow has a screen.
 
-Errors: `401 invalid_client` (bad or missing credentials), `404 unknown_sub` (no active device is bound to that `sub` for your site), `400 invalid_request` (validation).
+Errors: `401 invalid_client` (bad or missing secret), `404 unknown_client` (unknown `Idz-Client-Id`), `404 unknown_sub` (no active device is bound to that `sub` for your site), `400 invalid_request` (validation), `429 client_rate_limited` (too many challenges from this client in a minute).
 
 ## `GET /v1/verify/:id`
 

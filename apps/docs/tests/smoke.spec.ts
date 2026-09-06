@@ -16,6 +16,7 @@ const PAGES = [
   '/reference/oidc/',
   '/reference/sdk/',
   '/reference/index-api/',
+  '/reference/openapi/',
   '/errors/',
   '/self-hosting/',
   '/self-hosting-production/',

@@ -1,0 +1,184 @@
+---
+import Base from '../../layouts/Base.astro';
+import PageHeader from '../../components/PageHeader.astro';
+import Icon from '../../components/Icon.astro';
+import { SITE } from '../../lib/site';
+import { faqPage } from '../../lib/seo';
+
+/**
+ * A fair comparison. Passkeys are described as their specification and platforms implement them
+ * today; Identizen as the code ships. Nothing here is a knock on WebAuthn: it solved passwords.
+ */
+const rows: { topic: string; passkeys: string; identizen: string }[] = [
+  {
+    topic: 'What it is',
+    passkeys:
+      'A phishing-resistant credential (WebAuthn / FIDO2) that a site stores against an account it already holds. The site is the identity provider; the passkey replaces the password.',
+    identizen:
+      'An identity provider. The phone holds one identity, and sites integrate it as a standard OpenID Connect provider. There is no account at the provider for the passkey to protect.',
+  },
+  {
+    topic: 'Where the key lives',
+    passkeys:
+      'In the platform authenticator or a password manager. Synced passkeys are copied between devices through Apple, Google, Microsoft, or the manager’s cloud; device-bound passkeys stay on one authenticator.',
+    identizen:
+      'On the phone only, in the platform keychain or keystore behind the biometric. Never synced through anyone’s cloud. A new phone is set up from the 24-word recovery phrase.',
+  },
+  {
+    topic: 'One identity or many',
+    passkeys:
+      'One passkey per site, created at that site. Each is independent; losing access means recovery at each site separately.',
+    identizen:
+      'One identity that derives a different key for every site. Recovery is one phrase for everything, and revocation of a phone reaches every site at once.',
+  },
+  {
+    topic: 'Phishing',
+    passkeys:
+      'Resistant. The credential is bound to the site’s origin and the browser enforces it.',
+    identizen:
+      'Resistant. The site’s registered host is inside the signed assertion and the per-site key is derived from it. A signature for a lookalike domain verifies for nothing.',
+  },
+  {
+    topic: 'Signing in from a computer',
+    passkeys:
+      'A passkey on the same device, or the cross-device flow: the site shows a QR code, the phone scans it, and the two talk over Bluetooth to prove proximity.',
+    identizen:
+      'The site shows a QR code and a two-digit match code; the phone scans and approves. After the first time the browser is paired and later logins push straight to the phone. On Chromium, the phone can be found over Bluetooth without a code when the person clicks to do so.',
+  },
+  {
+    topic: 'What the site learns',
+    passkeys:
+      'Whatever the account holds. The passkey adds a credential id and a public key; the account still has the email, name, and whatever else the site collected.',
+    identizen:
+      'A per-site identifier and nothing else. No email, name, or phone number in the token. Sites cannot correlate a person across each other. The site asks for profile data itself, once, if it needs it.',
+  },
+  {
+    topic: 'Approving a specific action',
+    passkeys:
+      'Authentication only. WebAuthn signs a challenge, not a human-readable action. Transaction confirmation is not part of what platforms implement today, so the site shows the details in its own page and asks for a fresh assertion.',
+    identizen:
+      'Built in. The site’s server composes the text, the phone shows it, and the hash of that text is inside the signature. An approval for one amount and payee is useless for any other. Works from any backend through the Verification API, with no browser present.',
+  },
+  {
+    topic: 'Integration',
+    passkeys:
+      'WebAuthn on the front end, a credential store and ceremony logic on the back end, or a vendor library that wraps both. Fits inside the login system you already run.',
+    identizen:
+      'A standard OpenID Connect client with PKCE, or the React button and the CLI that scaffolds the callback. Replaces the login, or binds to an existing one for step-up.',
+  },
+  {
+    topic: 'Who runs the infrastructure',
+    passkeys: 'The site, plus the platform vendors that sync the credentials.',
+    identizen:
+      'The public index at index.identizen.com, or your own: the index is open source and runs on Cloudflare or in Docker. The index stores no secrets either way.',
+  },
+  {
+    topic: 'Maturity',
+    passkeys:
+      'A W3C and FIDO standard shipped in every major browser and OS, used by large sites in production.',
+    identizen:
+      'Protocol v1 with public test vectors, an open-source index, apps in store review. No independent security audit yet. Read the threat model before you rely on it for something that matters.',
+  },
+];
+
+const faqs = [
+  {
+    question: 'Should I use Identizen instead of passkeys?',
+    answer:
+      'If your site already has accounts and a login system, passkeys are the smallest change and a good one. If you want to stop holding a credential database entirely, want one identity per person that works from any browser, or need signed approval of specific actions, Identizen is the different layer that does that. They are not exclusive: a site can offer both.',
+  },
+  {
+    question: 'Are passkeys and Identizen equally phishing-resistant?',
+    answer:
+      'Yes, by different mechanisms. Passkeys bind the credential to the origin and the browser enforces it. Identizen puts the site host into the signed assertion and derives the signing key from it, so a lookalike site gets a signature that verifies nowhere.',
+  },
+  {
+    question: 'Can I use Identizen as a second factor on top of passkeys?',
+    answer:
+      'Yes. Keep your login as it is, bind the person’s phone once through enrollment, and push approvals to it for sensitive actions. The phone then signs the exact text of what is being approved, which passkeys do not do.',
+  },
+];
+
+const url = new URL('/compare/passkeys/', Astro.site ?? SITE.url).toString();
+---
+
+<Base
+  title="Identizen vs passkeys"
+  description="A fair comparison. Passkeys replace the password in front of an account; Identizen removes the account. Where the key lives, what the site learns, signing in from a computer, approving specific actions, and when to use which."
+  jsonLd={[faqPage(url, faqs)]}
+>
+  <PageHeader
+    eyebrow="Compare"
+    title="Identizen and passkeys solve different layers."
+    lede="Passkeys are the best credential ever put in front of an account. Identizen asks why a person needs an account at the provider at all. This page compares them honestly, so you can pick, or use both."
+  />
+
+  <section class="container-site pb-16" aria-labelledby="table">
+    <h2 id="table" class="sr-only">Comparison</h2>
+    <div class="card overflow-x-auto">
+      <table class="w-full text-sm">
+        <thead class="bg-surface-1 text-left text-fg-muted">
+          <tr>
+            <th scope="col" class="px-5 py-3 font-medium">Topic</th>
+            <th scope="col" class="px-5 py-3 font-medium">Passkeys</th>
+            <th scope="col" class="px-5 py-3 font-medium">Identizen</th>
+          </tr>
+        </thead>
+        <tbody>
+          {
+            rows.map((r) => (
+              <tr class="border-t border-border align-top">
+                <th scope="row" class="min-w-40 px-5 py-4 text-left font-medium">
+                  {r.topic}
+                </th>
+                <td class="min-w-72 px-5 py-4 leading-relaxed text-fg-muted">{r.passkeys}</td>
+                <td class="min-w-72 px-5 py-4 leading-relaxed text-fg-muted">{r.identizen}</td>
+              </tr>
+            ))
+          }
+        </tbody>
+      </table>
+    </div>
+    <p class="mt-6 max-w-2xl text-sm text-fg-muted">
+      Passkeys are described as the WebAuthn specification and the major platforms implement them.
+      Identizen is described as the code ships; the
+      <a href="/security" class="link">security page</a> lists what it does not yet claim.
+    </p>
+  </section>
+
+  <section class="section border-t border-border bg-surface-1" aria-labelledby="faq">
+    <div class="container-site max-w-3xl">
+      <p class="eyebrow">Choosing</p>
+      <h2 id="faq" class="headline mt-3 text-3xl">Which one, or both</h2>
+      <dl class="mt-8 divide-y divide-border">
+        {
+          faqs.map((f) => (
+            <div class="py-6">
+              <dt class="text-lg font-semibold tracking-tight">{f.question}</dt>
+              <dd class="mt-2 leading-relaxed text-fg-muted">{f.answer}</dd>
+            </div>
+          ))
+        }
+      </dl>
+    </div>
+  </section>
+
+  <section class="container-site pb-24 pt-16">
+    <div class="card-gradient bg-glow relative overflow-hidden px-6 py-14 text-center sm:px-12">
+      <div class="relative">
+        <h2 class="headline text-3xl">Try a login before you decide.</h2>
+        <p class="mx-auto mt-4 max-w-xl text-lg text-fg-muted">
+          The playground runs a real login against the hosted index with a virtual phone in your
+          browser.
+        </p>
+        <div class="mt-8 flex flex-wrap items-center justify-center gap-3">
+          <a href="/playground" class="btn btn-primary">
+            <Icon name="smartphone" />
+            Open the playground
+          </a>
+          <a href="/accountless" class="btn btn-secondary">What accountless means</a>
+        </div>
+      </div>
+    </div>
+  </section>
+</Base>

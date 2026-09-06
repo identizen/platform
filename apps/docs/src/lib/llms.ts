@@ -18,6 +18,7 @@ const ORDER = [
   'reference/oidc',
   'reference/verification-api',
   'reference/index-api',
+  'reference/openapi',
   'errors',
   'testing',
   'self-hosting',
@@ -90,7 +91,7 @@ export const INTRO = `# Identizen
 Facts that shape every integration:
 
 - The id_token is signed ES256 and carries exactly: iss, sub (stable per site), aud, iat, exp, nonce, sid, amr, acr (idz:login or idz:mfa), at_hash, idz_device, optional idz_handle and idz_org. There is never an email.
-- Endpoints: GET /authorize, POST /token, GET /userinfo, GET /.well-known/openid-configuration, GET /.well-known/jwks.json. Only response_type=code with code_challenge_method=S256. No refresh tokens.
+- Endpoints: GET /authorize, POST /token, GET or POST /userinfo, GET /.well-known/openid-configuration, GET /.well-known/jwks.json. Only response_type=code with code_challenge_method=S256. No refresh tokens.
 - Packages: @identizen/react (in-page button and hooks), @identizen/sdk (browser client and helpers), @identizen/sdk/server (code exchange, token and webhook verification, Verification API), identizen CLI (register-site, init for Next.js and Express, dev fake phone).
 - The phone must approve every login; prompt=none always returns interaction_required. On the first login a browser is paired, so later logins push straight to the phone.
 - Step-up for a known user: acr_values=idz:mfa with login_hint=<sub>. Enrollment for an existing account: prompt=enroll. Server-driven approval: POST /v1/verify { sub, reason }.

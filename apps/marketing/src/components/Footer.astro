@@ -3,7 +3,7 @@ import { FOOTER, SITE } from '../lib/site';
 import Logo from './Logo.astro';
 const year = new Date().getFullYear();
 const hosts = [
-  { host: 'index.identizen.com', what: 'index · OIDC' },
+  { host: 'index.identizen.com', what: 'index' },
   { host: 'app.identizen.com', what: 'dashboard' },
   { host: 'docs.identizen.com', what: 'docs' },
   { host: 'jtmerlin.com', what: 'demo bank' },
@@ -11,60 +11,67 @@ const hosts = [
 ---
 
 <footer class="border-t border-border bg-surface-1">
-  <div class="container-site grid gap-10 py-14 md:grid-cols-[1.6fr_1fr_1fr_1fr]">
-    <div class="max-w-sm">
-      <a href="/" class="inline-flex items-center text-fg" aria-label="Identizen, back to the top">
-        <Logo height={20} />
-      </a>
-      <p class="mt-3 text-sm leading-relaxed text-fg-muted">
-        Accountless identity, open source. Your phone holds the identity, your biometric unlocks it,
-        and your app receives standard OIDC.
-      </p>
-      <ul class="mt-5 space-y-1.5">
+  <div class="container-site py-14">
+    <div class="grid gap-10 lg:grid-cols-[1.4fr_repeat(4,1fr)]">
+      <div class="max-w-xs">
+        <a
+          href="/"
+          class="inline-flex items-center text-fg"
+          aria-label="Identizen, back to the top"
+        >
+          <Logo height={20} />
+        </a>
+        <p class="mt-3 text-sm leading-relaxed text-fg-muted">
+          Accountless identity, open source. Your phone holds the identity, your biometric unlocks
+          it, and your app receives standard OIDC.
+        </p>
+        <div class="mt-5 flex flex-wrap gap-2">
+          <a href="/download" class="btn btn-secondary btn-sm">Get the app</a>
+          <a href={`${SITE.docs}/quickstart`} class="btn btn-secondary btn-sm" rel="noopener">
+            Quickstart
+          </a>
+        </div>
+      </div>
+      {
+        FOOTER.map((group) => (
+          <nav aria-label={group.heading}>
+            <p class="eyebrow">{group.heading}</p>
+            <ul class="mt-4 space-y-2.5">
+              {group.items.map((item) => (
+                <li>
+                  <a
+                    href={item.href}
+                    class="text-sm text-fg-muted transition-colors hover:text-fg"
+                    rel={item.external ? 'noopener' : undefined}
+                  >
+                    {item.label}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </nav>
+        ))
+      }
+    </div>
+  </div>
+  <div class="border-t border-border">
+    <div
+      class="container-site flex flex-wrap items-center justify-between gap-x-6 gap-y-3 py-5 text-xs text-fg-muted"
+    >
+      <span>© {year} Identizen. Built in the open. Apache-2.0.</span>
+      <ul class="flex flex-wrap items-center gap-x-4 gap-y-1" aria-label="Live services">
         {
           hosts.map((h) => (
-            <li class="flex items-center gap-2 py-1 font-mono text-xs">
+            <li class="flex items-center gap-1.5 font-mono">
               <span class="h-1.5 w-1.5 rounded-full bg-success" aria-hidden="true" />
-              <a
-                href={`https://${h.host}`}
-                class="inline-flex min-h-6 items-center text-fg hover:text-accent"
-                rel="noopener"
-              >
+              <a href={`https://${h.host}`} class="text-fg hover:text-accent" rel="noopener">
                 {h.host}
               </a>
-              <span class="text-fg-muted">{h.what}</span>
+              <span class="hidden sm:inline">{h.what}</span>
             </li>
           ))
         }
       </ul>
-    </div>
-    {
-      FOOTER.map((group) => (
-        <nav aria-label={group.heading}>
-          <p class="eyebrow">{group.heading}</p>
-          <ul class="mt-4 space-y-2.5">
-            {group.items.map((item) => (
-              <li>
-                <a
-                  href={item.href}
-                  class="text-sm text-fg-muted transition-colors hover:text-fg"
-                  rel={item.external ? 'noopener' : undefined}
-                >
-                  {item.label}
-                </a>
-              </li>
-            ))}
-          </ul>
-        </nav>
-      ))
-    }
-  </div>
-  <div class="border-t border-border">
-    <div
-      class="container-site flex flex-wrap items-center justify-between gap-2 py-5 text-xs text-fg-muted"
-    >
-      <span>© {year} Identizen. Built in the open.</span>
-      <span class="font-mono">Apache-2.0 · one monorepo · no password database</span>
     </div>
   </div>
 </footer>

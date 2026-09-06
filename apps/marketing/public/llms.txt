@@ -24,6 +24,7 @@ The documentation, including the complete React + TypeScript integration inline,
 - [Accountless identity](https://identizen.com/accountless/): the category definition, the properties that make it work, fair comparisons with passwordless and passkeys
 - [Signed authorization](https://identizen.com/authorization/): send the exact action to the phone and hold a signed assertion bound to it
 - [Agent authorization](https://identizen.com/agent-authorization/): human approval at an agent tool boundary, using the same Verification API
+- [Identizen vs passkeys](https://identizen.com/compare/passkeys/): a fair comparison; different layers, usable together
 - [FAQ](https://identizen.com/faq/): direct answers on what Identizen is, how it differs from passkeys and authenticator apps, what sites learn, recovery, and pricing
 - [Developers](https://identizen.com/developers/): the integration in one page
 - [Pricing](https://identizen.com/pricing/): free tier and the enterprise tier (in development)

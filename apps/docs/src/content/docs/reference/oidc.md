@@ -69,7 +69,7 @@ A decoded id_token after a login from the demo bank looks like this (values shor
   "exp": 1757120400,
   "nonce": "…",
   "sub": "NcSuRV6Y3pDcgKd0-mbxGnDqXf9E9k5w",
-  "sid": "ses_01M1…",
+  "sid": "3kQ9vZ2mX…",
   "acr": "idz:login",
   "amr": ["face", "hwk"],
   "idz_device": "dev_01M1…"
@@ -110,7 +110,7 @@ Content-Type: application/x-www-form-urlencoded
 logout_token=<JWT>
 ```
 
-The token is signed with the index keys, `typ: logout+jwt`, `iss` = index URL, `aud` = `client_id`, `sub` = the user's per-site `sub`, `sid` = the session to end, `jti` unique, `events` = `{"http://schemas.openid.net/event/backchannel-logout": {}}`, no `nonce`, 2-minute expiry. Respond `200` quickly; delivery retries three times on failures. `@identizen/sdk/server` verifies it with `verifyLogoutToken(token)`.
+The token is signed with the index keys, `typ: logout+jwt`, `iss` = index URL, `aud` = `client_id`, `sub` = the user's per-site `sub`, `sid` = the session to end, `jti` unique, `events` = `{"http://schemas.openid.net/event/backchannel-logout": {}}`, no `nonce`, 2-minute expiry. Respond `200` quickly. Delivery is attempted three times, immediately, after 0.5 s, and after 2 s; a 4xx other than 429 stops the retries. `@identizen/sdk/server` verifies it with `verifyLogoutToken(token)`.
 
 ## Site registration
 
