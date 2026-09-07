@@ -7,15 +7,20 @@ Everything a phone, the SDK, or the dashboard calls that is not plain OIDC. Site
 
 ## Device and identity
 
+### `POST /devices/nonce` — a nonce for the proof
+
+No body. Returns `{ nonce, exp }`: a nonce valid for two minutes that the phone binds into its identity proof. Rate limited per source IP.
+
 ### `POST /devices` — register an install
 
-The one unsigned request. Creates the identity on first sight of a master key.
+The one unsigned request. Creates the identity on first sight of a master key. A device key is enrolled at most once: an active key registering again gets its existing enrolment back (`200`), a revoked key is refused (`403 device_revoked`).
 
 ```json
 {
   "device_pubkey": "<Ed25519, base64url>",
   "master_pubkey": "<Ed25519, base64url>",
-  "master_sig": "<Ed25519 over {\"device_pubkey\": …}, type identity>",
+  "master_sig": "<Ed25519 over {\"device_pubkey\", \"index\", \"nonce\"}, type identity>",
+  "nonce": "<from POST /devices/nonce>",
   "handle": "george",
   "kind": "personal",
   "ble_key": "<32 bytes, base64url>",
@@ -26,7 +31,7 @@ The one unsigned request. Creates the identity on first sight of a master key.
 }
 ```
 
-Returns `201 { device_id, idz, handle, index, index_pubkey }`. The phone pins `index_pubkey` and only honours challenges signed by it. `409 handle_taken` if the handle exists; `400 bad_identity_proof` if `master_sig` does not verify.
+Returns `201 { device_id, idz, handle, index, index_pubkey }` (`200` with the same shape when this key is already enrolled). The phone pins `index_pubkey` and only honours challenges signed by it. `409 handle_taken` if the handle exists; `400 bad_identity_proof` if `master_sig` does not verify over `device_pubkey`, this index's URL and the nonce; `400 bad_nonce` / `nonce_expired`; `403 device_revoked` for a key that was revoked. The legacy proof over `{ device_pubkey }` alone, without `nonce`, is still accepted for app builds that predate nonces.
 
 Push tokens: every challenge is queued in the device's inbox (`GET /devices/:id/inbox`) before any provider is called. The inbox is the delivery of record for every device; the phone drains it while in the foreground, whatever it registered with. A provider push only wakes the phone sooner, so a missing or failing provider is a logged failure, never a lost request. `ExponentPushToken[…]` tokens are relayed through the Expo push service regardless of `push_platform`; `apns` and `fcm` tokens go to the respective services when the index has credentials (transport only; the payload is `{ "challenge_id" }`). Platform `web` accepts an HTTP(S) URL that receives a JSON POST (used by the fake phone) or the literal `poll`, which sends nothing beyond the inbox.
 

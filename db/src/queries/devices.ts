@@ -44,6 +44,16 @@ export async function getDevice(db: Db, id: string): Promise<Device | null> {
   return row ?? null;
 }
 
+/** The device registered with this public key, if any (a key is enrolled at most once). */
+export async function getDeviceByPubkey(db: Db, devicePubkey: Uint8Array): Promise<Device | null> {
+  const [row] = await db
+    .select()
+    .from(devices)
+    .where(eq(devices.devicePubkey, devicePubkey))
+    .limit(1);
+  return row ?? null;
+}
+
 export async function requireDevice(db: Db, id: string): Promise<Device> {
   const row = await getDevice(db, id);
   if (!row) throw new NotFoundError('device', id);

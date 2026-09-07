@@ -16,6 +16,8 @@ function fakeIndex() {
     const method = init?.method ?? 'GET';
     const body = typeof init?.body === 'string' ? (JSON.parse(init.body) as unknown) : undefined;
     calls.push({ path, method, body });
+    if (path === '/devices/nonce')
+      return Response.json({ nonce: 'n'.repeat(40), exp: Math.floor(Date.now() / 1000) + 120 });
     if (path === '/devices')
       return Response.json(
         {

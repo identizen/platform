@@ -131,17 +131,17 @@ The index is an OpenID Provider implementing Authorization Code flow with PKCE (
 
 `id_token` claims:
 
-| Claim                                          | Value                                                                                                                                                |
-| ---------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `iss`, `aud`, `iat`, `exp`, `nonce`, `at_hash` | Standard OIDC.                                                                                                                                       |
-| `sub`                                          | Per-site identifier (assertion `sub`).                                                                                                               |
-| `sid`                                          | Session ID; used for back-channel logout.                                                                                                            |
-| `idz_handle`                                   | Optional human handle. Any site that asks for the `handle` scope receives it once the user has set one; unset, the user stays opaque everywhere.     |
-| `idz_device`                                   | Opaque device ID (`dev_…`).                                                                                                                          |
-| `idz_org`                                      | Org identifier for org identities; absent for personal.                                                                                              |
-| `amr`                                          | From the assertion.                                                                                                                                  |
-| `acr`                                          | `"idz:login"` or `"idz:mfa"`.                                                                                                                        |
-| `auth_time`                                    | When the person approved on the phone: the assertion `iat`. Every login is a fresh approval, so this is what a `max_age` check wants (OIDC Core §2). |
+| Claim                                          | Value                                                                                                                                                                                                                                                                 |
+| ---------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `iss`, `aud`, `iat`, `exp`, `nonce`, `at_hash` | Standard OIDC.                                                                                                                                                                                                                                                        |
+| `sub`                                          | Per-site identifier (assertion `sub`).                                                                                                                                                                                                                                |
+| `sid`                                          | Session ID; used for back-channel logout.                                                                                                                                                                                                                             |
+| `idz_handle`                                   | Optional human handle. Any site that asks for the `handle` scope receives it once the user has set one; unset, the user stays opaque everywhere.                                                                                                                      |
+| `idz_device`                                   | Per-site device identifier: `"dev_" + base64url(SHA-256("identizen/v1/pairwise-device\n" + rp_id + "\n" + device_id))[0:26]`. Stable for one phone at one site; different at every other site, like `sub`. The index-side `device_id` is never released through OIDC. |
+| `idz_org`                                      | Org identifier for org identities; absent for personal.                                                                                                                                                                                                               |
+| `amr`                                          | From the assertion.                                                                                                                                                                                                                                                   |
+| `acr`                                          | `"idz:login"` or `"idz:mfa"`.                                                                                                                                                                                                                                         |
+| `auth_time`                                    | When the person approved on the phone: the assertion `iat`. Every login is a fresh approval, so this is what a `max_age` check wants (OIDC Core §2).                                                                                                                  |
 
 No email claim. Back-channel logout per OpenID Connect Back-Channel Logout 1.0; `sid` identifies the session.
 
@@ -223,15 +223,27 @@ sig = Ed25519.sign(deviceKey, UTF8("identizen/v1/request\n" + METHOD + "\n" + PA
 
 `METHOD` is upper-case, `PATH` is the request path including query string, `body` is the raw request body (empty string for none). The index rejects `t` outside ±60 s of its clock and rejects any `(device_id, t, sig)` seen before within that window (replay protection). Device registration (`POST /devices`) is the one unsigned request. It carries the device public key, the master public key, and `master_sig` — an Ed25519 signature of type `"identity"` (§2) over `{ "device_pubkey": "<base64url>" }` proving the install holds the master key — and returns the assigned `device_id`, the `idz`, and the index's pinned public key. The identity is created on first sight; a restored phone re-registers against the same `idz`.
 
+### 8.1 Device registration proof
+
+`POST /devices` is the one unsigned phone request. It carries `device_pubkey`, `master_pubkey`, and `master_sig`, a signature of type `identity` (§2) by the master key over
+
+```
+{ "device_pubkey": <base64url>, "index": <INDEX_URL>, "nonce": <nonce> }
+```
+
+where `nonce` was obtained moments earlier from `POST /devices/nonce` on the same index (valid for two minutes) and `index` is that index's URL. The nonce binds the proof to one index and one moment, and the rule below makes replaying it pointless: a captured proof cannot enrol the key a second time, or on another index. The legacy proof over `{ "device_pubkey": … }` alone (before nonces) may still be accepted by an index for app builds that predate it.
+
+A device key is enrolled at most once. Registering an active key again returns its existing enrolment (`200`); a revoked or disabled key is refused (`403 device_revoked`) and the phone must enrol with a fresh device key. The index derives `idz` from `master_pubkey`, so a restored phone (new device key, same seed) joins the existing identity.
+
 ## 9. Identifiers summary
 
-| Prefix                    | Object         |
-| ------------------------- | -------------- |
-| `ch_`                     | Challenge      |
-| `dev_`                    | Device         |
-| `pr_`                     | Pairing        |
-| `vf_`                     | Verification   |
-| `idz_live_` / `idz_test_` | Site client ID |
+| Prefix                    | Object                                                                              |
+| ------------------------- | ----------------------------------------------------------------------------------- |
+| `ch_`                     | Challenge                                                                           |
+| `dev_`                    | Device (index-side; sites see the per-site form of §5, also `dev_` + 26 characters) |
+| `pr_`                     | Pairing                                                                             |
+| `vf_`                     | Verification                                                                        |
+| `idz_live_` / `idz_test_` | Site client ID                                                                      |
 
 ULIDs are 26 characters, Crockford base32, upper-case.
 

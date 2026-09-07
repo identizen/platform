@@ -83,6 +83,15 @@ export function generateVectors(): VectorFiles {
       device_pubkey: toBase64Url(device.publicKey),
       master_sig: signIdentityProof(toBase64Url(device.publicKey), master.privateKey),
     },
+    identity_proof_bound: {
+      device_pubkey: toBase64Url(device.publicKey),
+      index: 'https://index.example.com',
+      nonce: 'AAAAAZoKb8AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA',
+      master_sig: signIdentityProof(toBase64Url(device.publicKey), master.privateKey, {
+        index: 'https://index.example.com',
+        nonce: 'AAAAAZoKb8AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA',
+      }),
+    },
   };
 
   const canonicalizeCases = [

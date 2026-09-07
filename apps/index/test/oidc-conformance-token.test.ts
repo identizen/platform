@@ -3,14 +3,15 @@
  * RFC 6749 / RFC 7636 token endpoint, OpenID Connect Core 1.0 id_token and UserInfo, and
  * OpenID Connect Back-Channel Logout 1.0. See docs: reference/oidc-conformance.
  */
-import { SELF, env, fetchMock, runDurableObjectAlarm, runInDurableObject } from 'cloudflare:test';
+import { SELF, env, fetchMock } from 'cloudflare:test';
 import { afterEach, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import { createLocalJWKSet, decodeJwt, decodeProtectedHeader, jwtVerify } from 'jose';
 import { sha256, toBase64Url, utf8Encode } from '@identizen/protocol';
-import type { ChallengeSession } from '../src/do/challenge-session';
+import { pairwiseDeviceId } from '../src/oidc/pairwise';
 import { ID_TOKEN_TTL_SECONDS, LOGOUT_TOKEN_TTL_SECONDS } from '../src/oidc/tokens';
 import {
   BASE,
+  PKCE,
   REDIRECT_URI,
   authorizeAndApprove,
   discovery,
@@ -308,19 +309,25 @@ describe('RFC 6749 §4.1.3, §5.1, §5.2 and RFC 7636 §4.6 token endpoint', () 
     const site = await registerSite();
     const phone = await registerPhone();
     const login = await authorizeAndApprove(site, phone);
-    // The ChallengeSession keeps an approved session for CHALLENGE_TTL_SECONDS * 5 (5 minutes)
-    // after approval and then wipes it at the alarm. Backdate the approval and fire the alarm.
+    // Redemption checks the code's age against CODE_TTL_MS inside the session, so ask the
+    // session directly with a clock six minutes ahead (the route passes Date.now()).
     const stub = env.CHALLENGE_SESSION.getByName(login.challengeId);
-    await runInDurableObject(stub, async (instance: ChallengeSession, state) => {
-      const stored = await state.storage.get<{ resolvedAt: number | null }>('session');
-      if (!stored) throw new Error('no stored session');
-      await state.storage.put('session', { ...stored, resolvedAt: Date.now() - 6 * 60 * 1000 });
-      Reflect.set(instance, 'cache', null); // drop the in-memory copy so alarm() re-reads storage
+    const late = await stub.redeemCode({
+      code: login.code,
+      clientId: site.client_id,
+      registeredRedirectUris: [REDIRECT_URI],
+      redirectUri: REDIRECT_URI,
+      codeVerifier: PKCE.verifier,
+      now: Date.now() + 6 * 60 * 1000,
     });
-    expect(await runDurableObjectAlarm(stub)).toBe(true);
+    expect(late).toMatchObject({
+      ok: false,
+      error: 'invalid_grant',
+      description: 'code has expired',
+    });
+    // Not consumed by the failed attempt: the same code still redeems in time.
     const res = await exchange(site, login.code);
-    expect(res.status).toBe(400);
-    expect(await json(res)).toMatchObject({ error: 'invalid_grant' });
+    expect(res.status).toBe(200);
   });
 });
 
@@ -445,7 +452,7 @@ describe('OpenID Connect Core 1.0 §5.3 UserInfo', () => {
     for (const c of PROFILE_CLAIMS) expect(body, c).not.toHaveProperty(c);
     expect(body).toEqual({
       sub: decodeJwt(tokens.id_token).sub,
-      idz_device: phone.deviceId,
+      idz_device: pairwiseDeviceId('app.example.com', phone.deviceId),
       idz_handle: 'george',
     });
   });

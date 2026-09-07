@@ -139,19 +139,29 @@ export async function register(
   const master = deriveMasterKey(fromHex(seedHex));
   const deviceKey = keyPairFromPrivateKey(fromHex(device.devicePrivHex));
   const devicePub = toBase64Url(deviceKey.publicKey);
+  // PROTOCOL.md §8.1: the proof is bound to this index and a nonce it just issued.
+  const nonceRes = await fetchImpl(`${device.indexUrl}/devices/nonce`, { method: 'POST' });
+  if (!nonceRes.ok) throw new Error(`registration nonce failed: ${nonceRes.status}`);
+  const { nonce } = (await nonceRes.json()) as { nonce: string };
   const res = await fetchImpl(`${device.indexUrl}/devices`, {
     method: 'POST',
     headers: { 'content-type': 'application/json' },
     body: JSON.stringify({
       device_pubkey: devicePub,
       master_pubkey: toBase64Url(master.publicKey),
-      master_sig: signIdentityProof(devicePub, master.privateKey),
+      master_sig: signIdentityProof(devicePub, master.privateKey, {
+        index: device.indexUrl,
+        nonce,
+      }),
+      nonce,
       ble_key: toBase64Url(fromHex(device.bleKeyHex)),
       ...(push ? { push_token: push.token, push_platform: push.platform } : {}),
       label: 'Identizen app',
     }),
   });
-  if (res.status !== 201) throw new Error(`registration failed: ${res.status} ${await res.text()}`);
+  // 201 enrols; 200 is the same install registering again (reinstall, retry).
+  if (res.status !== 201 && res.status !== 200)
+    throw new Error(`registration failed: ${res.status} ${await res.text()}`);
   const body = (await res.json()) as {
     device_id: string;
     idz: string;

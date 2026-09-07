@@ -49,20 +49,25 @@ describe('abuse limits (M10.2)', () => {
     expect(limited).toBe(2);
   });
 
-  it('limits challenge issuance per site client across addresses', async () => {
-    const site = await registerSite();
-    const other = await registerSite({ rp_id: 'other.example.com' });
-    let limited = 0;
-    for (let i = 0; i < L.challengesPerClient + 2; i++) {
-      const res = await start(site.client_id, `10.0.0.${i}`);
-      if (res.status === 429) {
-        limited++;
-        expect(await json(res)).toMatchObject({ error: 'client_rate_limited' });
+  // Issues a few hundred challenges; under the parallel suite that needs more than the default 30 s.
+  it(
+    'limits challenge issuance per site client across addresses',
+    { timeout: 90_000 },
+    async () => {
+      const site = await registerSite();
+      const other = await registerSite({ rp_id: 'other.example.com' });
+      let limited = 0;
+      for (let i = 0; i < L.challengesPerClient + 2; i++) {
+        const res = await start(site.client_id, `10.0.0.${i}`);
+        if (res.status === 429) {
+          limited++;
+          expect(await json(res)).toMatchObject({ error: 'client_rate_limited' });
+        }
       }
-    }
-    expect(limited).toBe(2);
-    expect((await start(other.client_id, '10.1.0.1')).status).toBe(201);
-  });
+      expect(limited).toBe(2);
+      expect((await start(other.client_id, '10.1.0.1')).status).toBe(201);
+    },
+  );
 
   it('limits are configurable per environment', () => {
     expect(limits({})).toEqual({ challengesPerClient: 300, requestsPerIp: 60 });

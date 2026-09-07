@@ -26,8 +26,12 @@ function fakeIndex() {
     const method = init?.method ?? 'GET';
     const body = typeof init?.body === 'string' ? (JSON.parse(init.body) as unknown) : undefined;
     calls.push({ path: url.pathname, method, body });
+    if (url.pathname === '/devices/nonce' && method === 'POST') {
+      return Response.json({ nonce: 'n'.repeat(40), exp: Math.floor(Date.now() / 1000) + 120 });
+    }
     if (url.pathname === '/devices' && method === 'POST') {
-      const b = body as { device_pubkey: string };
+      const b = body as { device_pubkey: string; nonce?: string };
+      if (b.nonce !== 'n'.repeat(40)) return Response.json({ error: 'bad_nonce' }, { status: 400 });
       const id = `dev_${newChallengeId().slice(3)}`;
       devices.set(
         id,
@@ -96,7 +100,8 @@ describe('FakePhone', () => {
     expect(phone.mnemonic.split(' ')).toHaveLength(24);
     await phone.register();
     expect(phone.registered).toBe(true);
-    expect(index.calls[0]?.body).toMatchObject({
+    expect(index.calls.find((c) => c.path === '/devices')?.body).toMatchObject({
+      nonce: 'n'.repeat(40),
       push_platform: 'web',
       push_token: 'http://phone.test/push',
     });

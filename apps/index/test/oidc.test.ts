@@ -12,6 +12,7 @@ import {
   signedFetch,
   type Phone,
 } from './helpers';
+import { pairwiseDeviceId } from '../src/oidc/pairwise';
 
 beforeAll(() => {
   fetchMock.activate();
@@ -180,7 +181,7 @@ describe('authorization code flow', () => {
     expect(payload.nonce).toBe('n0nce');
     expect(payload.acr).toBe('idz:login');
     expect(payload.amr).toEqual(['face', 'hwk']);
-    expect(payload.idz_device).toBe(phone.deviceId);
+    expect(payload.idz_device).toBe(pairwiseDeviceId('app.example.com', phone.deviceId));
     expect(payload.idz_handle).toBe('george');
     expect(payload.idz_org).toBeUndefined();
     expect(typeof payload.sid).toBe('string');
@@ -208,7 +209,11 @@ describe('authorization code flow', () => {
       headers: { authorization: `Bearer ${tokens.access_token}` },
     });
     expect(ui.status).toBe(200);
-    expect(await json(ui)).toEqual({ sub, idz_device: phone.deviceId, idz_handle: 'george' });
+    expect(await json(ui)).toEqual({
+      sub,
+      idz_device: pairwiseDeviceId('app.example.com', phone.deviceId),
+      idz_handle: 'george',
+    });
 
     // code is single use; wrong verifier fails
     expect((await exchange(site, code)).status).toBe(400);

@@ -378,6 +378,23 @@ describe('identity proof and generic helpers', () => {
     expect(verifyIdentityProof('A'.repeat(43), sig, master.publicKey)).toBe(false);
   });
 
+  it('a bound proof only verifies for its index and nonce, and never as the legacy shape', () => {
+    const master = keyPairFromPrivateKey(fromHex('60'.repeat(32)));
+    const pub = toBase64Url(deviceKey.publicKey);
+    const binding = { index: 'https://index.example.com', nonce: 'n'.repeat(40) };
+    const sig = signIdentityProof(pub, master.privateKey, binding);
+    expect(verifyIdentityProof(pub, sig, master.publicKey, binding)).toBe(true);
+    expect(
+      verifyIdentityProof(pub, sig, master.publicKey, { ...binding, nonce: 'm'.repeat(40) }),
+    ).toBe(false);
+    expect(
+      verifyIdentityProof(pub, sig, master.publicKey, { ...binding, index: 'https://other' }),
+    ).toBe(false);
+    expect(verifyIdentityProof(pub, sig, master.publicKey)).toBe(false);
+    const legacy = signIdentityProof(pub, master.privateKey);
+    expect(verifyIdentityProof(pub, legacy, master.publicKey, binding)).toBe(false);
+  });
+
   it('generic verify never throws', () => {
     const sig = signPayload('request', { a: 1 }, deviceKey.privateKey);
     expect(verifyPayload('request', { a: 1 }, sig, deviceKey.publicKey)).toBe(true);

@@ -7,7 +7,7 @@ This page is for the person at a relying party who has to answer "what does Iden
 
 ## What the index never has
 
-No name, email address, phone number, or password. No private key: the seed, the master key, the per-site keys, and the device key live on the phone and are never sent. No plaintext secret: a site's client secret and webhook secret are stored as SHA-256 hashes. A person is known to the index by `idz`, a hash of their master public key, and to each site by a different `sub`, a hash of a key derived for that site's host. Sites cannot correlate a person across each other by `sub`, and the index never sends `idz` to a site. The opaque device id (`idz_device`) is currently the same at every site; the [threat model](/protocol/threat-model/) lists making it per-site as an open item.
+No name, email address, phone number, or password. No private key: the seed, the master key, the per-site keys, and the device key live on the phone and are never sent. No plaintext secret: a site's client secret and webhook secret are stored as SHA-256 hashes. A person is known to the index by `idz`, a hash of their master public key, and to each site by a different `sub`, a hash of a key derived for that site's host. Sites cannot correlate a person across each other: `sub` and `idz_device` are both derived per site, and the index never sends `idz` or its own device id to a site through OIDC. (A Verification API result carries the phone's signed assertion, whose `device_id` is the index-side one; the [threat model](/protocol/threat-model/) records that limit.)
 
 ## Every record, in one table
 
@@ -46,7 +46,7 @@ There is no scheduled job in the index. Rows in `sessions`, `verifications`, and
 
 ## What a site receives
 
-The id_token and `/userinfo` carry `sub` (per site), `sid`, `idz_device` (an opaque device id), `amr`, `acr`, `auth_time` (when the person approved), and `idz_handle` when the site asks for the `handle` scope and the person has set one. `idz_org` appears for org identities; nothing assigns one today. The full list is on the [OIDC reference](/reference/oidc/#id_token-claims). A Verification API response adds the `reason` you sent back to you and the double-signed assertion. Nothing else about the person reaches a site, and a site cannot call `/me`: bearer access to account management is limited to the client ids in the index's `DASHBOARD_CLIENT_IDS`.
+The id_token and `/userinfo` carry `sub` (per site), `sid`, `idz_device` (a per-site device id), `amr`, `acr`, `auth_time` (when the person approved), and `idz_handle` when the site asks for the `handle` scope and the person has set one. `idz_org` appears for org identities; nothing assigns one today. The full list is on the [OIDC reference](/reference/oidc/#id_token-claims). A Verification API response adds the `reason` you sent back to you and the double-signed assertion. Nothing else about the person reaches a site, and a site cannot call `/me`: bearer access to account management is limited to the client ids in the index's `DASHBOARD_CLIENT_IDS`.
 
 What you store under `sub` (profile, billing, KYC) is yours. The index never sees it. See [Users, sign-up, and linking identities](/users/).
 

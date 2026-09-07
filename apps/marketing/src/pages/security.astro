@@ -35,8 +35,8 @@ const holds: { icon: IconName; title: string; text: string }[] = [
   },
   {
     icon: 'globe',
-    title: 'Sites cannot match you by identifier',
-    text: 'Each site receives its own identifier, a hash of a key derived for that site alone. The cross-site identifier the index uses is never released, and there is no email in any token. One honest gap: the opaque device id in the token is currently the same at every site, so two sites that pool their data could match a phone. It is being made per-site.',
+    title: 'Sites cannot match you',
+    text: 'Each site receives its own identifier, a hash of a key derived for that site alone, and its own device id, derived the same way. The cross-site identifiers the index uses are never released, and there is no email in any token.',
   },
 ];
 

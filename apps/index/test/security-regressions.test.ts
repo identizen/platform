@@ -5,7 +5,17 @@
  */
 import { SELF, env, fetchMock } from 'cloudflare:test';
 import { afterEach, beforeAll, beforeEach, describe, expect, it } from 'vitest';
-import { rotatingBleIdString, sha256, toBase64Url, utf8Encode } from '@identizen/protocol';
+import { decodeJwt } from 'jose';
+import {
+  deriveMasterKey,
+  generateKeyPair,
+  generateSeed,
+  rotatingBleIdString,
+  sha256,
+  signIdentityProof,
+  toBase64Url,
+  utf8Encode,
+} from '@identizen/protocol';
 import {
   BASE,
   REDIRECT_URI,
@@ -14,9 +24,11 @@ import {
   exchange,
   fetchChallenge,
   json,
+  loginAndExchange,
   pkcePair,
   registerPhone,
   registerSite,
+  registrationNonce,
   resetDb,
   signedFetch,
   startChallenge,
@@ -313,5 +325,123 @@ describe('S13: code redemption is atomic', () => {
     });
     expect(late).toMatchObject({ ok: false, description: 'code has expired' });
     expect(toBase64Url(sha256(utf8Encode(verifier)))).toBe(challenge);
+  });
+});
+
+describe('S03: an enrolment proof cannot re-enrol a key the index knows', () => {
+  async function proofFor(phone: Phone, nonce?: string) {
+    const devicePub = toBase64Url(phone.device.publicKey);
+    return {
+      device_pubkey: devicePub,
+      master_pubkey: toBase64Url(phone.master.publicKey),
+      master_sig: signIdentityProof(
+        devicePub,
+        phone.master.privateKey,
+        nonce === undefined ? undefined : { index: BASE, nonce },
+      ),
+      ...(nonce !== undefined && { nonce }),
+    };
+  }
+
+  it('a revoked device key is refused, with a fresh nonce and with a replayed legacy proof', async () => {
+    const phone = await registerPhone();
+    const legacy = await proofFor(phone);
+    expect((await signedFetch(phone, 'POST', `/devices/${phone.deviceId}/revoke`, {})).status).toBe(
+      200,
+    );
+    const replayed = await post('/devices', legacy);
+    expect(replayed.status).toBe(403);
+    expect(await json(replayed)).toMatchObject({ error: 'device_revoked' });
+    const fresh = await post('/devices', await proofFor(phone, await registrationNonce()));
+    expect(fresh.status).toBe(403);
+    expect(await json(fresh)).toMatchObject({ error: 'device_revoked' });
+  });
+
+  it('an active key registering again gets its existing enrolment, not a second one', async () => {
+    const phone = await registerPhone();
+    const again = await post('/devices', await proofFor(phone, await registrationNonce()));
+    expect(again.status).toBe(200);
+    expect(await json(again)).toMatchObject({ device_id: phone.deviceId, idz: phone.idz });
+    const me = await json<{ devices: { id: string }[] }>(
+      await signedFetch(phone, 'GET', '/me/devices'),
+    );
+    expect(me.devices).toHaveLength(1);
+  });
+
+  it('a nonce binds the proof to this index, and a replayed proof cannot enrol a second time', async () => {
+    const seed = generateSeed();
+    const master = deriveMasterKey(seed);
+    const device = generateKeyPair();
+    const devicePub = toBase64Url(device.publicKey);
+    const nonce = await registrationNonce();
+    const body = (n: string, index = BASE) => ({
+      device_pubkey: devicePub,
+      master_pubkey: toBase64Url(master.publicKey),
+      master_sig: signIdentityProof(devicePub, master.privateKey, { index, nonce: n }),
+      nonce: n,
+    });
+    const wrongIndex = await post('/devices', body(nonce, 'https://other.example'));
+    expect(wrongIndex.status).toBe(400);
+    expect(await json(wrongIndex)).toMatchObject({ error: 'bad_identity_proof' });
+    const forged = await post('/devices', body('A'.repeat(54)));
+    expect(forged.status).toBe(400);
+    expect(await json(forged)).toMatchObject({ error: 'bad_nonce' });
+    const ok = await post('/devices', body(nonce));
+    expect(ok.status).toBe(201);
+    const first = await json<{ device_id: string }>(ok);
+    // The same proof again (captured and replayed) yields the existing enrolment, never a new one.
+    const replayed = await post('/devices', body(nonce));
+    expect(replayed.status).toBe(200);
+    expect(await json(replayed)).toMatchObject({ device_id: first.device_id });
+  });
+});
+
+describe('S11: every push counts against the device quota', () => {
+  it('a step-up and a Verification API request are refused once the device quota is spent', async () => {
+    const site = await registerSite();
+    const phone = await registerPhone();
+    const sub = await bindSub(site, phone);
+    // Spend the quota the way an attacker would: BLE discovery pushes, until the index says stop.
+    let limited = false;
+    for (let i = 0; i < 12 && !limited; i++) {
+      const started = await startChallenge({ client_id: site.client_id });
+      const res = await post('/discover/ble', {
+        challenge_id: started.challenge_id,
+        rotating_id: rotatingBleIdString(phone.bleKey, Math.floor(Date.now() / 1000)),
+      });
+      limited = res.status === 429;
+    }
+    expect(limited).toBe(true);
+    const stepUp = await post('/challenge', {
+      client_id: site.client_id,
+      acr: 'idz:mfa',
+      login_hint: sub,
+    });
+    expect(stepUp.status).toBe(429);
+    expect(await json(stepUp)).toMatchObject({ error: 'push_rate_limited' });
+    const verify = await post('/v1/verify', { sub, reason: 'Approve' }, verifyHeaders(site));
+    expect(verify.status).toBe(429);
+  });
+});
+
+describe('S06: the device id a site sees is per site', () => {
+  it('two sites get different idz_device values for the same phone; one site always gets the same', async () => {
+    const a = await registerSite();
+    const b = await registerSite({ rp_id: 'b.example' });
+    const phone = await registerPhone();
+    const first = await loginAndExchange(a, phone);
+    const second = await loginAndExchange(a, phone);
+    const other = await loginAndExchange(b, phone);
+    const claim = (t: string) => decodeJwt(t).idz_device as string;
+    expect(claim(first.tokens.id_token)).toBe(claim(second.tokens.id_token));
+    expect(claim(first.tokens.id_token)).not.toBe(claim(other.tokens.id_token));
+    expect(claim(first.tokens.id_token)).not.toBe(phone.deviceId);
+    expect(claim(first.tokens.id_token)).toMatch(/^dev_[A-Za-z0-9_-]{26}$/);
+    const ui = await json<{ idz_device: string }>(
+      await SELF.fetch(`${BASE}/userinfo`, {
+        headers: { authorization: `Bearer ${other.tokens.access_token}` },
+      }),
+    );
+    expect(ui.idz_device).toBe(claim(other.tokens.id_token));
   });
 });

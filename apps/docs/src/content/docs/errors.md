@@ -207,7 +207,19 @@ HTTP 404. `/me/sessions/:sid/revoke` or `/me/pairings/:id/revoke` named a sessio
 
 ### bad_identity_proof
 
-`master_sig` on `POST /devices` does not verify over `{ device_pubkey }` with `master_pubkey`.
+`master_sig` on `POST /devices` does not verify with `master_pubkey`: over `{ device_pubkey, index, nonce }` when a `nonce` was sent (the `index` must be this index's URL), or over `{ device_pubkey }` for the legacy proof.
+
+### bad_nonce / nonce_expired
+
+`POST /devices`: the `nonce` is not one this index issued, or is older than two minutes. Fetch a fresh one from `POST /devices/nonce` and sign again.
+
+### device_revoked
+
+HTTP 403. `POST /devices` with a device key that was revoked or disabled. A key is enrolled at most once; the phone must create a fresh device key and register that.
+
+### identity_mismatch
+
+HTTP 409. `POST /devices` with a device key that is already enrolled under a different identity.
 
 ### handle_taken
 
@@ -239,7 +251,7 @@ The `sub` is already bound to a different site key or identity for this site (tr
 
 ### push_rate_limited
 
-Too many pushes to one device in a minute (push-bombing guard). Try again shortly.
+Too many pushes to one device in a minute (push-bombing guard, ten per device). Every push counts, whether discovery, a step-up, or a Verification API request asked for it; `POST /challenge`, `/authorize` and `POST /v1/verify` return it too. Try again shortly.
 
 ### not_found
 

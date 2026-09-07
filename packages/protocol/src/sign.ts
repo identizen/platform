@@ -327,18 +327,47 @@ export function verifyRequestSignature(
 }
 
 // ---------------------------------------------------------------------------
-// Identity registration proof: master key signs the device public key.
+// Identity registration proof (PROTOCOL.md §8.1): the master key signs the device public key,
+// bound to the index it is meant for and a nonce that index issued, so a captured proof cannot
+// be replayed later or elsewhere. The unbound form is the legacy shape from before nonces;
+// indexes may accept it for existing app builds but it cannot re-enrol a key they already know.
 
-export function signIdentityProof(devicePubkey: string, masterPrivateKey: Uint8Array): string {
-  return signPayload('identity', { device_pubkey: devicePubkey }, masterPrivateKey);
+export interface IdentityProofBinding {
+  /** The index URL the proof is for (its `INDEX_URL`). */
+  index: string;
+  /** A nonce from `POST /devices/nonce` on that index. */
+  nonce: string;
+}
+
+function identityProofPayload(
+  devicePubkey: string,
+  binding: IdentityProofBinding | undefined,
+): Record<string, string> {
+  return binding
+    ? { device_pubkey: devicePubkey, index: binding.index, nonce: binding.nonce }
+    : { device_pubkey: devicePubkey };
+}
+
+export function signIdentityProof(
+  devicePubkey: string,
+  masterPrivateKey: Uint8Array,
+  binding?: IdentityProofBinding,
+): string {
+  return signPayload('identity', identityProofPayload(devicePubkey, binding), masterPrivateKey);
 }
 
 export function verifyIdentityProof(
   devicePubkey: string,
   sig: string,
   masterPublicKey: Uint8Array,
+  binding?: IdentityProofBinding,
 ): boolean {
-  return verifyPayload('identity', { device_pubkey: devicePubkey }, sig, masterPublicKey);
+  return verifyPayload(
+    'identity',
+    identityProofPayload(devicePubkey, binding),
+    sig,
+    masterPublicKey,
+  );
 }
 
 export function nowSeconds(): number {

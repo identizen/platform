@@ -74,8 +74,12 @@ function scriptedIndex() {
         headers: { 'content-type': 'application/json' },
       });
 
+    if (method === 'POST' && url.pathname === '/devices/nonce') {
+      return json(200, { nonce: 'n'.repeat(40), exp: Math.floor(Date.now() / 1000) + 120 });
+    }
     if (method === 'POST' && url.pathname === '/devices') {
       registration = JSON.parse(body ?? '{}') as DeviceRegistration;
+      if (registration.nonce !== 'n'.repeat(40)) return json(400, { error: 'bad_nonce' });
       devicePubkeys.set(
         'dev_01J9Z2K4M7N8P1Q3R5S7T9V1WZ',
         fromBase64Url(registration.device_pubkey),
@@ -159,8 +163,12 @@ describe('VirtualPhone', () => {
     if (!reg) return;
     expect(reg.push_token).toBe('poll');
     expect(reg.push_platform).toBe('web');
+    expect(reg.nonce).toBe('n'.repeat(40));
     expect(
-      verifyIdentityProof(reg.device_pubkey, reg.master_sig, fromBase64Url(reg.master_pubkey)),
+      verifyIdentityProof(reg.device_pubkey, reg.master_sig, fromBase64Url(reg.master_pubkey), {
+        index: INDEX,
+        nonce: reg.nonce ?? '',
+      }),
     ).toBe(true);
     // Registering again is a no-op.
     await phone.register();

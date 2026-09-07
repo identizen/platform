@@ -15,6 +15,7 @@ import { ApiError, badRequest } from '../lib/errors';
 import { bearer, hashSecret, randomToken, safeEqual } from '../lib/util';
 import { loadKeyring, publicJwks, OIDC_ALG } from '../oidc/keys';
 import { registeredRedirect, validateAuthorizeRequest } from '../oidc/authorize-request';
+import { pairwiseDeviceId } from '../oidc/pairwise';
 import { renderLoginPage } from '../oidc/login-page';
 import {
   mintAccessToken,
@@ -287,7 +288,7 @@ export function oidcRoutes(): Hono<AppEnv> {
       amr: assertion.amr,
       acr: assertion.acr,
       authTime: assertion.iat,
-      deviceId: device.id,
+      deviceId: pairwiseDeviceId(site.rpId, device.id),
       handle: scope.split(' ').includes('handle') ? identity.handle : null,
       orgId: identity.orgId,
       accessToken,
@@ -338,9 +339,10 @@ export function oidcRoutes(): Hono<AppEnv> {
     const session = await getSession(services.db, claims.sid);
     if (!session || !isSessionLive(session)) return invalid('session has been revoked');
     const identity = await getIdentity(services.db, session.idz);
+    const site = await getSite(services.db, session.clientId);
     return c.json({
       sub: claims.sub,
-      idz_device: session.deviceId,
+      idz_device: pairwiseDeviceId(site?.rpId ?? session.clientId, session.deviceId),
       ...(claims.scope.split(' ').includes('handle') && identity?.handle
         ? { idz_handle: identity.handle }
         : {}),

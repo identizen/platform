@@ -25,7 +25,7 @@ After a person approves a sign-in, the site gets a standard OpenID Connect token
 - It is stable across phones. Restore the 24 words on a new phone and the same key comes out, so the same `sub`. Your records do not move.
 - It cannot be hijacked. The index binds your site and that `sub` to the key that first produced it, and rejects any later assertion signed by a different key.
 
-There is no email in the token, no name, no phone number. That is not an omission. It is what keeps the identifier from being matched across sites. (The token also carries an opaque device id, which is the same at every site today; we are making it per-site.)
+There is no email in the token, no name, no phone number. That is not an omission. It is what keeps the identifier from being matched across sites. (The token also carries a device id, derived per site the same way.)
 
 ## Sign-up is a lookup miss
 

@@ -136,19 +136,27 @@ export class VirtualPhone {
     if (this.state.deviceId) return this.snapshot;
     const master = deriveMasterKey(fromHex(this.state.seedHex));
     const devicePub = toBase64Url(this.deviceKey.publicKey);
+    const nonceRes = await this.fetchImpl(`${this.indexUrl}/devices/nonce`, { method: 'POST' });
+    if (!nonceRes.ok) throw new Error(`registration nonce failed (${nonceRes.status})`);
+    const { nonce } = (await nonceRes.json()) as { nonce: string };
     const res = await this.fetchImpl(`${this.indexUrl}/devices`, {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
       body: JSON.stringify({
         device_pubkey: devicePub,
         master_pubkey: toBase64Url(master.publicKey),
-        master_sig: signIdentityProof(devicePub, master.privateKey),
+        master_sig: signIdentityProof(devicePub, master.privateKey, {
+          index: this.indexUrl,
+          nonce,
+        }),
+        nonce,
         push_token: 'poll',
         push_platform: 'web',
         label: this.label,
       }),
     });
-    if (res.status !== 201) throw new Error(`register failed (${res.status})`);
+    if (res.status !== 201 && res.status !== 200)
+      throw new Error(`register failed (${res.status})`);
     const body = (await res.json()) as { device_id: string; idz: string; index_pubkey: string };
     this.state = {
       ...this.state,

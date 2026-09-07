@@ -14,7 +14,7 @@
     "pretypecheck": "npm run openapi",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "pretest:unit": "npm run openapi",
-    "test:unit": "vitest run",
+    "test:unit": "vitest run --exclude \"test/oidc-conformance-*\" && vitest run test/oidc-conformance-discovery.test.ts test/oidc-conformance-authorize.test.ts test/oidc-conformance-token.test.ts",
     "predeploy": "npm run openapi",
     "deploy": "wrangler deploy",
     "types": "wrangler types",

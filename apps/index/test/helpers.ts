@@ -52,6 +52,13 @@ export interface Phone {
 }
 
 /** Register a device + identity like the app would. */
+/** A fresh registration nonce from the index under test. */
+export async function registrationNonce(): Promise<string> {
+  const res = await SELF.fetch(`${BASE}/devices/nonce`, { method: 'POST' });
+  if (res.status !== 200) throw new Error(`nonce failed: ${res.status}`);
+  return (await json<{ nonce: string }>(res)).nonce;
+}
+
 export async function registerPhone(
   opts: {
     handle?: string;
@@ -65,13 +72,15 @@ export async function registerPhone(
   const device = generateKeyPair();
   const bleKey = generateSeed();
   const devicePub = toBase64Url(device.publicKey);
+  const nonce = await registrationNonce();
   const res = await SELF.fetch(`${BASE}/devices`, {
     method: 'POST',
     headers: { 'content-type': 'application/json' },
     body: JSON.stringify({
       device_pubkey: devicePub,
       master_pubkey: toBase64Url(master.publicKey),
-      master_sig: signIdentityProof(devicePub, master.privateKey),
+      master_sig: signIdentityProof(devicePub, master.privateKey, { index: BASE, nonce }),
+      nonce,
       ble_key: toBase64Url(bleKey),
       ...(opts.handle && { handle: opts.handle }),
       ...(opts.pushToken && {

@@ -32,5 +32,11 @@
   "identity_proof": {
     "device_pubkey": "Kay64UG8yvCyLhqU000LxzYeUm0L_hLIl5S8kyKWbdc",
     "master_sig": "6w2WPTe1N4ACZvlsx22NUCA0-rOEWsmkaZ2W5koeBFuCTb99PeaT8zbxmDTIi6H4TIwi_jHY1FfDJPjL4zhNCA"
+  },
+  "identity_proof_bound": {
+    "device_pubkey": "Kay64UG8yvCyLhqU000LxzYeUm0L_hLIl5S8kyKWbdc",
+    "index": "https://index.example.com",
+    "nonce": "AAAAAZoKb8AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+    "master_sig": "YsIpEiB52aTZojUOwPoYn2hMHz7WukCnhGZgXMbwAgWhxKRvJmEHEHVAONcTlkIpi_cexVdAhdcLmv0fu9VgAw"
   }
 }

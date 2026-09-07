@@ -5,7 +5,7 @@ tableOfContents:
   maxHeadingLevel: 3
 ---
 
-The index ships a specification-derived conformance suite in `apps/index/test/oidc-conformance-*.test.ts`. Every test is named after the section of the specification it checks and runs a real authorization code flow against the Worker (the phone side is driven in-process by the test helpers, so no browser or app is involved). It runs as part of `npm run test:unit -w @identizen/index` and therefore of `npm run gate`.
+The index ships a specification-derived conformance suite in `apps/index/test/oidc-conformance-*.test.ts`. Every test is named after the section of the specification it checks and runs a real authorization code flow against the Worker (the phone side is driven in-process by the test helpers, so no browser or app is involved). It runs as part of `npm run test:unit -w @identizen/index` and therefore of `npm run gate`, as its own vitest invocation after the rest of the index suite: the Workers test pool reloads the worker per test file, and a single run that lasts longer than the five-minute challenge-session retention trips its Durable Object wrapper when the wipe alarms fire, so the two halves each stay well under that.
 
 This page is **not** an OpenID Certification. It documents what the automated suite checks, how the OpenID Foundation's own suite is run against the index unattended, and what that run reports; see [Running the OpenID Foundation conformance suite](#running-the-openid-foundation-conformance-suite) and the [results](#results).
 

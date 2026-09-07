@@ -80,21 +80,21 @@ A decoded id_token after a login from the demo bank looks like this (values shor
 
 `sub` is the value to store: it is the person's identifier at your site and stays the same across phones, restores, and sessions. See [Users, sign-up, and linking identities](/users/) for how to build on it.
 
-| Claim        | Value                                                                                                           |
-| ------------ | --------------------------------------------------------------------------------------------------------------- |
-| `iss`        | index URL                                                                                                       |
-| `sub`        | per-site identifier: `base64url(SHA-256(per-site public key))[0:32]`                                            |
-| `aud`        | your `client_id`                                                                                                |
-| `iat`, `exp` | issued-at and expiry (60 minutes)                                                                               |
-| `nonce`      | echoed when sent                                                                                                |
-| `sid`        | Identizen session id; back-channel logout refers to it                                                          |
-| `amr`        | authentication methods from the phone, e.g. `["face","hwk"]`, `["fingerprint","hwk"]`                           |
-| `acr`        | `idz:login` or `idz:mfa`                                                                                        |
-| `auth_time`  | when the person approved on the phone (unix seconds); every login is a fresh approval, so `max_age` checks work |
-| `at_hash`    | left-most 128 bits of SHA-256 of the access token, base64url                                                    |
-| `idz_device` | opaque device id (`dev_…`) for your own session/device UI                                                       |
-| `idz_handle` | the user's handle — only with the `handle` scope and only if the user set one                                   |
-| `idz_org`    | organisation id for org identities (absent for personal)                                                        |
+| Claim        | Value                                                                                                                                               |
+| ------------ | --------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `iss`        | index URL                                                                                                                                           |
+| `sub`        | per-site identifier: `base64url(SHA-256(per-site public key))[0:32]`                                                                                |
+| `aud`        | your `client_id`                                                                                                                                    |
+| `iat`, `exp` | issued-at and expiry (60 minutes)                                                                                                                   |
+| `nonce`      | echoed when sent                                                                                                                                    |
+| `sid`        | Identizen session id; back-channel logout refers to it                                                                                              |
+| `amr`        | authentication methods from the phone, e.g. `["face","hwk"]`, `["fingerprint","hwk"]`                                                               |
+| `acr`        | `idz:login` or `idz:mfa`                                                                                                                            |
+| `auth_time`  | when the person approved on the phone (unix seconds); every login is a fresh approval, so `max_age` checks work                                     |
+| `at_hash`    | left-most 128 bits of SHA-256 of the access token, base64url                                                                                        |
+| `idz_device` | per-site device id (`dev_…`) for your own session/device UI; derived per site like `sub`, so another site sees a different value for the same phone |
+| `idz_handle` | the user's handle — only with the `handle` scope and only if the user set one                                                                       |
+| `idz_org`    | organisation id for org identities (absent for personal)                                                                                            |
 
 Verify with the JWKS at `/.well-known/jwks.json`; two ES256 keys are published so rotation never breaks verification.
 

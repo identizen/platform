@@ -16,6 +16,16 @@ export class RequestGuard extends DurableObject<Env> {
   private requests: number[] = [];
   private pushes: number[] = [];
   private inbox: string[] = [];
+  private armed = false;
+
+  /** Schedule the sweep once per window instead of on every call (fewer storage writes and timers). */
+  private async arm(now: number): Promise<void> {
+    if (this.armed) return;
+    this.armed = true;
+    if ((await this.ctx.storage.getAlarm()) === null) {
+      await this.ctx.storage.setAlarm(now + WINDOW_MS);
+    }
+  }
 
   /** Returns false if `(timestamp, sig)` was already seen or the device exceeds its rate limit. */
   async check(timestamp: number, sig: string): Promise<boolean> {
@@ -26,7 +36,7 @@ export class RequestGuard extends DurableObject<Env> {
     if (this.requests.length >= RATE_LIMIT_PER_MINUTE) return false;
     this.seen.set(key, now);
     this.requests.push(now);
-    await this.ctx.storage.setAlarm(now + WINDOW_MS);
+    await this.arm(now);
     return true;
   }
 
@@ -36,7 +46,7 @@ export class RequestGuard extends DurableObject<Env> {
     this.prune(now);
     if (this.pushes.length >= PUSH_LIMIT_PER_MINUTE) return false;
     this.pushes.push(now);
-    await this.ctx.storage.setAlarm(now + WINDOW_MS);
+    await this.arm(now);
     return true;
   }
 
@@ -55,7 +65,7 @@ export class RequestGuard extends DurableObject<Env> {
     }
     events.push(now);
     this.buckets.set(bucket, events);
-    await this.ctx.storage.setAlarm(now + WINDOW_MS);
+    await this.arm(now);
     return true;
   }
 
@@ -64,7 +74,7 @@ export class RequestGuard extends DurableObject<Env> {
     if (this.inbox.includes(challengeId)) return;
     this.inbox.push(challengeId);
     if (this.inbox.length > 50) this.inbox.shift();
-    await this.ctx.storage.setAlarm(Date.now() + WINDOW_MS);
+    await this.arm(Date.now());
   }
 
   /** Return and clear queued challenge ids. */
@@ -75,6 +85,7 @@ export class RequestGuard extends DurableObject<Env> {
   }
 
   override async alarm(): Promise<void> {
+    this.armed = false;
     this.prune(Date.now());
     this.inbox = [];
     this.buckets.clear();

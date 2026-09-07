@@ -112,8 +112,14 @@ export const DeviceRegistrationSchema = z
   .object({
     device_pubkey: PublicKeySchema,
     master_pubkey: PublicKeySchema,
-    /** Proof the device holds the master key: Ed25519 (type "identity") over { device_pubkey }. */
+    /**
+     * Proof the device holds the master key: Ed25519 (type "identity") over
+     * { device_pubkey, index, nonce } when `nonce` is sent (PROTOCOL.md §8.1), or the legacy
+     * { device_pubkey } when it is not.
+     */
     master_sig: SignatureSchema,
+    /** From `POST /devices/nonce` on this index; binds the proof to this index and this moment. */
+    nonce: z.string().min(40).max(128).optional(),
     handle: HandleSchema.optional(),
     kind: z.enum(['personal', 'org']).default('personal'),
     ble_key: Base64UrlSchema.optional(),

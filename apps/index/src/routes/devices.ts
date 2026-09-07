@@ -2,6 +2,7 @@ import {
   createDevice,
   createIdentity,
   getDevice,
+  getDeviceByPubkey,
   getIdentity,
   HandleTakenError,
   recordAudit,
@@ -22,6 +23,8 @@ import type { AppEnv } from '../app';
 import { badRequest, conflict, forbidden } from '../lib/errors';
 import { deviceAuth } from '../middleware/idz-signature';
 import { fireBackchannelLogout } from '../services/sessions';
+import { checkRegistrationNonce, issueRegistrationNonce } from '../services/registration-nonce';
+import { ipRateLimit } from '../middleware/rate-limit';
 
 const PushTokenSchema = z
   .object({
@@ -35,15 +38,60 @@ const RevokeSchema = z.object({ device_id: z.string() }).strict();
 export function devicesRoutes(): Hono<AppEnv> {
   const r = new Hono<AppEnv>();
 
+  /** A nonce the phone binds into its identity proof (PROTOCOL.md section 8.1). */
+  r.post('/devices/nonce', ipRateLimit(), async (c) => {
+    const issued = await issueRegistrationNonce(c.get('services'));
+    return c.json(issued, 200, { 'cache-control': 'no-store' });
+  });
+
   /** Register an install and, on first sight, its identity (PROTOCOL.md section 8). */
-  r.post('/devices', async (c) => {
-    const { db, indexKey, indexUrl } = c.get('services');
+  r.post('/devices', ipRateLimit(), async (c) => {
+    const services = c.get('services');
+    const { db, indexKey, indexUrl } = services;
     const body = DeviceRegistrationSchema.parse(await c.req.json());
     const masterPub = fromBase64Url(body.master_pubkey);
-    if (!verifyIdentityProof(body.device_pubkey, body.master_sig, masterPub)) {
+    // A nonce binds the proof to this index and this moment. The legacy unbound proof is still
+    // accepted for app builds that predate nonces; either way a key the index already knows
+    // cannot be enrolled again, which is what a replayed proof would try.
+    if (body.nonce !== undefined) {
+      const nonce = await checkRegistrationNonce(services, body.nonce);
+      if (nonce === 'expired') throw badRequest('nonce_expired', 'registration nonce has expired');
+      if (nonce !== 'ok')
+        throw badRequest('bad_nonce', 'registration nonce is not from this index');
+      const binding = { index: indexUrl, nonce: body.nonce };
+      if (!verifyIdentityProof(body.device_pubkey, body.master_sig, masterPub, binding)) {
+        throw badRequest(
+          'bad_identity_proof',
+          'master_sig does not verify over device_pubkey, index and nonce',
+        );
+      }
+    } else if (!verifyIdentityProof(body.device_pubkey, body.master_sig, masterPub)) {
       throw badRequest('bad_identity_proof', 'master_sig does not verify over device_pubkey');
     }
     const idz = identityId(masterPub);
+    const known = await getDeviceByPubkey(db, fromBase64Url(body.device_pubkey));
+    if (known) {
+      if (known.status !== 'active') {
+        throw forbidden(
+          'device_revoked',
+          'this device key was revoked; enrol with a fresh device key',
+        );
+      }
+      if (known.idz !== idz)
+        throw conflict('identity_mismatch', 'this device key belongs to another identity');
+      // Same install registering again (reinstall, retry): the enrolment it already has.
+      const owner = await getIdentity(db, idz);
+      return c.json(
+        {
+          device_id: known.id,
+          idz,
+          handle: owner?.handle ?? null,
+          index: indexUrl,
+          index_pubkey: toBase64Url(indexKey.publicKey),
+        },
+        200,
+      );
+    }
     let identity = await getIdentity(db, idz);
     let createdIdentity = false;
     if (!identity) {

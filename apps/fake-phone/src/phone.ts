@@ -145,13 +145,21 @@ export class FakePhone {
     if (this.state.deviceId) return this.snapshot;
     const master = deriveMasterKey(this.seed);
     const devicePub = toBase64Url(this.deviceKey.publicKey);
+    // PROTOCOL.md §8.1: the proof is bound to the index's public name and a nonce it issued.
+    const nonceRes = await this.fetchImpl(`${this.indexUrl}/devices/nonce`, { method: 'POST' });
+    if (!nonceRes.ok) throw new Error(`registration nonce failed: ${nonceRes.status}`);
+    const { nonce } = (await nonceRes.json()) as { nonce: string };
     const res = await this.fetchImpl(`${this.indexUrl}/devices`, {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
       body: JSON.stringify({
         device_pubkey: devicePub,
         master_pubkey: toBase64Url(master.publicKey),
-        master_sig: signIdentityProof(devicePub, master.privateKey),
+        master_sig: signIdentityProof(devicePub, master.privateKey, {
+          index: this.indexIssuer,
+          nonce,
+        }),
+        nonce,
         ble_key: toBase64Url(this.bleKey),
         ...(this.state.handle && { handle: this.state.handle }),
         ...(this.poll
@@ -160,7 +168,8 @@ export class FakePhone {
         label: 'Fake phone',
       }),
     });
-    if (res.status !== 201) throw new Error(`register failed: ${res.status} ${await res.text()}`);
+    if (res.status !== 201 && res.status !== 200)
+      throw new Error(`register failed: ${res.status} ${await res.text()}`);
     const body = (await res.json()) as {
       device_id: string;
       idz: string;

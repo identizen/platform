@@ -124,7 +124,13 @@ export async function pushChallenge(
   device: Device,
   challengeId: string,
 ): Promise<boolean> {
-  await services.env.REQUEST_GUARD.getByName(device.id).enqueue(challengeId);
+  // The push-bombing guard applies to every push, whoever asked for it: discovery, a step-up,
+  // or the Verification API.
+  const guard = services.env.REQUEST_GUARD.getByName(device.id);
+  if (!(await guard.allowPush())) {
+    throw new ApiError(429, 'push_rate_limited', 'too many pushes to this device');
+  }
+  await guard.enqueue(challengeId);
   const result = await services.push.send(device, { challenge_id: challengeId });
   if (!result.ok)
     console.warn(`push to ${device.id} via ${result.provider} failed: ${result.detail ?? ''}`);

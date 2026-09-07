@@ -57,9 +57,23 @@ function fakeIndex() {
     const body = typeof init?.body === 'string' ? (JSON.parse(init.body) as unknown) : undefined;
     calls.push({ url, method, headers, body });
     const path = url.replace(INDEX, '');
+    if (path === '/devices/nonce' && method === 'POST') {
+      return Response.json({ nonce: 'n'.repeat(40), exp: Math.floor(Date.now() / 1000) + 120 });
+    }
     if (path === '/devices' && method === 'POST') {
-      const b = body as { device_pubkey: string; master_pubkey: string; master_sig: string };
-      if (!verifyIdentityProof(b.device_pubkey, b.master_sig, fromBase64Url(b.master_pubkey))) {
+      const b = body as {
+        device_pubkey: string;
+        master_pubkey: string;
+        master_sig: string;
+        nonce?: string;
+      };
+      if (b.nonce !== 'n'.repeat(40)) {
+        return Response.json({ error: 'bad_nonce' }, { status: 400 });
+      }
+      const binding = { index: INDEX, nonce: b.nonce };
+      if (
+        !verifyIdentityProof(b.device_pubkey, b.master_sig, fromBase64Url(b.master_pubkey), binding)
+      ) {
         return Response.json({ error: 'bad_identity_proof' }, { status: 400 });
       }
       devicePub = fromBase64Url(b.device_pubkey);
@@ -142,8 +156,12 @@ describe('identity lifecycle', () => {
 
     const reg = await register({ platform: 'apns', token: 'apns-token' });
     expect(reg.deviceId).toBe('dev_01K3ZB2N9G0000000000000001');
-    const body = index.calls[0]?.body as Record<string, unknown>;
+    const body = index.calls.find((c) => c.url.endsWith('/devices'))?.body as Record<
+      string,
+      unknown
+    >;
     expect(body).toMatchObject({
+      nonce: 'n'.repeat(40),
       push_platform: 'apns',
       push_token: 'apns-token',
       label: 'Identizen app',

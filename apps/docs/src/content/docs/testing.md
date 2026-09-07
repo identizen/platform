@@ -175,3 +175,7 @@ What the e2e step does, so you can copy it for your own site:
 3. `e2e/tests/path-a.spec.ts` covers QR login, logout, paired repeat login, pairing revocation, device revocation with back-channel logout, and denial. `e2e/tests/path-b.spec.ts` covers password login, enrollment with `prompt=enroll`, step-up with `acr_values=idz:mfa`, a verification with a reason, and a verification denial.
 
 To test your own application in CI, keep steps 1 and 2 for the index and the phone, and replace the sample site with yours. The repository publishes no container image; the index runs from a checkout with `wrangler dev`, or from an image you build with `apps/index/Dockerfile`. There is no separate hosted test index.
+
+## The index's own suite
+
+`npm run test:unit -w @identizen/index` runs vitest twice on purpose: once for everything except `test/oidc-conformance-*`, then once for the three conformance files. The Workers test pool keeps one runtime for a whole invocation and reloads the worker module for each test file; if an invocation runs longer than the five-minute retention of a resolved challenge session, the sessions' wipe alarms fire on Durable Object instances whose module has been reloaded and the pool's wrapper fails with `Maximum call stack size exceeded`, hanging the rest of the run. Two invocations of about 80 s each stay clear of it. For the same reason, tests should drive Durable Objects through their RPC methods or the HTTP API rather than `runInDurableObject`, which slows every Durable Object call for the rest of the run.

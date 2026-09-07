@@ -10,7 +10,7 @@ import { Hono } from 'hono';
 import { z } from 'zod';
 import type { AppEnv } from '../app';
 import type { ChallengeSession } from '../do/challenge-session';
-import { ApiError, conflict, forbidden, notFound, unauthorized } from '../lib/errors';
+import { conflict, forbidden, notFound, unauthorized } from '../lib/errors';
 import { browserMeta } from '../lib/util';
 import { pushChallenge } from '../services/challenge';
 import { ipRateLimit } from '../middleware/rate-limit';
@@ -56,9 +56,6 @@ export function discoverRoutes(): Hono<AppEnv> {
     const candidates = await listActiveBleDevices(services.db);
     const match = resolveBleId(candidates, fromBase64Url(body.rotating_id), services.now());
     if (!match) throw notFound('no_device', 'no active device advertises this id');
-    if (!(await c.env.REQUEST_GUARD.getByName(match.id).allowPush())) {
-      throw new ApiError(429, 'push_rate_limited', 'too many pushes to this device');
-    }
     const device = await requireDevice(services.db, match.id);
     await routeTo(stub, device.id, device.idz);
     await pushChallenge(services, device, body.challenge_id);
@@ -84,9 +81,6 @@ export function discoverRoutes(): Hono<AppEnv> {
       body.challenge_id,
     );
     if (!ok) throw unauthorized('bad_signature', 'browser signature does not verify');
-    if (!(await c.env.REQUEST_GUARD.getByName(joined.device.id).allowPush())) {
-      throw new ApiError(429, 'push_rate_limited', 'too many pushes to this device');
-    }
     await routeTo(stub, joined.device.id, joined.device.idz);
     await touchPairing(services.db, joined.pairing.id, browserMeta(c).ip);
     await recordAudit(services.db, {

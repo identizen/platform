@@ -701,7 +701,7 @@ export const OPENAPI_DOCUMENT: Record<string, unknown> = {
         ],
         "operationId": "registerDevice",
         "summary": "Register an install (and, on first sight of the master key, its identity)",
-        "description": "The one unsigned phone request (PROTOCOL.md §8). `master_sig` must be an Ed25519\nsignature of type `identity` over `{ \"device_pubkey\": … }` by `master_pubkey`; the\nidentity id `idz` is derived from the master public key, so a restored phone re-registers\nagainst the same identity. `handle` and `kind` only apply when the identity is created.\n",
+        "description": "The one unsigned phone request (PROTOCOL.md §8.1). `master_sig` is an Ed25519\nsignature of type `identity` by `master_pubkey` over `{ device_pubkey, index, nonce }`,\nwhere `nonce` came from `POST /devices/nonce` moments earlier (valid two minutes) and `index` is this index's URL; the legacy proof over `{ device_pubkey }`\nalone is still accepted for app builds that predate nonces. A device key is enrolled at\nmost once: registering an active key again returns its existing enrolment (`200`), and a\nrevoked key is refused (`403 device_revoked`). The identity id `idz` is derived from\nthe master public key, so a restored phone re-registers against the same identity.\n`handle` and `kind` only apply when the identity is created. Rate limited per source IP.\n",
         "requestBody": {
           "required": true,
           "content": {
@@ -713,6 +713,48 @@ export const OPENAPI_DOCUMENT: Record<string, unknown> = {
           }
         },
         "responses": {
+          "200": {
+            "description": "This device key is already enrolled and active; its existing enrolment (same shape as `201`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "device_id",
+                    "idz",
+                    "handle",
+                    "index",
+                    "index_pubkey"
+                  ],
+                  "properties": {
+                    "device_id": {
+                      "$ref": "#/components/schemas/DeviceId"
+                    },
+                    "idz": {
+                      "$ref": "#/components/schemas/Idz"
+                    },
+                    "handle": {
+                      "oneOf": [
+                        {
+                          "$ref": "#/components/schemas/Handle"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "index": {
+                      "type": "string",
+                      "format": "uri"
+                    },
+                    "index_pubkey": {
+                      "$ref": "#/components/schemas/PublicKey"
+                    }
+                  }
+                }
+              }
+            }
+          },
           "201": {
             "description": "Device registered.",
             "content": {
@@ -757,7 +799,17 @@ export const OPENAPI_DOCUMENT: Record<string, unknown> = {
             }
           },
           "400": {
-            "description": "`invalid_request` — body failed validation; `bad_identity_proof` — `master_sig` does not verify over `device_pubkey`.",
+            "description": "`invalid_request` — body failed validation; `bad_identity_proof` — `master_sig` does not verify over `device_pubkey` (and `index` + `nonce` when a nonce was sent); `bad_nonce` — the nonce is not one this index issued; `nonce_expired`.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "`device_revoked` — this device key was revoked or disabled; enrol with a fresh key.",
             "content": {
               "application/json": {
                 "schema": {
@@ -767,7 +819,7 @@ export const OPENAPI_DOCUMENT: Record<string, unknown> = {
             }
           },
           "409": {
-            "description": "`handle_taken` — another identity already uses the handle.",
+            "description": "`handle_taken` — another identity already uses the handle; `identity_mismatch` — this device key is enrolled under another identity.",
             "content": {
               "application/json": {
                 "schema": {
@@ -775,6 +827,45 @@ export const OPENAPI_DOCUMENT: Record<string, unknown> = {
                 }
               }
             }
+          }
+        }
+      }
+    },
+    "/devices/nonce": {
+      "post": {
+        "tags": [
+          "Devices"
+        ],
+        "operationId": "registrationNonce",
+        "summary": "A nonce for the identity proof in `POST /devices`",
+        "description": "Issues a nonce, valid for two minutes, that the phone binds into its `master_sig` (PROTOCOL.md §8.1). Stateless (an HMAC under a key derived from the index signing key); replaying it is pointless because a device key is enrolled at most once. No body. Rate limited per source IP.",
+        "responses": {
+          "200": {
+            "description": "The nonce and its expiry.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "nonce",
+                    "exp"
+                  ],
+                  "properties": {
+                    "nonce": {
+                      "type": "string",
+                      "description": "Opaque; send it back verbatim as `nonce` and inside the proof."
+                    },
+                    "exp": {
+                      "type": "integer",
+                      "description": "Unix seconds after which the nonce is refused."
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimited"
           }
         }
       }
@@ -1078,7 +1169,14 @@ export const OPENAPI_DOCUMENT: Record<string, unknown> = {
             }
           },
           "429": {
-            "$ref": "#/components/responses/RateLimited"
+            "description": "`rate_limited` — per-IP limit; `client_rate_limited` — the site started too many challenges this minute; `push_rate_limited` — a step-up would push to a device that was pushed ten times in the last minute.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
           }
         }
       }
@@ -2591,7 +2689,7 @@ export const OPENAPI_DOCUMENT: Record<string, unknown> = {
             }
           },
           "429": {
-            "description": "`client_rate_limited` — the site started too many challenges in a minute.",
+            "description": "`client_rate_limited` — the site started too many challenges in a minute; `push_rate_limited` — the bound device was pushed ten times in the last minute.",
             "content": {
               "application/json": {
                 "schema": {
@@ -2935,7 +3033,9 @@ export const OPENAPI_DOCUMENT: Record<string, unknown> = {
                   "$ref": "#/components/schemas/Sub"
                 },
                 "idz_device": {
-                  "$ref": "#/components/schemas/DeviceId"
+                  "type": "string",
+                  "pattern": "^dev_[A-Za-z0-9_-]{26}$",
+                  "description": "Per-site device id, derived from the device and the site's `rp_id` (PROTOCOL.md §5); another site sees a different value for the same phone."
                 },
                 "idz_handle": {
                   "$ref": "#/components/schemas/Handle",
@@ -3531,7 +3631,13 @@ export const OPENAPI_DOCUMENT: Record<string, unknown> = {
           },
           "master_sig": {
             "$ref": "#/components/schemas/Signature",
-            "description": "Ed25519 signature of type `identity` over `{ \"device_pubkey\": … }` by the master key."
+            "description": "Ed25519 signature of type `identity` by the master key over `{ device_pubkey, index, nonce }` when `nonce` is sent, or over `{ device_pubkey }` (legacy) when it is not."
+          },
+          "nonce": {
+            "type": "string",
+            "minLength": 40,
+            "maxLength": 128,
+            "description": "From `POST /devices/nonce` on this index. Binds the proof to this index and this moment; omit only from app builds that predate nonces."
           },
           "handle": {
             "$ref": "#/components/schemas/Handle"
@@ -4234,7 +4340,7 @@ export const OPENAPI_DOCUMENT: Record<string, unknown> = {
           },
           "id_token": {
             "type": "string",
-            "description": "JWT (ES256, 1 hour) with claims `iss`, `sub`, `aud`, `iat`, `exp`, `sid`, `amr`, `acr`, `auth_time`, `at_hash`, `idz_device`, and optionally `nonce`, `idz_handle`, `idz_org`. Never an email."
+            "description": "JWT (ES256, 1 hour) with claims `iss`, `sub`, `aud`, `iat`, `exp`, `sid`, `amr`, `acr`, `auth_time`, `at_hash`, `idz_device` (per site, PROTOCOL.md §5), and optionally `nonce`, `idz_handle`, `idz_org`. Never an email."
           },
           "scope": {
             "type": "string"
