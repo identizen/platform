@@ -66,3 +66,10 @@ export {
   type VerificationInstructions,
 } from './services/site-verification';
 export { backchannelLogout } from './services/backchannel';
+export { fireBackchannelLogout } from './services/sessions';
+export {
+  exemptHosts,
+  verificationRequired,
+  verificationStatus,
+  type VerificationEnv,
+} from './services/site-verification';

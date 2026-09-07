@@ -34,17 +34,31 @@ export function isLocalRpId(rpId: string): boolean {
 }
 
 /** Whether this index requires this site to prove its domain before it can be used. */
+export interface VerificationEnv {
+  SITE_VERIFICATION?: string | undefined;
+  SITE_VERIFICATION_EXEMPT_HOSTS?: string | undefined;
+}
+
+/** The host's own hostnames, which it controls by construction. */
+export function exemptHosts(env: VerificationEnv): string[] {
+  return (env.SITE_VERIFICATION_EXEMPT_HOSTS ?? '')
+    .split(',')
+    .map((h) => h.trim().toLowerCase())
+    .filter((h) => h.length > 0);
+}
+
 export function verificationRequired(
-  env: { SITE_VERIFICATION?: string | undefined },
+  env: VerificationEnv,
   site: Pick<Site, 'clientId' | 'rpId'>,
 ): boolean {
   if (env.SITE_VERIFICATION === 'off') return false;
   if (site.clientId.startsWith('idz_test_')) return false;
+  if (exemptHosts(env).includes(site.rpId.toLowerCase())) return false;
   return !isLocalRpId(site.rpId);
 }
 
 export function verificationStatus(
-  env: { SITE_VERIFICATION?: string | undefined },
+  env: VerificationEnv,
   site: Pick<Site, 'clientId' | 'rpId' | 'verifiedAt'>,
   now: number = Date.now(),
 ): VerificationStatus {
@@ -184,7 +198,7 @@ export async function checkVerification(
  */
 export async function ensureSiteUsable(
   services: Pick<Services, 'db' | 'indexUrl'>,
-  env: Pick<Env, 'SITE_VERIFICATION' | 'OUTBOUND_ALLOW_LOCAL'>,
+  env: Pick<Env, 'SITE_VERIFICATION' | 'SITE_VERIFICATION_EXEMPT_HOSTS' | 'OUTBOUND_ALLOW_LOCAL'>,
   site: Site,
   deps: {
     fetchImpl?: typeof fetch;

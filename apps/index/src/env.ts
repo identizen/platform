@@ -35,6 +35,12 @@ export interface Env {
    */
   SITE_VERIFICATION?: string;
   /**
+   * Comma-separated rp_ids that never need verification: a host's own surfaces (its dashboard
+   * and admin portal hostnames), which it controls by construction. Anything else on the list
+   * would be a hole, so hosts list exactly their own hostnames.
+   */
+  SITE_VERIFICATION_EXEMPT_HOSTS?: string;
+  /**
    * "true" lets the index send webhooks, logout tokens and web pushes to plain-http, loopback,
    * private and link-local destinations. Local development and the test suites only; the
    * hosted index never sets it and a self-hosted index next to internal services must not.

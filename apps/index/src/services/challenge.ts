@@ -59,6 +59,7 @@ export async function startChallenge(
     | 'RATE_LIMIT_CHALLENGES_PER_CLIENT'
     | 'RATE_LIMIT_REQUESTS_PER_IP'
     | 'SITE_VERIFICATION'
+    | 'SITE_VERIFICATION_EXEMPT_HOSTS'
     | 'OUTBOUND_ALLOW_LOCAL'
   >,
 ): Promise<StartChallengeResult> {
