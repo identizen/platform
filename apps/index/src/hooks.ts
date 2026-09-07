@@ -46,6 +46,8 @@ export interface SessionCreateContext {
   assertion: Assertion;
 }
 
+export type SessionCreateResult = { ttlSeconds?: number | undefined } | undefined;
+
 export interface TokenClaimsContext {
   services: Services;
   site: Site | null;
@@ -65,8 +67,11 @@ export interface IndexHooks {
   onAssert(ctx: AssertContext): Promise<void> | void;
   /** Before a device (and possibly its identity) is enrolled. Throw to refuse. */
   onEnroll(ctx: EnrollContext): Promise<void> | void;
-  /** Before an OIDC session row is written at code exchange. Throw to refuse. */
-  onSessionCreate(ctx: SessionCreateContext): Promise<void> | void;
+  /**
+   * Before an OIDC session row is written at code exchange. Throw to refuse. Return
+   * `{ ttlSeconds }` to shorten the session (never longer than the index default).
+   */
+  onSessionCreate(ctx: SessionCreateContext): Promise<SessionCreateResult> | SessionCreateResult;
   /**
    * Extra claims for the id_token and /userinfo. Standard claims always win over these, so a
    * hook cannot change sub, sid, amr, acr, auth_time, idz_device, idz_handle, idz_org or at_hash.
@@ -82,7 +87,7 @@ export const defaultHooks: IndexHooks = {
   onChallengeStart: allow,
   onAssert: allow,
   onEnroll: allow,
-  onSessionCreate: allow,
+  onSessionCreate: () => undefined,
   onTokenClaims: () => ({}),
 };
 

@@ -254,13 +254,24 @@ export function oidcRoutes(): Hono<AppEnv> {
 
     const now = services.now();
     const sid = randomToken(24);
-    await services.hooks.onSessionCreate({ services, site, identity, device, sid, assertion });
+    const sessionPolicy = await services.hooks.onSessionCreate({
+      services,
+      site,
+      identity,
+      device,
+      sid,
+      assertion,
+    });
+    const ttl = Math.min(
+      SESSION_TTL_SECONDS,
+      Math.max(60, Math.floor(sessionPolicy?.ttlSeconds ?? SESSION_TTL_SECONDS)),
+    );
     await createSession(services.db, {
       sid,
       idz: device.idz,
       deviceId: device.id,
       clientId: site.clientId,
-      expiresAt: new Date((now + SESSION_TTL_SECONDS) * 1000),
+      expiresAt: new Date((now + ttl) * 1000),
     });
     await recordAudit(services.db, {
       kind: 'session.created',

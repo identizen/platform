@@ -167,6 +167,38 @@ describe('createApp(options)', () => {
     expect(info.sub).toBe(claims.sub);
   });
 
+  it('onSessionCreate can shorten the session but never lengthen it', async () => {
+    const phone = await registerPhone();
+    const site = await registerSite();
+    useFetcher(appFetcher({ hooks: { onSessionCreate: () => ({ ttlSeconds: 3600 }) } }));
+    const { tokens } = await loginAndExchange(site, phone);
+    const claims = decodeJwt(tokens.access_token);
+    const me = await json<{ sessions: { expires_at: string; created_at: string }[] }>(
+      await request(`${BASE}/me/sessions`, {
+        headers: { authorization: `Bearer ${tokens.access_token}` },
+      }),
+    );
+    const s = me.sessions.find((x) => x.expires_at);
+    if (!s) throw new Error('no session');
+    const ttl = (Date.parse(s.expires_at) - Date.parse(s.created_at)) / 1000;
+    expect(ttl).toBeGreaterThan(3500);
+    expect(ttl).toBeLessThan(3700);
+    expect(claims.sid).toBeTruthy();
+    useFetcher(appFetcher({ hooks: { onSessionCreate: () => ({ ttlSeconds: 10 ** 9 }) } }));
+    const phone2 = await registerPhone();
+    const second = await loginAndExchange(site, phone2);
+    const me2 = await json<{ sessions: { expires_at: string; created_at: string }[] }>(
+      await request(`${BASE}/me/sessions`, {
+        headers: { authorization: `Bearer ${second.tokens.access_token}` },
+      }),
+    );
+    const long = me2.sessions[0];
+    if (!long) throw new Error('no session');
+    expect((Date.parse(long.expires_at) - Date.parse(long.created_at)) / 1000).toBeLessThanOrEqual(
+      30 * 24 * 3600 + 5,
+    );
+  });
+
   it('onSessionCreate can refuse the exchange', async () => {
     const phone = await registerPhone();
     const site = await registerSite();

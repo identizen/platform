@@ -13,6 +13,7 @@ export {
   type EnrollContext,
   type IndexHooks,
   type SessionCreateContext,
+  type SessionCreateResult,
   type TokenClaimsContext,
 } from './hooks';
 export { ChallengeSession } from './do/challenge-session';
