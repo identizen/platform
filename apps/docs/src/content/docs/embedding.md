@@ -13,19 +13,30 @@ npm install @identizen/index @identizen/db hono
 
 ```ts
 // src/index.ts of your Worker
-import { createApp, ChallengeSession, RequestGuard, type Env } from '@identizen/index';
+import { ApiError, ChallengeSession, RequestGuard, createApp, forbidden } from '@identizen/index';
 
 export { ChallengeSession, RequestGuard }; // the two Durable Objects; bind them in wrangler.jsonc
 
 const app = createApp({
-  resolveEnv,
-  hooks: { onChallengeStart, onTokenClaims },
+  // One Worker, one issuer per hostname.
+  resolveEnv: (request, env) => {
+    const host = new URL(request.url).hostname;
+    const tenant = host.split('.')[0] ?? '';
+    if (!host.endsWith('.index.example.com') || tenant === '')
+      throw new ApiError(404, 'tenant_not_found', 'no such tenant');
+    return { ...env, INDEX_URL: `https://${host}`, TENANT_KEY: tenant };
+  },
+  hooks: {
+    onChallengeStart: ({ site }) => {
+      if (site.rpId === 'payroll.example.com')
+        throw forbidden('workforce_only', 'this site only accepts org identities');
+    },
+    onTokenClaims: () => ({ idz_role: 'member' }),
+  },
   extend: (app) => app.get('/orgs/ping', (c) => c.text('pong')),
 });
 
-export default {
-  fetch: (req: Request, env: Env, ctx: ExecutionContext) => app.fetch(req, env, ctx),
-};
+export default app;
 ```
 
 Nothing changes without options: an embedded index with none behaves exactly like the hosted one
@@ -75,7 +86,8 @@ timestamp:
 ```ts
 import { createDb, migrateDb, resolveMigrationsDir } from '@identizen/db';
 
-const { db, close } = createDb(connectionString);
+const databaseUrl = 'postgres://…'; // the index database
+const { db, close } = createDb(databaseUrl);
 await migrateDb(db, [resolveMigrationsDir(), './migrations']);
 await close();
 ```
