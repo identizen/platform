@@ -26,6 +26,8 @@ const PAGES = [
   '/versioning/',
   '/enterprise/',
   '/enterprise/cloud-setup/',
+  '/enterprise/portal/',
+  '/enterprise/org-app/',
   '/enterprise/mfa-and-step-up/',
   '/protocol/',
   '/protocol/vectors/',

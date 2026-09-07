@@ -19,13 +19,13 @@ Sites, identities, devices, sessions and audit events registered on a tenant ind
 
 ## Hostnames
 
-| Hostname                        | Serves                                                              | Status  |
-| ------------------------------- | ------------------------------------------------------------------- | ------- |
-| `{tenant}.index.identizen.com`  | The index: OIDC, challenges, discovery, `/me`, the Verification API | Today   |
-| `{tenant}.portal.identizen.com` | Admin portal (org, domains, users, fleet, policy, SSO, SCIM, audit) | Roadmap |
-| `{tenant}.app.identizen.com`    | Org users' self-service dashboard                                   | Roadmap |
+| Hostname                        | Serves                                                                                                       | Status |
+| ------------------------------- | ------------------------------------------------------------------------------------------------------------ | ------ |
+| `{tenant}.index.identizen.com`  | The index: OIDC, challenges, discovery, `/me`, the Verification API, the org API                             | Today  |
+| `{tenant}.portal.identizen.com` | [Admin portal](/enterprise/portal/): organisation profile, domains, users and roles, audit                   | Today  |
+| `{tenant}.app.identizen.com`    | [Organisation app](/enterprise/org-app/): members' devices, paired browsers, sessions, activity, invitations | Today  |
 
-Only the index hostname resolves to a service today. Exactly one label precedes the surface: `a.b.index.identizen.com` is not a tenant host.
+The portal and the app are registered as OIDC clients on the tenant's index when the tenant is provisioned; you do not register them. Exactly one label precedes the surface: `a.b.index.identizen.com` is not a tenant host.
 
 ## Data residency
 
@@ -44,21 +44,23 @@ Residency is fixed at provisioning and never moved. If you need a region other t
 | --------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | Tenant slug                 | 3–32 characters, lower-case letters, digits and single hyphens, no leading or trailing hyphen, no `--`. Reserved names (`www`, `app`, `index`, `portal`, `api`, `admin`, `docs`, …) are refused. |
 | Display name                | Up to 120 characters; shown wherever the tenant is named.                                                                                                                                        |
-| Admin contact               | A person and an email address we hand the credentials to and notify about the tenant.                                                                                                            |
+| Admin contact               | A person and an email address. We hand the credentials to them, notify them about the tenant, and issue the first owner invitation to that address.                                              |
 | Residency                   | `us` or `eu`, or leave it to us and we use where your request comes from.                                                                                                                        |
 | Sites                       | For each site you will register: its `rp_id` (the host users see, `app.example.com`), redirect URIs, and whether it needs a back-channel logout URI or a verification webhook.                   |
 | Dashboard client (optional) | If you compose [`@identizen/dashboard`](/enterprise/#available-today) into your own app, its client id, so we can allow it to call `/me` with a bearer token on your index.                      |
 
 ## What you receive
 
-| Item               | Value                                                                                                                                                                                                                                                            |
-| ------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Issuer             | `https://{tenant}.index.identizen.com`                                                                                                                                                                                                                           |
-| Discovery          | `https://{tenant}.index.identizen.com/.well-known/openid-configuration`                                                                                                                                                                                          |
-| JWKS               | `https://{tenant}.index.identizen.com/.well-known/jwks.json`                                                                                                                                                                                                     |
-| Registration token | Handed over out of band. It is the tenant's `SITE_REGISTRATION_TOKEN`: the bearer that `POST /sites` requires on your index. Keep it where you keep deployment secrets; it is not needed at runtime by any site, only when registering one. Ask us to rotate it. |
+| Item               | Value                                                                                                                                                                                                                                                                                                                                  |
+| ------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Issuer             | `https://{tenant}.index.identizen.com`                                                                                                                                                                                                                                                                                                 |
+| Discovery          | `https://{tenant}.index.identizen.com/.well-known/openid-configuration`                                                                                                                                                                                                                                                                |
+| JWKS               | `https://{tenant}.index.identizen.com/.well-known/jwks.json`                                                                                                                                                                                                                                                                           |
+| Registration token | Handed over out of band. It is the tenant's `SITE_REGISTRATION_TOKEN`: the bearer that `POST /sites` requires on your index. Keep it where you keep deployment secrets; it is not needed at runtime by any site, only when registering one. Ask us to rotate it.                                                                       |
+| Owner invitation   | A link, `https://{tenant}.portal.identizen.com/invite?token=…`, issued to your admin contact and handed over out of band. It works once and expires after 7 days; ask us for a new one if it lapses. The owner enrols a phone on your index, opens the link and accepts ([the steps](/enterprise/portal/#getting-the-first-owner-in)). |
+| Portal and app     | `https://{tenant}.portal.identizen.com` and `https://{tenant}.app.identizen.com`, already registered as OIDC clients on your index. Nothing to configure.                                                                                                                                                                              |
 
-The registration token is the only credential Identizen hands you. Everything else (client ids, client secrets) is created by you when you register sites, printed once, and never stored by the index in a recoverable form.
+The registration token and the owner invitation are the only credentials Identizen hands you. Everything else (client ids, client secrets for your own sites) is created by you when you register sites, printed once, and never stored by the index in a recoverable form.
 
 ## Register a site
 
@@ -106,12 +108,13 @@ Every SDK, guide and framework recipe in these docs works unchanged with `indexU
 
 ## What is different from the public index
 
-| Public index (`index.identizen.com`)       | Tenant index (`{tenant}.index.identizen.com`)                                                           |
-| ------------------------------------------ | ------------------------------------------------------------------------------------------------------- |
-| Site registration is open                  | Closed: `POST /sites` needs the tenant's registration token                                             |
-| One issuer and JWKS shared by every site   | Your own issuer, JWKS and challenge-signing key                                                         |
-| One shared database (US)                   | Your own Postgres in the US or the EU                                                                   |
-| Dashboard at `app.identizen.com`           | No dashboard deployed yet; compose `@identizen/dashboard` into your own app, or wait for `{tenant}.app` |
-| Provisioned by nobody; anyone can register | Provisioned by Identizen after you contact us                                                           |
+| Public index (`index.identizen.com`)       | Tenant index (`{tenant}.index.identizen.com`)                                                            |
+| ------------------------------------------ | -------------------------------------------------------------------------------------------------------- |
+| Site registration is open                  | Closed: `POST /sites` needs the tenant's registration token                                              |
+| One issuer and JWKS shared by every site   | Your own issuer, JWKS and challenge-signing key                                                          |
+| One shared database (US)                   | Your own Postgres in the US or the EU                                                                    |
+| Dashboard at `app.identizen.com`           | Your own at `{tenant}.app.identizen.com`, plus the admin portal at `{tenant}.portal.identizen.com`       |
+| No organisation; every identity is its own | An organisation with owners, admins, helpdesk, auditors and members, invited and managed from the portal |
+| Provisioned by nobody; anyone can register | Provisioned by Identizen after you contact us                                                            |
 
 Everything else is identical: the same routes, the same claims, the same SDKs and CLI, the same domain verification, the same revocation and back-channel logout, the same audit events, and the same rule that the index holds nothing that can sign for a person. The tenant Worker is `@identizen/index` with per-request bindings resolved from the hostname; the protocol behaviour is the open code's.

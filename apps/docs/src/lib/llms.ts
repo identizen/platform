@@ -28,6 +28,8 @@ const ORDER = [
   'examples',
   'enterprise',
   'enterprise/cloud-setup',
+  'enterprise/portal',
+  'enterprise/org-app',
   'enterprise/mfa-and-step-up',
   'data-handling',
   'versioning',

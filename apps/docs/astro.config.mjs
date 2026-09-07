@@ -78,6 +78,8 @@ export default defineConfig({
           items: [
             { label: 'Overview', link: '/enterprise/' },
             { label: 'Setting up Identizen Cloud', link: '/enterprise/cloud-setup/' },
+            { label: 'Administering your organisation', link: '/enterprise/portal/' },
+            { label: 'The organisation app', link: '/enterprise/org-app/' },
             { label: 'MFA and step-up', link: '/enterprise/mfa-and-step-up/' },
           ],
         },
