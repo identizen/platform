@@ -1,14 +1,9 @@
-import { fileURLToPath } from 'node:url';
 import { defineConfig } from 'vitest/config';
-import react from '@vitejs/plugin-react';
 
+// Feature tests live in @identizen/dashboard; this app only tests its own shell and deploy files.
 export default defineConfig({
-  plugins: [react()],
-  resolve: { alias: { '@': fileURLToPath(new URL('./src', import.meta.url)) } },
   test: {
-    environment: 'jsdom',
-    globals: true,
-    include: ['src/**/*.test.{ts,tsx}'],
-    setupFiles: ['./src/test/setup.ts'],
+    environment: 'node',
+    include: ['src/**/*.test.ts'],
   },
 });

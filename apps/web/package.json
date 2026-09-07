@@ -16,29 +16,20 @@
     "deploy": "wrangler deploy"
   },
   "dependencies": {
-    "@hookform/resolvers": "^5.2.1",
-    "@identizen/react": "^0.2.0",
-    "@identizen/sdk": "^0.2.0",
+    "@identizen/dashboard": "^0.0.0",
     "@identizen/ui": "^0.0.0",
     "@tanstack/react-query": "^5.85.5",
     "@tanstack/react-router": "^1.131.30",
-    "lucide-react": "^0.540.0",
     "react": "^19.1.1",
-    "react-dom": "^19.1.1",
-    "react-hook-form": "^7.62.0",
-    "zod": "^4.1.5"
+    "react-dom": "^19.1.1"
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.10.2",
     "@playwright/test": "^1.55.0",
     "@tailwindcss/vite": "^4.1.12",
-    "@testing-library/jest-dom": "^6.8.0",
-    "@testing-library/react": "^16.3.0",
-    "@testing-library/user-event": "^14.6.1",
     "@types/react": "^19.1.10",
     "@types/react-dom": "^19.1.7",
     "@vitejs/plugin-react": "^5.0.0",
-    "jsdom": "^26.1.0",
     "msw": "^2.10.5",
     "tailwindcss": "^4.1.12",
     "typescript": "^5.9.2",

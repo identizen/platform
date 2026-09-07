@@ -1,4 +1,6 @@
 @import '@identizen/ui/tokens.css';
+/* The dashboard package declares its own `@source`, so its utilities are generated here. */
+@import '@identizen/dashboard/styles.css';
 
 /* Scan this app's own sources for utilities. */
 @source './';

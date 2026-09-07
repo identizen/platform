@@ -1,0 +1,6 @@
+/*
+ * Import from the app stylesheet that already loads `@identizen/ui/tokens.css`. Tailwind then
+ * scans this package's sources, so the utilities its components use are generated wherever the
+ * package is composed (app.identizen.com, an organisation app).
+ */
+@source './';
