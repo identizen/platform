@@ -10,7 +10,7 @@
     "predev": "npm run sync-spec",
     "dev": "astro dev --port 4330",
     "prebuild": "npm run sync-spec",
-    "build": "astro build",
+    "build": "astro build && node scripts/sitemap-alias.mjs",
     "preview": "astro preview --port 4331",
     "typecheck": "npm run sync-spec && astro check",
     "docs:verify": "npm run sync-spec && tsx scripts/verify-samples.ts",
