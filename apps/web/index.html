@@ -8,14 +8,8 @@
     <link rel="icon" href="/icon.svg" type="image/svg+xml" />
     <link rel="apple-touch-icon" href="/icon.svg" />
     <title>Identizen</title>
-    <script>
-      (function () {
-        try {
-          var t = localStorage.getItem('idz:theme');
-          if (t === 'light' || t === 'dark') document.documentElement.setAttribute('data-theme', t);
-        } catch (e) {}
-      })();
-    </script>
+    <!-- No inline scripts: public/_headers ships script-src 'self'. The theme is applied by
+         initTheme() at the top of the bundle, before the first render. -->
   </head>
   <body>
     <div id="root"></div>

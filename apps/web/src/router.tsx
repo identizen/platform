@@ -5,15 +5,19 @@ import {
   createRouter,
   redirect,
 } from '@tanstack/react-router';
-import { AppShell } from './components/shared/app-shell';
-import { ActivityRoute } from './features/activity';
-import { CallbackRoute, getSession, useSession } from './features/auth';
-import { DeepLinkRoute } from './features/deep-link';
-import { DevicesRoute } from './features/devices';
-import { HomeRoute } from './features/overview';
-import { PairingsRoute } from './features/pairings';
-import { SessionsRoute } from './features/sessions';
-import { SettingsRoute } from './features/settings';
+import {
+  ActivityRoute,
+  AppShell,
+  CallbackRoute,
+  DeepLinkRoute,
+  DevicesRoute,
+  HomeRoute,
+  PairingsRoute,
+  SessionsRoute,
+  SettingsRoute,
+  getSession,
+  useSession,
+} from '@identizen/dashboard';
 
 function RootLayout() {
   const session = useSession();

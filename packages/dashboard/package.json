@@ -1,0 +1,71 @@
+{
+  "name": "@identizen/dashboard",
+  "version": "0.0.0",
+  "private": false,
+  "description": "Identizen dashboard features (sign-in, devices, paired browsers, sessions, activity, handle, deep link) as TypeScript source, composed by app.identizen.com and by organisation apps.",
+  "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/plsft/identizen.git",
+    "directory": "packages/dashboard"
+  },
+  "type": "module",
+  "sideEffects": [
+    "*.css"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "exports": {
+    ".": "./src/index.ts",
+    "./styles.css": "./src/styles.css",
+    "./mocks": "./src/mocks/handlers.ts",
+    "./mocks/browser": "./src/mocks/browser.ts",
+    "./mocks/node": "./src/mocks/node.ts",
+    "./mocks/fixtures": "./src/mocks/fixtures.ts",
+    "./features/*": "./src/features/*",
+    "./components/*": "./src/components/*"
+  },
+  "files": [
+    "src"
+  ],
+  "scripts": {
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test:unit": "vitest run"
+  },
+  "peerDependencies": {
+    "msw": "^2.10.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
+  },
+  "peerDependenciesMeta": {
+    "msw": {
+      "optional": true
+    }
+  },
+  "dependencies": {
+    "@hookform/resolvers": "^5.2.1",
+    "@identizen/sdk": "^0.2.0",
+    "@identizen/ui": "^0.0.0",
+    "@tanstack/react-query": "^5.85.5",
+    "@tanstack/react-router": "^1.131.30",
+    "lucide-react": "^0.540.0",
+    "react-hook-form": "^7.62.0",
+    "zod": "^4.1.5"
+  },
+  "devDependencies": {
+    "@testing-library/jest-dom": "^6.8.0",
+    "@testing-library/react": "^16.3.0",
+    "@testing-library/user-event": "^14.6.1",
+    "@types/react": "^19.1.10",
+    "@types/react-dom": "^19.1.7",
+    "@vitejs/plugin-react": "^5.0.0",
+    "jsdom": "^26.1.0",
+    "msw": "^2.10.5",
+    "react": "^19.1.1",
+    "react-dom": "^19.1.1",
+    "typescript": "^5.9.2",
+    "vite": "^7.1.3",
+    "vitest": "^3.2.4"
+  }
+}
