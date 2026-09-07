@@ -1,5 +1,11 @@
 # identizen
 
+## 0.3.0
+
+### Minor Changes
+
+- `register-site` and `init` print the DNS TXT record (or well-known file) a live site must publish to prove its domain, and the new `verify-site --client-id <idz_…>` asks the index to check it. Registration on the hosted index is open again; `--token` is only for indexes that keep it closed.
+
 ## 0.2.0
 
 ### Minor Changes

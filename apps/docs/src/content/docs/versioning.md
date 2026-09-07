@@ -90,6 +90,10 @@ Per-package `CHANGELOG.md` files do not exist yet. Changesets writes them on the
 
 ### 0.1.0 — all packages
 
+### identizen 0.3.0 (2026-09-07)
+
+CLI only. `register-site` and `init` print the DNS TXT record or well-known file a live site must publish to prove its domain (PROTOCOL.md §8.2), and `verify-site --client-id <idz_…>` asks the index to check it. Registration on the hosted index is open again; `--token` is only for indexes that keep it closed. The index side (open registration, `SITE_VERIFICATION`, `403 site_unverified`) is deployed from `main`.
+
 ### 0.2.0 (2026-09-07)
 
 `@identizen/protocol`, `@identizen/sdk`, `@identizen/react`, `identizen` 0.2.0 and `@identizen/fake-phone` 0.2.0, from the 6 September security review. Protocol: `amr` gains `iris` and `USER_VERIFYING_AMR`, `hwk` is reserved and never asserted, the identity proof binds `index` and `nonce` (§8.1). SDK: `verifyIdToken` accepts only an id_token (ES256, `typ: JWT`, every documented claim, no `events`), `auth_time` in `IdentizenIdToken`. CLI: scaffolds use a `revocations` store, a generated `IDENTIZEN_SESSION_SECRET`, `Secure` transaction cookies, day-long sessions, and session regeneration on Express. Fake phone: nonce-bound registration, `--issuer`, `--host`, `--amr`, `GET /l/:id`. `@identizen/react` moves to 0.2.0 with the group (dependency bump only). Per-package details are in each package's `CHANGELOG.md`.
