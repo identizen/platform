@@ -7,7 +7,8 @@
  * `https://<host>/.well-known/identizen-site`. Both carry the token issued at registration.
  * Verification is re-checked after thirty days; unverified registrations expire after two days.
  */
-import type { Site } from '@identizen/db';
+import { updateSite, type Db, type Site } from '@identizen/db';
+import { randomToken } from '../lib/util';
 import type { Env } from '../env';
 import { ApiError } from '../lib/errors';
 import { fetchOutbound, outboundPolicy, type OutboundPolicy } from '../lib/outbound';
@@ -75,6 +76,15 @@ export function verificationInstructions(
     },
     http: { url: `https://${site.rpId}${WELL_KNOWN_PATH}`, body: value },
   };
+}
+
+/**
+ * The token a site publishes. Minted at registration; sites that predate verification (the
+ * migration marked them verified without one) get theirs the first time it is asked for.
+ */
+export async function ensureVerificationToken(db: Db, site: Site): Promise<Site> {
+  if (site.verificationToken) return site;
+  return updateSite(db, site.clientId, { verificationToken: randomToken(24) });
 }
 
 /** The host and each parent zone down to two labels: app.login.example.com -> login.example.com -> example.com. */
@@ -190,13 +200,14 @@ export async function ensureSiteUsable(
   );
   if (status === 'pending') throw unverified;
   // Stale: re-check now. Success extends the verification; failure revokes it.
+  const withToken = await ensureVerificationToken(services.db, site);
   const check = await checkVerification(
-    site,
+    withToken,
     services.indexUrl,
     deps.fetchImpl ?? ((i, init) => fetch(i, init)),
     outboundPolicy(env),
   );
   if (deps.updateVerified) await deps.updateVerified(check.ok ? new Date() : null);
   if (!check.ok) throw unverified;
-  return { ...site, verifiedAt: new Date() };
+  return { ...withToken, verifiedAt: new Date() };
 }

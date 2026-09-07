@@ -560,6 +560,23 @@ describe('S08: a site the phone will name must have proved its domain', () => {
     ).resolves.toBeTruthy();
   });
 
+  it('a site registered before verification existed gets its token the first time it is asked for', async () => {
+    const site = await registerSite({ rp_id: 'legacy.example' });
+    const services = createServices(env);
+    await updateSite(services.db, site.client_id, {
+      verificationToken: null,
+      verificationMethod: 'grandfathered',
+    });
+    const first = await json<{ instructions: { token: string } | null }>(
+      await SELF.fetch(`${BASE}/sites/${site.client_id}/verification`),
+    );
+    expect(first.instructions?.token).toMatch(/^[A-Za-z0-9_-]{20,}$/);
+    const again = await json<{ instructions: { token: string } | null }>(
+      await SELF.fetch(`${BASE}/sites/${site.client_id}/verification`),
+    );
+    expect(again.instructions?.token).toBe(first.instructions?.token);
+  });
+
   it('a registration is verified by a DNS TXT record at the host or a parent zone, or the well-known file', async () => {
     const site = await registerSite({ rp_id: 'app.login.example.com' });
     const info = await json<{ instructions: { token: string; dns: { name: string } } }>(

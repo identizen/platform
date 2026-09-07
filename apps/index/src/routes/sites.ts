@@ -15,6 +15,7 @@ import { ApiError, badRequest, forbidden, notFound, unauthorized } from '../lib/
 import {
   PENDING_REGISTRATION_TTL_MS,
   checkVerification,
+  ensureVerificationToken,
   verificationInstructions,
   verificationRequired,
   verificationStatus,
@@ -173,8 +174,9 @@ export function sitesRoutes(): Hono<AppEnv> {
   /** Verification status and what to publish. No secret: it reveals only the token to prove. */
   r.get('/sites/:client_id/verification', async (c) => {
     const { db, env, indexUrl } = c.get('services');
-    const site = await getSite(db, c.req.param('client_id'));
-    if (!site) throw notFound('unknown_client', 'no such site');
+    const registered = await getSite(db, c.req.param('client_id'));
+    if (!registered) throw notFound('unknown_client', 'no such site');
+    const site = await ensureVerificationToken(db, registered);
     const status = verificationStatus(env, site);
     return c.json({
       client_id: site.clientId,
@@ -192,8 +194,9 @@ export function sitesRoutes(): Hono<AppEnv> {
    */
   r.post('/sites/:client_id/verify', ipRateLimit(), async (c) => {
     const { db, env, indexUrl } = c.get('services');
-    const site = await getSite(db, c.req.param('client_id'));
-    if (!site) throw notFound('unknown_client', 'no such site');
+    const registered = await getSite(db, c.req.param('client_id'));
+    if (!registered) throw notFound('unknown_client', 'no such site');
+    const site = await ensureVerificationToken(db, registered);
     const check = await checkVerification(
       site,
       indexUrl,
