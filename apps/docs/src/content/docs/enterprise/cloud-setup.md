@@ -19,11 +19,11 @@ Sites, identities, devices, sessions and audit events registered on a tenant ind
 
 ## Hostnames
 
-| Hostname                        | Serves                                                                                                       | Status |
-| ------------------------------- | ------------------------------------------------------------------------------------------------------------ | ------ |
-| `{tenant}.index.identizen.com`  | The index: OIDC, challenges, discovery, `/me`, the Verification API, the org API                             | Today  |
-| `{tenant}.portal.identizen.com` | [Admin portal](/enterprise/portal/): organisation profile, domains, users and roles, audit                   | Today  |
-| `{tenant}.app.identizen.com`    | [Organisation app](/enterprise/org-app/): members' devices, paired browsers, sessions, activity, invitations | Today  |
+| Hostname                        | Serves                                                                                                                            | Status |
+| ------------------------------- | --------------------------------------------------------------------------------------------------------------------------------- | ------ |
+| `{tenant}.index.identizen.com`  | The index: OIDC, challenges, discovery, `/me`, the Verification API, the org API                                                  | Today  |
+| `{tenant}.portal.identizen.com` | [Admin portal](/enterprise/portal/): organisation profile, domains, users and roles, devices, policy, sites, sessions, MDM, audit | Today  |
+| `{tenant}.app.identizen.com`    | [Organisation app](/enterprise/org-app/): members' devices, paired browsers, sessions, activity, invitations                      | Today  |
 
 The portal and the app are registered as OIDC clients on the tenant's index when the tenant is provisioned; you do not register them. Exactly one label precedes the surface: `a.b.index.identizen.com` is not a tenant host.
 

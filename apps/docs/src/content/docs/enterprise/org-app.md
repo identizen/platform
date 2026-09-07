@@ -27,7 +27,7 @@ If an administrator has suspended your membership, every page shows a notice: **
 
 ## Accepting an invitation
 
-An administrator invites you by sending you a link of the form `https://{tenant}.app.identizen.com/invite?token=…`. It comes from them directly (the portal does not email it), works once, and expires 7 days after it was created.
+An administrator invites you with a link of the form `https://{tenant}.app.identizen.com/invite?token=…`. It reaches you as an email from the organisation's index (_You're invited to join {org}_, with an **Accept invitation** button) when the index has mail set up, and otherwise from the administrator directly; either way it works once and expires 7 days after it was created.
 
 1. **Install the Identizen app** on your phone from [identizen.com/download](https://identizen.com/download/), if you do not have it.
 2. **Point the app at your organisation's index.** In the app open **Settings** and set the index to `https://{tenant}.index.identizen.com` (the invitation page shows the exact address). A phone is enrolled with one index at a time; an identity enrolled on the public index does not exist on your organisation's index.

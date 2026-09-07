@@ -81,6 +81,7 @@ export default defineConfig({
             { label: 'Administering your organisation', link: '/enterprise/portal/' },
             { label: 'The organisation app', link: '/enterprise/org-app/' },
             { label: 'Enrolling phones and the fleet', link: '/enterprise/enrollment/' },
+            { label: 'Login policy', link: '/enterprise/policy/' },
             { label: 'MDM integration', link: '/enterprise/mdm/' },
             { label: 'MFA and step-up', link: '/enterprise/mfa-and-step-up/' },
           ],

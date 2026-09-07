@@ -124,4 +124,4 @@ The tenant index can verify that the phone claiming an enrollment is a genuine d
 
 ## What is not built
 
-No scheduled re-check of enrolled devices, no delivery of enrollment links by email, no SCIM, no SSO bridging, and no geo or time policy. The [overview](/enterprise/#on-the-roadmap) keeps the roadmap.
+No scheduled re-check of enrolled devices, no email for MDM-issued enrollments (the MDM delivers the `deep_link`; only enrollments an administrator issues from the portal are emailed), no reading of managed app configuration on the phone, no SCIM and no SSO bridging. The [overview](/enterprise/#on-the-roadmap) keeps the roadmap.
