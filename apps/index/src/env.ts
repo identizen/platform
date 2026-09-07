@@ -29,6 +29,12 @@ export interface Env {
   OIDC_PKCE_OPTIONAL?: string;
   SITE_REGISTRATION_TOKEN?: string;
   /**
+   * "required" (default): a live site must prove control of its rp_id (DNS TXT or the
+   * well-known file, PROTOCOL.md §8.2) before it can start logins; re-checked every 30 days.
+   * "off": local development and the test suites, where hosts cannot be verified.
+   */
+  SITE_VERIFICATION?: string;
+  /**
    * "true" lets the index send webhooks, logout tokens and web pushes to plain-http, loopback,
    * private and link-local destinations. Local development and the test suites only; the
    * hosted index never sets it and a self-hosted index next to internal services must not.

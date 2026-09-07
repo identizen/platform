@@ -17,17 +17,18 @@ npx wrangler hyperdrive create identizen --connection-string "postgres://…"   
 
 Put the Hyperdrive id in `apps/index/wrangler.jsonc` (`hyperdrive[0].id`) and set the public URLs in `vars`:
 
-| Variable                           | Meaning                                                                                                                                                                     |
-| ---------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `INDEX_URL`                        | Public issuer URL, e.g. `https://index.example.com`                                                                                                                         |
-| `APP_URL`                          | Where deep links point (`https://app.example.com/l/<id>`); the dashboard PWA                                                                                                |
-| `PUSH_PROVIDER`                    | `noop` (default; inbox only, no provider pushes). Any other value enables the real senders, chosen per device by its token and the credentials below                        |
-| `OPEN_SITE_REGISTRATION`           | `true` lets anyone `POST /sites` (development only: anyone could register a name they do not own); otherwise set `SITE_REGISTRATION_TOKEN`                                  |
-| `OUTBOUND_ALLOW_LOCAL`             | `true` lets the index POST webhooks, logout tokens and web pushes to plain-http, loopback and private destinations. Local development only; never next to internal services |
-| `OIDC_PKCE_OPTIONAL`               | `true` lets confidential clients omit PKCE. Only for running the [OpenID conformance suite](/reference/oidc-conformance/); leave unset otherwise                            |
-| `DASHBOARD_CLIENT_IDS`             | Comma-separated client ids allowed to call `/me` with a bearer token (`*` for dev only)                                                                                     |
-| `RATE_LIMIT_CHALLENGES_PER_CLIENT` | Challenges one site may start per minute (default `300`)                                                                                                                    |
-| `RATE_LIMIT_REQUESTS_PER_IP`       | Challenge and discovery requests one IP may make per minute (default `60`)                                                                                                  |
+| Variable                           | Meaning                                                                                                                                                                                               |
+| ---------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `INDEX_URL`                        | Public issuer URL, e.g. `https://index.example.com`                                                                                                                                                   |
+| `APP_URL`                          | Where deep links point (`https://app.example.com/l/<id>`); the dashboard PWA                                                                                                                          |
+| `PUSH_PROVIDER`                    | `noop` (default; inbox only, no provider pushes). Any other value enables the real senders, chosen per device by its token and the credentials below                                                  |
+| `SITE_VERIFICATION`                | `required` (default): a live site must prove its `rp_id` by DNS TXT or the well-known file before it can start logins (PROTOCOL.md §8.2); `off` for local development, where hosts cannot be verified |
+| `OPEN_SITE_REGISTRATION`           | `true` lets anyone `POST /sites` (development only: anyone could register a name they do not own); otherwise set `SITE_REGISTRATION_TOKEN`                                                            |
+| `OUTBOUND_ALLOW_LOCAL`             | `true` lets the index POST webhooks, logout tokens and web pushes to plain-http, loopback and private destinations. Local development only; never next to internal services                           |
+| `OIDC_PKCE_OPTIONAL`               | `true` lets confidential clients omit PKCE. Only for running the [OpenID conformance suite](/reference/oidc-conformance/); leave unset otherwise                                                      |
+| `DASHBOARD_CLIENT_IDS`             | Comma-separated client ids allowed to call `/me` with a bearer token (`*` for dev only)                                                                                                               |
+| `RATE_LIMIT_CHALLENGES_PER_CLIENT` | Challenges one site may start per minute (default `300`)                                                                                                                                              |
+| `RATE_LIMIT_REQUESTS_PER_IP`       | Challenge and discovery requests one IP may make per minute (default `60`)                                                                                                                            |
 
 Secrets:
 

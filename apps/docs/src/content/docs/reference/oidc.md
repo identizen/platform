@@ -117,7 +117,7 @@ The token is signed with the index keys, `typ: logout+jwt`, `iss` = index URL, `
 
 ## Site registration
 
-Sites are registered with `POST /sites` (the CLI does this):
+Sites are registered with `POST /sites` (the CLI does this). A live site then proves control of its `rp_id` before it can start a login: the response carries `verification.instructions` with a DNS TXT record (`_identizen.<rp_id>`, or a parent zone) and a well-known URL, either of which carries the token; `POST /sites/{client_id}/verify` checks it, `GET /sites/{client_id}/verification` shows the status, and a login for an unverified site is `403 site_unverified`. Verification is re-checked after thirty days, pending registrations expire after forty-eight hours, and test clients and `localhost` are exempt (PROTOCOL.md §8.2).
 
 ```json
 {

@@ -117,7 +117,15 @@ The bearer token belongs to a client that is not listed in the index's `DASHBOAR
 
 ### registration_closed
 
-`POST /sites` needs `Authorization: Bearer <SITE_REGISTRATION_TOKEN>` on this index (`identizen init --token …` / `register-site --token …`). The hosted index at `index.identizen.com` is closed: ask for a token at [contact@identizen.com](mailto:contact@identizen.com) with the host you want to register, or run your own index. Self-hosters can set `OPEN_SITE_REGISTRATION=true` for development only.
+`POST /sites` needs `Authorization: Bearer <SITE_REGISTRATION_TOKEN>` on this index (`identizen init --token …` / `register-site --token …`). The hosted index at `index.identizen.com` is open: anyone can register, and the site starts working once it proves its domain (see `site_unverified`).
+
+### site_unverified
+
+HTTP 403 from `/authorize`, `POST /challenge` and `POST /v1/verify`. The site has not proved control of its `rp_id`, or its verification is older than thirty days and the record is gone. Publish one of the two records (`GET /sites/{client_id}/verification` shows them: a DNS TXT `_identizen.<host>` with `idz-site-verification=<token>`, or that line at `https://<host>/.well-known/identizen-site`), then `POST /sites/{client_id}/verify` or `npx identizen verify-site --client-id …`. Test clients and `localhost` are exempt.
+
+### verification_failed
+
+HTTP 409 from `POST /sites/{client_id}/verify`: no record with this site's token at the DNS names (the host and each parent zone) or the well-known URL named in the message. DNS changes can take a while to be visible; try again in a minute.
 
 ### unknown_client
 

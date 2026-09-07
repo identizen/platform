@@ -4,6 +4,7 @@ import {
   listDevicesForIdentity,
   recordAudit,
   requireDevice,
+  updateSite,
   type Device,
   type Site,
 } from '@identizen/db';
@@ -22,6 +23,7 @@ import type { Env } from '../env';
 import { ApiError, badRequest, notFound } from '../lib/errors';
 import type { Services } from '../lib/services';
 import { checkClientRate } from '../middleware/rate-limit';
+import { ensureSiteUsable } from './site-verification';
 
 export interface StartChallengeInput {
   clientId: string;
@@ -54,11 +56,19 @@ export async function startChallenge(
     | 'REQUEST_GUARD'
     | 'RATE_LIMIT_CHALLENGES_PER_CLIENT'
     | 'RATE_LIMIT_REQUESTS_PER_IP'
+    | 'SITE_VERIFICATION'
+    | 'OUTBOUND_ALLOW_LOCAL'
   >,
 ): Promise<StartChallengeResult> {
   const { db, indexKey, indexUrl, now } = services;
-  const site = await getSite(db, input.clientId);
-  if (!site) throw notFound('unknown_client', `no site with client_id ${input.clientId}`);
+  const registered = await getSite(db, input.clientId);
+  if (!registered) throw notFound('unknown_client', `no site with client_id ${input.clientId}`);
+  // A site the phone will name must have proved its domain (403 site_unverified otherwise).
+  const site = await ensureSiteUsable(services, env, registered, {
+    updateVerified: async (verifiedAt) => {
+      await updateSite(db, registered.clientId, { verifiedAt });
+    },
+  });
   await checkClientRate(env, site.clientId);
 
   let target: Device | null = null;

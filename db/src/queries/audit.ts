@@ -25,6 +25,7 @@ export const AUDIT_KINDS = [
   'verification.timeout',
   'site.created',
   'site.updated',
+  'site.verified',
 ] as const;
 export type AuditKind = (typeof AUDIT_KINDS)[number];
 

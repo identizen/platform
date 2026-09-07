@@ -1,9 +1,12 @@
-import { eq } from 'drizzle-orm';
+import { and, eq, isNull, lt } from 'drizzle-orm';
 import type { Db } from '../client.js';
 import { ConflictError, NotFoundError, isUniqueViolation } from '../errors.js';
 import { sites, type Site } from '../../schema.js';
 
 export interface CreateSiteInput {
+  verificationToken?: string | null;
+  verificationMethod?: string | null;
+  verifiedAt?: Date | null;
   clientId: string;
   clientSecretHash?: string | null;
   rpId: string;
@@ -29,6 +32,9 @@ export async function createSite(db: Db, input: CreateSiteInput): Promise<Site> 
         webhookUrl: input.webhookUrl ?? null,
         webhookSecretHash: input.webhookSecretHash ?? null,
         orgId: input.orgId ?? null,
+        verificationToken: input.verificationToken ?? null,
+        verificationMethod: input.verificationMethod ?? null,
+        verifiedAt: input.verifiedAt ?? null,
       })
       .returning();
     if (!row) throw new Error('insert returned no row');
@@ -64,6 +70,9 @@ export type UpdateSiteInput = Partial<
     | 'webhookUrl'
     | 'webhookSecretHash'
     | 'clientSecretHash'
+    | 'verificationToken'
+    | 'verificationMethod'
+    | 'verifiedAt'
   >
 >;
 
@@ -76,10 +85,27 @@ export async function updateSite(db: Db, clientId: string, patch: UpdateSiteInpu
   if (patch.webhookUrl !== undefined) set.webhookUrl = patch.webhookUrl;
   if (patch.webhookSecretHash !== undefined) set.webhookSecretHash = patch.webhookSecretHash;
   if (patch.clientSecretHash !== undefined) set.clientSecretHash = patch.clientSecretHash;
+  if (patch.verificationToken !== undefined) set.verificationToken = patch.verificationToken;
+  if (patch.verificationMethod !== undefined) set.verificationMethod = patch.verificationMethod;
+  if (patch.verifiedAt !== undefined) set.verifiedAt = patch.verifiedAt;
   if (Object.keys(set).length === 0) return requireSite(db, clientId);
   const [row] = await db.update(sites).set(set).where(eq(sites.clientId, clientId)).returning();
   if (!row) throw new NotFoundError('site', clientId);
   return row;
+}
+
+/** Every registration for a host, verified or not. */
+export async function listSitesByRpId(db: Db, rpId: string): Promise<Site[]> {
+  return db.select().from(sites).where(eq(sites.rpId, rpId)).orderBy(sites.createdAt);
+}
+
+/** Drop registrations for a host that never proved the domain and are older than `before`. */
+export async function deleteStalePendingSites(db: Db, rpId: string, before: Date): Promise<number> {
+  const rows = await db
+    .delete(sites)
+    .where(and(eq(sites.rpId, rpId), isNull(sites.verifiedAt), lt(sites.createdAt, before)))
+    .returning({ clientId: sites.clientId });
+  return rows.length;
 }
 
 export async function listSites(db: Db): Promise<Site[]> {

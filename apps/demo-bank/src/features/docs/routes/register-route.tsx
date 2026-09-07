@@ -7,14 +7,14 @@ const CLI = `npx identizen register-site \\
   --name "JT Merlin Bank" \\
   --rp-id jtmerlin.com \\
   --redirect-uri https://jtmerlin.com/callback \\
-  --public --live \\
-  --token "$IDENTIZEN_REGISTRATION_TOKEN"
+  --public --live
+# Prints the DNS TXT record (or well-known file) that proves jtmerlin.com is ours; then:
+npx identizen verify-site --client-id <client_id>
 `;
 
 const CURL = `# The CLI is a thin wrapper over one call. A public (PKCE-only) client gets no secret,
 # which is what a single-page app like this one needs.
 curl -X POST https://index.identizen.com/sites \\
-  -H "authorization: Bearer $IDENTIZEN_REGISTRATION_TOKEN" \\
   -H 'content-type: application/json' \\
   -d '{
     "name": "JT Merlin Bank (demo)",

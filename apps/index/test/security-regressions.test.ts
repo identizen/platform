@@ -6,6 +6,9 @@
 import { SELF, env, fetchMock } from 'cloudflare:test';
 import { afterEach, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import { decodeJwt } from 'jose';
+import { requireSite, updateSite } from '@identizen/db';
+import { createServices } from '../src/lib/services';
+import { startChallenge as startChallengeService } from '../src/services/challenge';
 import {
   deriveMasterKey,
   generateKeyPair,
@@ -526,5 +529,83 @@ describe('S05: the index trusts amr only as far as it goes', () => {
     expect(soft2.status).toBe(200);
     const state = await env.CHALLENGE_SESSION.getByName(login.challenge_id).getState();
     expect(state?.assertion?.amr).toEqual(['swk']);
+  });
+});
+
+describe('S08: a site the phone will name must have proved its domain', () => {
+  const required = { SITE_VERIFICATION: 'required', OUTBOUND_ALLOW_LOCAL: 'true' };
+
+  it('a pending live registration cannot start a login; test clients and localhost are exempt', async () => {
+    const services = createServices(env);
+    const live = await registerSite({ rp_id: 'squat.example' });
+    const row = await requireSite(services.db, live.client_id);
+    // The test index runs with verification off (auto-verified); model the hosted policy.
+    await updateSite(services.db, row.clientId, { verifiedAt: null, verificationMethod: null });
+    await expect(
+      startChallengeService(
+        services,
+        { clientId: live.client_id, acr: 'idz:login' },
+        { ...env, ...required },
+      ),
+    ).rejects.toMatchObject({ code: 'site_unverified', status: 403 });
+
+    const local = await registerSite({ rp_id: 'localhost', name: 'dev' });
+    await updateSite(services.db, local.client_id, { verifiedAt: null });
+    await expect(
+      startChallengeService(
+        services,
+        { clientId: local.client_id, acr: 'idz:login' },
+        { ...env, ...required },
+      ),
+    ).resolves.toBeTruthy();
+  });
+
+  it('a registration is verified by a DNS TXT record at the host or a parent zone, or the well-known file', async () => {
+    const site = await registerSite({ rp_id: 'app.login.example.com' });
+    const info = await json<{ instructions: { token: string; dns: { name: string } } }>(
+      await SELF.fetch(`${BASE}/sites/${site.client_id}/verification`),
+    );
+    expect(info.instructions.dns.name).toBe('_identizen.app.login.example.com');
+    const token = info.instructions.token;
+    const doh = fetchMock.get('https://cloudflare-dns.com');
+    const answer = (name: string, data: string[]) =>
+      doh
+        .intercept({ path: (p) => p.startsWith(`/dns-query?name=${encodeURIComponent(name)}`) })
+        .reply(200, { Answer: data.map((d) => ({ type: 16, data: `"${d}"` })) });
+    // Nothing published anywhere: 409 and the places that were checked.
+    answer('_identizen.app.login.example.com', []);
+    answer('_identizen.login.example.com', []);
+    answer('_identizen.example.com', []);
+    fetchMock
+      .get('https://app.login.example.com')
+      .intercept({ path: '/.well-known/identizen-site' })
+      .reply(404, '');
+    const missing = await SELF.fetch(`${BASE}/sites/${site.client_id}/verify`, { method: 'POST' });
+    expect(missing.status).toBe(409);
+    expect(await json(missing)).toMatchObject({ error: 'verification_failed' });
+    // A record at the parent zone, pinning another index, does not count; pinning this one does.
+    answer('_identizen.app.login.example.com', []);
+    answer('_identizen.login.example.com', [
+      `idz-site-verification=${token} index=https://other.example`,
+    ]);
+    answer('_identizen.example.com', [`idz-site-verification=${token} index=${BASE}`]);
+    const ok = await SELF.fetch(`${BASE}/sites/${site.client_id}/verify`, { method: 'POST' });
+    expect(ok.status, await ok.clone().text()).toBe(200);
+    const okBody = await json<{ status: string; method: string }>(ok);
+    expect(okBody.method).toBe('dns');
+    expect(['verified', 'not_required']).toContain(okBody.status);
+    // The well-known file alone is enough too.
+    const site2 = await registerSite({ rp_id: 'files.example' });
+    const info2 = await json<{ instructions: { token: string } }>(
+      await SELF.fetch(`${BASE}/sites/${site2.client_id}/verification`),
+    );
+    answer('_identizen.files.example', []);
+    fetchMock
+      .get('https://files.example')
+      .intercept({ path: '/.well-known/identizen-site' })
+      .reply(200, `# proof\nidz-site-verification=${info2.instructions.token}\n`);
+    const viaHttp = await SELF.fetch(`${BASE}/sites/${site2.client_id}/verify`, { method: 'POST' });
+    expect(viaHttp.status).toBe(200);
+    expect(await json(viaHttp)).toMatchObject({ method: 'http' });
   });
 });

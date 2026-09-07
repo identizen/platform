@@ -5,7 +5,7 @@ description: A working "Continue with Identizen" login on a fresh Next.js app in
 
 import { Steps, Aside } from '@astrojs/starlight/components';
 
-You need Node 22+ and an index to talk to. For local development run the index from the monorepo (`npm run dev -w @identizen/index`, listens on `http://localhost:8787`) or point at a hosted index with `--index`. Registration on the hosted index is by token: pass `--token` to `identizen init` with the token you were given (ask at [contact@identizen.com](mailto:contact@identizen.com)), or use a local index, which registers anything.
+You need Node 22+ and an index to talk to. For local development run the index from the monorepo (`npm run dev -w @identizen/index`, listens on `http://localhost:8787`) or point at a hosted index with `--index`. On the hosted index, registration is open and a live site starts working once it proves its domain: `identizen init` prints a DNS TXT record (or a file to serve at `/.well-known/identizen-site`); publish it and run `npx identizen verify-site --client-id …`. A local index verifies nothing, and `localhost` never needs it.
 
 <Steps>
 {/* prettier-ignore */}

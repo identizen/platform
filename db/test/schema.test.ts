@@ -41,6 +41,9 @@ const REFERENCE: Record<string, Record<string, [string, 'YES' | 'NO', string | n
     webhook_url: ['text', 'YES', null],
     webhook_secret_hash: ['text', 'YES', null],
     org_id: ['text', 'YES', null],
+    verification_token: ['text', 'YES', null],
+    verification_method: ['text', 'YES', null],
+    verified_at: ['timestamp with time zone', 'YES', null],
     created_at: ['timestamp with time zone', 'NO', 'now()'],
   },
   site_bindings: {
@@ -104,7 +107,6 @@ const REFERENCE_CONSTRAINTS: [table: string, type: string, columns: string][] = 
   ['devices', 'PRIMARY KEY', 'id'],
   ['devices', 'FOREIGN KEY', 'idz'],
   ['sites', 'PRIMARY KEY', 'client_id'],
-  ['sites', 'UNIQUE', 'rp_id'],
   ['sites', 'FOREIGN KEY', 'org_id'],
   ['site_bindings', 'PRIMARY KEY', 'rp_id,sub'],
   ['site_bindings', 'FOREIGN KEY', 'idz'],

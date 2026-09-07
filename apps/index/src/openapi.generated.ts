@@ -2326,7 +2326,7 @@ export const OPENAPI_DOCUMENT: Record<string, unknown> = {
         ],
         "operationId": "registerSite",
         "summary": "Register a site (relying party)",
-        "description": "Open when the index runs with `OPEN_SITE_REGISTRATION=true` (dev / self-host);\notherwise `Authorization: Bearer <SITE_REGISTRATION_TOKEN>` is required\n(`403 registration_closed`). The `client_id` is `idz_<environment>_<ULID>`.\nConfidential sites receive `client_secret` once; sites with a `webhook_url` receive\n`webhook_secret` once. `rp_id` is normalised and must be unique across the index.\n",
+        "description": "Open when the index runs with `OPEN_SITE_REGISTRATION=true` (dev / self-host);\notherwise `Authorization: Bearer <SITE_REGISTRATION_TOKEN>` is required\n(`403 registration_closed`). The `client_id` is `idz_<environment>_<ULID>`.\nConfidential sites receive `client_secret` once; sites with a `webhook_url` receive\n`webhook_secret` once. `rp_id` is normalised; a host may be registered more than once, and each live registration must prove the domain before it can start logins (`verification` in the response, PROTOCOL.md §8.2).\n",
         "security": [
           {},
           {
@@ -2813,6 +2813,79 @@ export const OPENAPI_DOCUMENT: Record<string, unknown> = {
                 }
               }
             }
+          }
+        }
+      }
+    },
+    "/sites/{client_id}/verification": {
+      "get": {
+        "tags": [
+          "Sites"
+        ],
+        "operationId": "getSiteVerification",
+        "summary": "Domain verification status and what to publish",
+        "description": "A live site must prove control of its `rp_id` before it can start logins (PROTOCOL.md §8.2):\na DNS TXT record `_identizen.<rp_id>` (or at a parent zone) with `idz-site-verification=<token>`,\noptionally followed by `index=<this index URL>` to pin the index, or the same line served at\n`https://<rp_id>/.well-known/identizen-site`. No secret is needed: the token proves nothing by\nitself. `status` is `verified`, `pending`, `stale` (older than 30 days, re-checked at the next\nlogin) or `not_required` (test clients, localhost, or an index with `SITE_VERIFICATION=off`).\n",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/ClientIdPath"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Status and instructions.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SiteVerification"
+                }
+              }
+            }
+          },
+          "404": {
+            "$ref": "#/components/responses/UnknownClient"
+          }
+        }
+      }
+    },
+    "/sites/{client_id}/verify": {
+      "post": {
+        "tags": [
+          "Sites"
+        ],
+        "operationId": "verifySite",
+        "summary": "Check the published record now",
+        "description": "Looks for the token in DNS at the host and each parent zone, then at the well-known URL (through the egress policy). Success records the method and time; a failure leaves the site as it was. Anyone may ask. Rate limited per source IP.",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/ClientIdPath"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The site is verified.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SiteVerification"
+                }
+              }
+            }
+          },
+          "404": {
+            "$ref": "#/components/responses/UnknownClient"
+          },
+          "409": {
+            "description": "`verification_failed` — no record with this site's token at the names and URL listed in the description.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimited"
           }
         }
       }
@@ -4148,6 +4221,87 @@ export const OPENAPI_DOCUMENT: Record<string, unknown> = {
           }
         }
       },
+      "SiteVerification": {
+        "type": "object",
+        "required": [
+          "client_id",
+          "rp_id",
+          "status",
+          "method",
+          "verified_at"
+        ],
+        "properties": {
+          "client_id": {
+            "$ref": "#/components/schemas/ClientId"
+          },
+          "rp_id": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "verified",
+              "pending",
+              "stale",
+              "not_required"
+            ]
+          },
+          "method": {
+            "type": "string",
+            "nullable": true,
+            "description": "`dns`, `http`, `not_required`, or `grandfathered` (registered before verification existed)."
+          },
+          "verified_at": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "instructions": {
+            "type": "object",
+            "nullable": true,
+            "description": "Present while pending or stale.",
+            "properties": {
+              "token": {
+                "type": "string"
+              },
+              "dns": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "example": "_identizen.app.example.com"
+                  },
+                  "type": {
+                    "type": "string",
+                    "enum": [
+                      "TXT"
+                    ]
+                  },
+                  "value": {
+                    "type": "string",
+                    "example": "idz-site-verification=Zk3…"
+                  },
+                  "note": {
+                    "type": "string"
+                  }
+                }
+              },
+              "http": {
+                "type": "object",
+                "properties": {
+                  "url": {
+                    "type": "string",
+                    "format": "uri"
+                  },
+                  "body": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
       "Site": {
         "type": "object",
         "description": "The public view of a site.",
@@ -4162,6 +4316,10 @@ export const OPENAPI_DOCUMENT: Record<string, unknown> = {
           "created_at"
         ],
         "properties": {
+          "verification": {
+            "$ref": "#/components/schemas/SiteVerification",
+            "description": "Domain ownership status; a live site starts logins only when `verified` (or `not_required`)."
+          },
           "client_id": {
             "$ref": "#/components/schemas/ClientId"
           },

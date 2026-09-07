@@ -235,6 +235,22 @@ where `nonce` was obtained moments earlier from `POST /devices/nonce` on the sam
 
 A device key is enrolled at most once. Registering an active key again returns its existing enrolment (`200`); a revoked or disabled key is refused (`403 device_revoked`) and the phone must enrol with a fresh device key. The index derives `idz` from `master_pubkey`, so a restored phone (new device key, same seed) joins the existing identity.
 
+### 8.2 Site verification record
+
+The phone shows a site's `rp_id` to the person as the name of who is asking, so an index must not let a registration for a host it cannot vouch for start logins. Registration is open; a live site becomes usable when it proves control of its `rp_id` in one of two ways, both carrying the token the index issued at registration:
+
+- **DNS.** A TXT record at `_identizen.<rp_id>`, or at `_identizen.<parent zone>` for any parent down to two labels (so a record at `example.com` covers `app.example.com`):
+
+  ```
+  idz-site-verification=<token> [index=<index URL>]
+  ```
+
+  The optional `index=` pins the index the domain uses; a record that names another index does not verify here.
+
+- **HTTPS.** The same line served at `https://<rp_id>/.well-known/identizen-site`. This proves control of the host only, not of the zone.
+
+The index checks on request (`POST /sites/{client_id}/verify`) and again, silently, when a verification is older than thirty days at the next login; a record that has gone stops the site until it is published again. Registrations that never verify are dropped after forty-eight hours, so a name cannot be squatted. A host may be registered more than once; each registration proves the domain on its own. Test clients (`idz_test_`) and local hosts (`localhost`, `*.localhost`, IP literals) are exempt, as is an index configured with `SITE_VERIFICATION=off`.
+
 ## 9. Identifiers summary
 
 | Prefix                    | Object                                                                              |

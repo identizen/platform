@@ -15,6 +15,13 @@
       "when": 1788452164666,
       "tag": "0001_same_omega_red",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1788745869577,
+      "tag": "0002_site_verification",
+      "breakpoints": true
     }
   ]
 }

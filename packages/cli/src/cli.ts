@@ -2,6 +2,7 @@
 import { dev } from './commands/dev.js';
 import { init } from './commands/init.js';
 import { registerSiteCommand } from './commands/register-site.js';
+import { verificationLines, verifySite } from './lib/index-client.js';
 import { boolFlag, flag, parseArgs } from './lib/args.js';
 
 const HELP = `identizen — login with your phone
@@ -13,6 +14,8 @@ Usage:
       Run a fake phone that approves sign-ins so you can develop without a device.
   identizen register-site --name <n> --rp-id <host> --redirect-uri <uri> [<uri>…]
       [--index <url>] [--backchannel-logout-uri <uri>] [--webhook-url <uri>] [--public] [--live]
+  identizen verify-site --client-id <idz_…> [--index <url>]
+      Ask the index to check the DNS TXT record or well-known file that proves you own the site's host.
 
 Flags:
   --index          Index URL (default: IDENTIZEN_INDEX_URL, else http://localhost:8787)
@@ -83,7 +86,29 @@ export async function main(argv: string[]): Promise<number> {
           registrationToken: flag(args.flags, 'token') ?? null,
         });
         console.info(JSON.stringify(site, null, 2));
+        for (const line of verificationLines(site.verification, site.client_id)) console.info(line);
         return 0;
+      }
+      case 'verify-site': {
+        const clientId = flag(args.flags, 'client-id');
+        if (!clientId) {
+          console.error('verify-site needs --client-id');
+          return 2;
+        }
+        const result = await verifySite(indexUrl, clientId);
+        if (result.ok) {
+          console.info(
+            `verified ${clientId} via ${result.verification.method ?? 'record'} (${result.verification.status})`,
+          );
+          return 0;
+        }
+        console.error(`${result.error}: ${result.detail}`);
+        for (const line of verificationLines(
+          { status: 'pending', method: null, verified_at: null, instructions: result.instructions },
+          clientId,
+        ))
+          console.error(line);
+        return 1;
       }
       default:
         console.error(`Unknown command: ${args.command}\n`);

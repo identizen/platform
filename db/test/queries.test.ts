@@ -59,6 +59,8 @@ import {
   listSites,
   requireSite,
   updateSite,
+  listSitesByRpId,
+  deleteStalePendingSites,
 } from '../src/queries/sites';
 import {
   createVerification,
@@ -193,16 +195,27 @@ describe('devices', () => {
 });
 
 describe('sites', () => {
-  it('creates, reads, updates, lists; rp_id unique', async () => {
+  it('creates, reads, updates, lists; a host may register more than once', async () => {
     const s = await seedSite();
     expect(s.redirectUris).toEqual(['https://app.example.com/callback']);
     expect(await getSite(h.db, s.clientId)).toMatchObject({ rpId: 'app.example.com' });
     expect(await getSiteByRpId(h.db, 'app.example.com')).toMatchObject({ clientId: s.clientId });
     expect(await getSite(h.db, 'nope')).toBeNull();
     await expect(requireSite(h.db, 'nope')).rejects.toBeInstanceOf(NotFoundError);
-    await expect(seedSite('idz_live_other', 'app.example.com')).rejects.toBeInstanceOf(
-      ConflictError,
-    );
+    const second = await seedSite('idz_live_other', 'app.example.com');
+    expect(second.rpId).toBe('app.example.com');
+    expect((await listSitesByRpId(h.db, 'app.example.com')).map((x) => x.clientId)).toEqual([
+      s.clientId,
+      'idz_live_other',
+    ]);
+    // Pending registrations older than the cutoff are swept; verified ones are kept.
+    await updateSite(h.db, s.clientId, { verifiedAt: new Date() });
+    expect(
+      await deleteStalePendingSites(h.db, 'app.example.com', new Date(Date.now() + 1000)),
+    ).toBe(1);
+    expect((await listSitesByRpId(h.db, 'app.example.com')).map((x) => x.clientId)).toEqual([
+      s.clientId,
+    ]);
     const u = await updateSite(h.db, s.clientId, {
       name: 'Renamed',
       webhookUrl: 'https://x/y',

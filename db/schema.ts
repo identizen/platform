@@ -93,18 +93,27 @@ export const devices = pgTable(
   ],
 );
 
-export const sites = pgTable('sites', {
-  clientId: text('client_id').primaryKey(),
-  clientSecretHash: text('client_secret_hash'),
-  rpId: text('rp_id').notNull().unique(),
-  name: text('name').notNull(),
-  redirectUris: text('redirect_uris').array().notNull(),
-  backchannelLogoutUri: text('backchannel_logout_uri'),
-  webhookUrl: text('webhook_url'),
-  webhookSecretHash: text('webhook_secret_hash'),
-  orgId: text('org_id').references(() => orgs.id),
-  createdAt: timestamptz('created_at').notNull().defaultNow(),
-});
+export const sites = pgTable(
+  'sites',
+  {
+    clientId: text('client_id').primaryKey(),
+    clientSecretHash: text('client_secret_hash'),
+    /** Not unique: a domain may register several clients, and a squatter's pending row must not block the owner. */
+    rpId: text('rp_id').notNull(),
+    name: text('name').notNull(),
+    redirectUris: text('redirect_uris').array().notNull(),
+    backchannelLogoutUri: text('backchannel_logout_uri'),
+    webhookUrl: text('webhook_url'),
+    webhookSecretHash: text('webhook_secret_hash'),
+    orgId: text('org_id').references(() => orgs.id),
+    /** Domain ownership (PROTOCOL.md §8.2): the token to publish, how it was proved, and when. */
+    verificationToken: text('verification_token'),
+    verificationMethod: text('verification_method'),
+    verifiedAt: timestamptz('verified_at'),
+    createdAt: timestamptz('created_at').notNull().defaultNow(),
+  },
+  (t) => [index('sites_rp_id_idx').on(t.rpId)],
+);
 
 export const siteBindings = pgTable(
   'site_bindings',

@@ -3,7 +3,7 @@ import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { detectProject, type Framework } from '../lib/detect.js';
 import { upsertEnv } from '../lib/env.js';
-import { registerSite, type RegisteredSite } from '../lib/index-client.js';
+import { registerSite, verificationLines, type RegisteredSite } from '../lib/index-client.js';
 import { expressTemplate } from '../templates/express.js';
 import { nextTemplate, type TemplateFile } from '../templates/next.js';
 
@@ -62,6 +62,7 @@ export async function init(opts: InitOptions): Promise<InitResult> {
     ...(opts.fetchImpl && { fetchImpl: opts.fetchImpl }),
   });
   log(`  client_id ${site.client_id}`);
+  for (const line of verificationLines(site.verification, site.client_id)) log(line);
 
   const envFile = join(opts.dir, framework === 'next' ? '.env.local' : '.env');
   upsertEnv(envFile, {

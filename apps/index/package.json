@@ -23,7 +23,7 @@
   },
   "dependencies": {
     "@identizen/db": "^0.0.0",
-    "@identizen/protocol": "^0.1.0",
+    "@identizen/protocol": "^0.2.0",
     "hono": "^4.9.4",
     "jose": "^6.0.13",
     "qrcode-generator": "^1.5.2",

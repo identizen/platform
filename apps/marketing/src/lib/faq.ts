@@ -46,7 +46,7 @@ export const FAQ_GROUPS: readonly { heading: string; items: readonly Faq[] }[] =
       {
         question: 'Do I need to run my own server?',
         answer:
-          'No. The public index at index.identizen.com is a hosted OpenID Provider that sites use for free; registration is by token today, ask at contact@identizen.com. If you want to control the infrastructure, the index is open source and runs on Cloudflare Workers with Postgres; the self-hosting guide covers it.',
+          'No. The public index at index.identizen.com is a hosted OpenID Provider that sites use for free: register, prove you own the domain with a DNS record, and you are live. If you want to control the infrastructure, the index is open source and runs on Cloudflare Workers with Postgres; the self-hosting guide covers it.',
       },
       {
         question: 'What is step-up approval?',
