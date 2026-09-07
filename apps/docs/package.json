@@ -21,7 +21,7 @@
   },
   "dependencies": {
     "@astrojs/starlight": "^0.36.3",
-    "@identizen/ui": "^0.0.0",
+    "@identizen/ui": "^0.1.0",
     "astro": "^5.18.2"
   },
   "devDependencies": {

@@ -23,7 +23,7 @@
     "@identizen/protocol": "^0.2.0",
     "@identizen/react": "^0.2.0",
     "@identizen/sdk": "^0.2.0",
-    "@identizen/ui": "^0.0.0",
+    "@identizen/ui": "^0.1.0",
     "@tailwindcss/typography": "^0.5.20",
     "@tailwindcss/vite": "^4.1.12",
     "astro": "^5.13.5",

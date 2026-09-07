@@ -1,6 +1,6 @@
 {
   "name": "@identizen/db",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "private": false,
   "description": "Identizen index schema (Drizzle), migrations, and the typed query module.",
   "license": "Apache-2.0",

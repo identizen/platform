@@ -1,6 +1,6 @@
 {
   "name": "@identizen/dashboard",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "private": false,
   "description": "Identizen dashboard features (sign-in, devices, paired browsers, sessions, activity, handle, deep link) as TypeScript source, composed by app.identizen.com and by organisation apps.",
   "license": "Apache-2.0",
@@ -46,7 +46,7 @@
   "dependencies": {
     "@hookform/resolvers": "^5.2.1",
     "@identizen/sdk": "^0.2.0",
-    "@identizen/ui": "^0.0.0",
+    "@identizen/ui": "^0.1.0",
     "@tanstack/react-query": "^5.85.5",
     "@tanstack/react-router": "^1.131.30",
     "lucide-react": "^0.540.0",

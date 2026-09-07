@@ -1,6 +1,6 @@
 {
   "name": "@identizen/eslint-config",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "private": false,
   "description": "Identizen's ESLint flat config: strict TypeScript, no default exports, feature-folder boundaries, 250-line components.",
   "license": "Apache-2.0",

@@ -16,8 +16,8 @@
     "deploy": "wrangler deploy"
   },
   "dependencies": {
-    "@identizen/dashboard": "^0.0.0",
-    "@identizen/ui": "^0.0.0",
+    "@identizen/dashboard": "^0.1.0",
+    "@identizen/ui": "^0.1.0",
     "@tanstack/react-query": "^5.85.5",
     "@tanstack/react-router": "^1.131.30",
     "react": "^19.1.1",

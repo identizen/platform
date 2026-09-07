@@ -1,6 +1,6 @@
 {
   "name": "@identizen/ui",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "private": false,
   "description": "Identizen design system: Tailwind v4 tokens, Inter, shadcn primitives, theme toggle.",
   "license": "Apache-2.0",

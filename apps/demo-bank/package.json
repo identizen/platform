@@ -1,6 +1,6 @@
 {
   "name": "@identizen/demo-bank",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "private": true,
   "description": "JT Merlin Bank: a fictional bank that shows how a site integrates Identizen for login and transaction approval.",
   "type": "module",
@@ -15,7 +15,7 @@
   "dependencies": {
     "@identizen/react": "^0.2.0",
     "@identizen/sdk": "^0.2.0",
-    "@identizen/ui": "^0.0.0",
+    "@identizen/ui": "^0.1.0",
     "@tanstack/react-query": "^5.85.5",
     "@tanstack/react-router": "^1.131.30",
     "lucide-react": "^0.540.0",
