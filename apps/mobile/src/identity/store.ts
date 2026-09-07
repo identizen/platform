@@ -12,6 +12,7 @@ export const KEYS = {
   device: 'idz.device',
   settings: 'idz.settings',
   activity: 'idz.activity',
+  enrollment: 'idz.enrollment',
 } as const;
 
 export interface DeviceRecord {
@@ -31,6 +32,30 @@ export interface Settings {
   /** Advertise the rotating id so a nearby computer can find this phone (PROTOCOL.md §6.3). */
   bluetoothEnabled: boolean;
 }
+
+/**
+ * The org that manages this phone (enterprise enrollment). Remembered locally on approval: the
+ * index has no per-device endpoint that reports it yet.
+ */
+export interface ManagedBy {
+  org: string;
+  index: string;
+}
+
+/** An enrollment this phone claimed that an administrator has not decided on yet. */
+export interface PendingEnrollment {
+  token: string;
+  indexUrl: string;
+  org: string;
+  claimedAt: number;
+}
+
+export interface EnrollmentState {
+  pending: PendingEnrollment | null;
+  managedBy: ManagedBy | null;
+}
+
+export const EMPTY_ENROLLMENT: EnrollmentState = { pending: null, managedBy: null };
 
 export const DEFAULT_INDEX_URL = 'https://index.identizen.com';
 export const DEFAULT_SETTINGS: Settings = {
@@ -93,10 +118,22 @@ export async function writeSettings(settings: Settings): Promise<void> {
   await AsyncStorage.setItem(KEYS.settings, JSON.stringify(settings));
 }
 
+export async function readEnrollment(): Promise<EnrollmentState> {
+  const raw = await AsyncStorage.getItem(KEYS.enrollment);
+  return raw
+    ? { ...EMPTY_ENROLLMENT, ...(JSON.parse(raw) as Partial<EnrollmentState>) }
+    : EMPTY_ENROLLMENT;
+}
+
+export async function writeEnrollment(state: EnrollmentState): Promise<void> {
+  await AsyncStorage.setItem(KEYS.enrollment, JSON.stringify(state));
+}
+
 /** Wipe everything: the identity is gone from this phone (recoverable from the passphrase only). */
 export async function wipeAll(): Promise<void> {
   await SecureStore.deleteItemAsync(KEYS.seed);
   await SecureStore.deleteItemAsync(KEYS.device);
   await AsyncStorage.removeItem(KEYS.settings);
   await AsyncStorage.removeItem(KEYS.activity);
+  await AsyncStorage.removeItem(KEYS.enrollment);
 }

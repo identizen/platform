@@ -3,20 +3,29 @@ import { View } from 'react-native';
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import { parseChallengeId } from '../challenges/receive';
 import { Button, ErrorText, Muted, Screen } from '../components/ui';
+import { parseEnrollmentLink, type EnrollmentLink } from '../enrollment/links';
 
 export interface ScanScreenProps {
   onScanned: (challengeId: string) => Promise<void>;
+  /** An org enrollment QR (the same `identizen://enroll?…` link the portal shows). */
+  onEnrollmentLink?: ((link: EnrollmentLink) => void) | undefined;
   onBack: () => void;
 }
 
 /** PRD 7.2 step 2c: scan the QR the site shows; it encodes the same deep link. */
-export function ScanScreen({ onScanned, onBack }: ScanScreenProps) {
+export function ScanScreen({ onScanned, onEnrollmentLink, onBack }: ScanScreenProps) {
   const [permission, requestPermission] = useCameraPermissions();
   const [error, setError] = useState<string | null>(null);
   const handled = useRef(false);
 
   const onBarcode = ({ data }: { data: string }) => {
     if (handled.current) return;
+    const enrollment = onEnrollmentLink ? parseEnrollmentLink(data) : null;
+    if (enrollment && onEnrollmentLink) {
+      handled.current = true;
+      onEnrollmentLink(enrollment);
+      return;
+    }
     const id = parseChallengeId(data);
     if (!id) {
       setError('That is not an Identizen sign-in code.');

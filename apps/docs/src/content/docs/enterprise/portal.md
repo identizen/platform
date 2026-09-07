@@ -5,7 +5,7 @@ description: The admin portal at {tenant}.portal.identizen.com — getting the f
 
 Every Identizen Cloud tenant has an admin portal at `https://{tenant}.portal.identizen.com`. It is a registered OIDC client on the tenant's own index, so you sign in to it the same way as to anything else built on Identizen: with the phone that holds your identity. Everything on this page is what the portal does today; the [overview](/enterprise/#on-the-roadmap) lists what is still to come.
 
-The portal manages one organisation, the tenant itself. It has five sections: **Overview** (counts of users and domains, recent admin actions), **Organisation**, **Domains**, **Users** and **Audit**.
+The portal manages one organisation, the tenant itself. It has nine sections: **Overview** (counts of users, domains, managed devices and pending approvals, recent admin actions), **Organisation**, **Domains**, **Users**, **Devices**, **Approvals**, **Policy**, **MDM** and **Audit**. Devices, Approvals and Policy are described on [Enrolling phones and managing the fleet](/enterprise/enrollment/); MDM on [MDM integration](/enterprise/mdm/).
 
 ## Getting the first owner in
 
@@ -36,6 +36,8 @@ Every member has one role. What a role may do is decided by the index, not the p
 | `members.support` — suspend, reinstate, reinvite                         |   yes   |   yes   |    yes     |    no     |    no    |
 | `audit.read` — the organisation-wide event log and the admin-actions log |   yes   |   yes   |     no     |    yes    |    no    |
 | `audit.read_member` — one member's events at a time                      |   yes   |   yes   |    yes     |    yes    |    no    |
+
+The fleet, approvals, policy and MDM routes reuse these grants rather than adding new ones: listing devices and enrollments, issuing an enrollment, revoking a pending link, disabling and enabling a device are `members.support` (helpdesk and up); approving or denying an enrollment and revoking a device are `members.write` (owners and admins); reading the policy, the MDM tokens and the MDM profile is `org.read`; changing the policy and creating or revoking MDM tokens is `org.write`. The portal is narrower than the index in one place: it shows **Policy** and **MDM** to owners, admins and auditors only, although a helpdesk token can read both over the org API.
 
 Two rules sit on top of the table:
 
@@ -86,7 +88,11 @@ Adding a domain that is already listed is refused (`domain_taken`). **Remove** d
 
 ## Users
 
-**Users** lists everyone in the organisation, with a search box (email or display name), and status and role filters that live in the URL so a filtered list can be shared. Each row opens the user's page: profile (email, name, status, role, source, linked identity, invited and accepted times), the role select, the actions below, the phones holding the identity (label, platform, status, last seen), live sessions across sites (site, client id, started, expires) and the member's last 50 audit events.
+**Users** lists everyone in the organisation, with a search box (email or display name), and status and role filters that live in the URL so a filtered list can be shared. Each row opens the user's page: profile (email, name, status, role, source, linked identity, invited and accepted times), the role select, the actions below, the phones holding the identity (label, platform, status, last seen), the member's enrollments (channel, issued, claimed or expires, status, each linking to its page under **Approvals**), live sessions across sites (site, client id, started, expires) and the member's last 50 audit events.
+
+### Enrolling a phone
+
+**Enrol a phone** on a user's page (helpdesk and up; not for a deprovisioned member) issues a one-time enrollment and shows its QR code and `identizen://enroll?…` link once, with when it expires. The person opens it on their phone; the phone then either becomes a managed device at once or waits in **Approvals**, depending on the policy. The whole flow, the approvals queue, the **Devices** page and the **Policy** settings are on [Enrolling phones and managing the fleet](/enterprise/enrollment/). A member with source `mdm` was created by your MDM through the issue endpoint ([MDM integration](/enterprise/mdm/)).
 
 ### Inviting
 
@@ -124,9 +130,9 @@ A role change applies from the person's next request to the index. A deprovision
 
 The organisation has two logs, both cursor-paged (**Load more**), newest first.
 
-**Events** (`audit.read`; helpdesk sees them one member at a time) are the index's own `audit_events` rows tagged with the org or belonging to one of its identities: `login.success`, `login.denied`, `session.created`, `session.revoked`, and the org kinds `admin.bootstrapped`, `org.updated`, `domain.added`, `domain.verified`, `domain.removed`, `member.invited`, `member.accepted`, `member.role_changed`, `member.suspended`, `member.reinstated` and `member.deprovisioned`. Filter by kind, by member and by date range. Each event carries the identity (`idz`), the device and client it concerns where there is one, and a `detail` object (for a suspension, the number of sessions revoked; for a domain, the method that matched).
+**Events** (`audit.read`; helpdesk sees them one member at a time) are the index's own `audit_events` rows tagged with the org or belonging to one of its identities: `login.success`, `login.denied`, `session.created`, `session.revoked`, and the org kinds `admin.bootstrapped`, `org.updated`, `domain.added`, `domain.verified`, `domain.removed`, `member.invited`, `member.accepted`, `member.role_changed`, `member.suspended`, `member.reinstated` and `member.deprovisioned`, plus the fleet kinds `enrollment.issued`, `enrollment.claimed`, `enrollment.approved`, `enrollment.denied`, `enrollment.revoked`, `device.disabled_by_org`, `device.enabled_by_org`, `device.revoked_by_org`, `policy.updated`, `mdm.token_created`, `mdm.token_revoked` and `mdm.enrollment_issued`. Filter by kind, by member and by date range. Each event carries the identity (`idz`), the device and client it concerns where there is one, and a `detail` object (for a suspension, the number of sessions revoked; for a domain, the method that matched).
 
-**Admin actions** (owners, admins and auditors) is the record of what administrators changed through the portal: who (`actor_email`), what (`org.update`, `domain.add`, `domain.verify`, `domain.remove`, `member.invite`, `member.update`, `member.suspend`, `member.reinstate`, `member.reinvite`, `member.deprovision`), the target, and the object **before and after** the change. Every mutation in the portal writes one of these; the overview shows the most recent ten.
+**Admin actions** (owners, admins and auditors) is the record of what administrators changed through the portal: who (`actor_email`), what (`org.update`, `domain.add`, `domain.verify`, `domain.remove`, `member.invite`, `member.update`, `member.suspend`, `member.reinstate`, `member.reinvite`, `member.deprovision`, `enrollment.issue`, `enrollment.approve`, `enrollment.deny`, `enrollment.revoke`, `device.disable`, `device.enable`, `device.revoke`, `policy.update`, `mdm.token_create`, `mdm.token_revoke`), the target, and the object **before and after** the change. Every mutation in the portal writes one of these; the overview shows the most recent ten.
 
 There is no export and no SIEM webhook yet; both are on the [roadmap](/enterprise/#on-the-roadmap). Everything in both logs is also reachable over the org API on your index, with the same bearer token the portal uses.
 

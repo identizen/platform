@@ -9,7 +9,7 @@ This page is for members. Administrators have their own [portal](/enterprise/por
 
 ## What you see
 
-Above the dashboard sits a strip with the organisation's name and logo and the word **Members**, and the home page begins with **Managed by _{org}_**, so you always know whose index you are on. If your identity has a handle it appears in the header as `@handle`.
+Above the dashboard sits a strip with the organisation's name and logo and the word **Members**, and the home page begins with **Managed by _{org}_** (or **This phone is managed by _{org}_** once the organisation manages one of your phones), so you always know whose index you are on. If your identity has a handle it appears in the header as `@handle`.
 
 The navigation is the dashboard's:
 
@@ -34,7 +34,7 @@ An administrator invites you by sending you a link of the form `https://{tenant}
 3. **Enrol** the phone there. That creates your identity on the organisation's index; the organisation does not see the private key, which never leaves the phone.
 4. **Open the invitation link.** The page says **Join _{org}_** and, since you are not signed in yet, offers **Sign in to accept**.
 5. **Sign in with the phone.** A QR code or a push arrives on the phone; approve it. You come back to the app, where the invitation is accepted for you without another click.
-6. You see **You're a member of _{org}_** and a **Go to your dashboard** button.
+6. You see **You're a member of _{org}_**, an **Enrol this phone** button (below) and a **Go to your dashboard** button.
 
 If you open the link while already signed in to the app, the page asks first (**Accept invitation**) because accepting links the identity you are signed in with to the membership, permanently. One identity can hold one membership.
 
@@ -46,6 +46,19 @@ What can go wrong, in the words the page uses:
 | This invite link is not valid                | The token was never issued, was already used, or a newer invitation replaced it.                     |
 | This invite has expired                      | More than 7 days passed. Ask your administrator to reinvite you; the new link replaces the old.      |
 | Your identity is already a member of _{org}_ | The phone you signed in with is already linked to a membership. There is nothing to accept.          |
+
+## Enrolling your phone
+
+Being a member and having a **managed phone** are two different things. Accepting an invitation links your identity to the membership; enrolling makes a phone that holds that identity a managed device of the organisation, which can then disable or revoke it from the portal and see its sign-in activity. The organisation still never gets your keys.
+
+The page is `https://{tenant}.app.identizen.com/enroll`, **Enrol this phone**; the invitation page offers it as soon as you have accepted, and the home page shows a **Finish joining _{org}_** card while your membership is still waiting for a phone. It is open while your membership is `invited` or `active`; while suspended it says _Enrolment is not available while your access is suspended_, and a signed-in identity that is not a member sees **Not a member yet**.
+
+1. Press **Enrol this phone**. The app asks the index for a one-time code (`POST /orgs/me/enrollments`) and shows a QR code, an **Open in the Identizen app on this phone** link for when you are reading the page on the phone itself, and when the code expires (the organisation's policy sets this; 72 hours by default). The code works once.
+2. Scan the code with the Identizen app (or tap the link). The phone shows **Join an organisation** with the organisation's name and your masked email; press **Enrol**. The phone has to hold the identity you are signed in with: the one you enrolled on the organisation's index for the invitation, or a second phone restored from the same 24 words.
+3. Either the phone is a managed device at once, or, when the organisation reviews enrolments, the page says _Waiting for approval. After you approve on your phone, an administrator has to approve the enrolment_, and the phone waits too.
+4. The page polls your membership every 3 seconds and switches to **You're enrolled** (_Your phone is now managed by {org}_) once the organisation counts one more managed phone for you, with a **Go to your dashboard** button. If the code's time runs out first the page says so and offers **Start again**.
+
+Exactly what the phone shows, and what the organisation can do with a managed phone, is on [Enrolling phones and managing the fleet](/enterprise/enrollment/). A managed phone that an administrator **disables** cannot approve sign-ins and loses its sessions until it is enabled again; one that is **revoked** is gone for good, exactly as if you had revoked it yourself from **Devices**.
 
 ## When an administrator suspends you
 

@@ -51,6 +51,8 @@ export const GET: APIRoute = async () => {
     'enterprise/cloud-setup',
     'enterprise/portal',
     'enterprise/org-app',
+    'enterprise/enrollment',
+    'enterprise/mdm',
     'enterprise/mfa-and-step-up',
     'versioning',
   ]);

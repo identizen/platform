@@ -25,6 +25,7 @@ export default function RootLayout() {
         <Stack.Screen name="scan" options={{ presentation: 'modal' }} />
         <Stack.Screen name="approve/[id]" options={{ presentation: 'fullScreenModal' }} />
         <Stack.Screen name="phrase" options={{ presentation: 'modal' }} />
+        <Stack.Screen name="enroll" options={{ presentation: 'fullScreenModal' }} />
       </Stack>
     </>
   );

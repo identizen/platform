@@ -10,6 +10,9 @@ export default function Scan() {
         await receiveChallenge(id, 'scan');
         router.replace({ pathname: '/approve/[id]', params: { id } });
       }}
+      onEnrollmentLink={(link) =>
+        router.replace({ pathname: '/enroll', params: { index: link.index, token: link.token } })
+      }
       onBack={() => router.back()}
     />
   );

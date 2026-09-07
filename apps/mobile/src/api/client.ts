@@ -21,7 +21,7 @@ export class IndexError extends Error {
   }
 }
 
-async function throwIfNotOk(res: Response): Promise<void> {
+export async function throwIfNotOk(res: Response): Promise<void> {
   if (res.ok) return;
   let code = `http_${res.status}`;
   let message = `${res.status} ${res.statusText}`;
@@ -52,7 +52,7 @@ export async function signedFetch(method: string, path: string, body?: unknown):
   });
 }
 
-async function signedJson<T>(method: string, path: string, body?: unknown): Promise<T> {
+export async function signedJson<T>(method: string, path: string, body?: unknown): Promise<T> {
   const res = await signedFetch(method, path, body);
   await throwIfNotOk(res);
   return (await res.json()) as T;
@@ -62,6 +62,11 @@ async function signedJson<T>(method: string, path: string, body?: unknown): Prom
 export async function indexFetch(path: string, init?: RequestInit): Promise<Response> {
   const device = await requireDevice();
   return fetchImpl(`${device.indexUrl}${path}`, init);
+}
+
+/** Unsigned fetch against an arbitrary index, for routes reached before this phone is registered there. */
+export function publicFetch(url: string, init?: RequestInit): Promise<Response> {
+  return fetchImpl(url, init);
 }
 
 export interface DeviceRow {

@@ -12,9 +12,11 @@ import {
 } from '../../src/identity/identity';
 import {
   readDevice,
+  readEnrollment,
   readSettings,
   writeDevice,
   writeSettings,
+  type ManagedBy,
   type Settings,
 } from '../../src/identity/store';
 import { getBleStatus, useBleStatus } from '../../src/ble/advertiser';
@@ -27,6 +29,7 @@ export default function SettingsRoute() {
   const theme = useTheme();
   const [summary, setSummary] = useState<IdentitySummary | null>(null);
   const [settings, setSettings] = useState<Settings | null>(null);
+  const [managedBy, setManagedBy] = useState<ManagedBy | null>(null);
   const ble = useBleStatus();
 
   // Reload every time the tab gains focus: the handle and registration can change on Home.
@@ -34,6 +37,7 @@ export default function SettingsRoute() {
     useCallback(() => {
       void getSummary().then(setSummary);
       void readSettings().then(setSettings);
+      void readEnrollment().then((e) => setManagedBy(e.managedBy));
     }, []),
   );
   // The form copies handle and index into its own state on mount, so it must not mount before
@@ -52,6 +56,7 @@ export default function SettingsRoute() {
       indexUrl={summary.indexUrl}
       handle={summary.handle}
       registered={summary.registered}
+      managedBy={managedBy}
       theme={theme.preference}
       biometricRequired={settings.biometricRequired}
       bluetoothEnabled={settings.bluetoothEnabled}

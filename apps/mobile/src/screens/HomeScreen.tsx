@@ -3,7 +3,9 @@ import { Pressable, Text, View } from 'react-native';
 import type { BleStatus } from '../ble/advertiser';
 import type { ActivityEntry, PendingChallenge } from '../challenges/store';
 import { Lockup, useBrandColor } from '../components/brand';
+import { ManagedByLine, PendingEnrollmentCard } from '../components/managed';
 import { Badge, Button, Card, ListRow, Mono, Muted, Screen, SectionLabel } from '../components/ui';
+import type { ManagedBy, PendingEnrollment } from '../identity/store';
 
 export interface HomeScreenProps {
   idz: string | null;
@@ -18,6 +20,10 @@ export interface HomeScreenProps {
   onRefresh?: () => void;
   registering?: boolean;
   bluetooth?: BleStatus;
+  /** Org enrollment (enterprise): who manages the phone, and a claim awaiting approval. */
+  managedBy?: ManagedBy | null;
+  pendingEnrollment?: PendingEnrollment | null;
+  onCheckEnrollment?: () => void;
 }
 
 type Tone = 'neutral' | 'success' | 'warning' | 'danger';
@@ -67,6 +73,7 @@ export function HomeScreen(p: HomeScreenProps) {
         </Text>
         <Mono>{p.idz ?? 'Not registered'}</Mono>
         <Muted>{host(p.indexUrl)}</Muted>
+        {p.managedBy ? <ManagedByLine managedBy={p.managedBy} /> : null}
         {!p.registered ? (
           <Button
             label="Register this phone"
@@ -88,6 +95,10 @@ export function HomeScreen(p: HomeScreenProps) {
           </View>
         ) : null}
       </Card>
+
+      {p.pendingEnrollment && p.onCheckEnrollment ? (
+        <PendingEnrollmentCard pending={p.pendingEnrollment} onCheck={p.onCheckEnrollment} />
+      ) : null}
 
       {p.pending.length ? (
         <View className="gap-2">

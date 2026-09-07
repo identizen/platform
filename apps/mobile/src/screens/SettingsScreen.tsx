@@ -2,7 +2,9 @@ import { useState } from 'react';
 import { Linking, Switch, Text, TextInput, View } from 'react-native';
 import { biometricName } from '../biometrics';
 import type { ThemePreference } from '../theme/useTheme';
+import { ManagedByCard } from '../components/managed';
 import { Button, Card, ErrorText, Heading, Muted, Screen } from '../components/ui';
+import type { ManagedBy } from '../identity/store';
 
 const HANDLE_RE = /^[a-z0-9][a-z0-9_.-]*[a-z0-9]$/;
 
@@ -34,6 +36,8 @@ export interface SettingsScreenProps {
   onBack?: () => void;
   /** Shown at the foot of the page so a tester can tell builds apart. */
   about: AboutInfo;
+  /** The org that enrolled this phone, when there is one. */
+  managedBy?: ManagedBy | null;
 }
 
 export interface AboutInfo {
@@ -95,6 +99,7 @@ export function SettingsScreen(p: SettingsScreenProps) {
     <Screen testID="settings" onBack={p.onBack}>
       <Heading>Settings</Heading>
       {error ? <ErrorText>{error}</ErrorText> : null}
+      {p.managedBy ? <ManagedByCard managedBy={p.managedBy} /> : null}
 
       <Card>
         <Text className="font-medium text-base text-fg dark:text-fg-dark">Handle</Text>
