@@ -90,4 +90,10 @@ Per-package `CHANGELOG.md` files do not exist yet. Changesets writes them on the
 
 ### 0.1.0 — all packages
 
+### 0.2.0 (2026-09-07)
+
+`@identizen/protocol`, `@identizen/sdk`, `@identizen/react`, `identizen` 0.2.0 and `@identizen/fake-phone` 0.2.0, from the 6 September security review. Protocol: `amr` gains `iris` and `USER_VERIFYING_AMR`, `hwk` is reserved and never asserted, the identity proof binds `index` and `nonce` (§8.1). SDK: `verifyIdToken` accepts only an id_token (ES256, `typ: JWT`, every documented claim, no `events`), `auth_time` in `IdentizenIdToken`. CLI: scaffolds use a `revocations` store, a generated `IDENTIZEN_SESSION_SECRET`, `Secure` transaction cookies, day-long sessions, and session regeneration on Express. Fake phone: nonce-bound registration, `--issuer`, `--host`, `--amr`, `GET /l/:id`. `@identizen/react` moves to 0.2.0 with the group (dependency bump only). Per-package details are in each package's `CHANGELOG.md`.
+
+### 0.1.0 (September 2026)
+
 First publish of `@identizen/protocol`, `@identizen/sdk`, `@identizen/react`, `identizen`, and `@identizen/fake-phone`, September 2026. Protocol v1 as frozen at tag `v0.1.0`.

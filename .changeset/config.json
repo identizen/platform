@@ -13,7 +13,6 @@
     "@identizen/web",
     "@identizen/docs",
     "@identizen/mobile",
-    "@identizen/fake-phone",
     "@identizen/db",
     "@identizen/e2e",
     "@identizen/e2e-site"

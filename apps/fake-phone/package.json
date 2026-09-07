@@ -1,6 +1,6 @@
 {
   "name": "@identizen/fake-phone",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "A scriptable Identizen phone for local development and e2e: registers a device + identity, receives challenges, and approves, denies, or ignores them per policy.",
   "license": "Apache-2.0",
   "type": "module",
@@ -24,7 +24,7 @@
   },
   "dependencies": {
     "@hono/node-server": "^1.19.0",
-    "@identizen/protocol": "^0.1.0",
+    "@identizen/protocol": "^0.2.0",
     "hono": "^4.9.4"
   },
   "devDependencies": {
