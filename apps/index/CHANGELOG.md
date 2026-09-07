@@ -1,5 +1,11 @@
 # @identizen/index
 
+## 0.3.0
+
+### Minor Changes
+
+- ec00d81: `hooks.onSessionCreate` may return `{ ttlSeconds }` to shorten a session (never beyond the index default), so an embedder can enforce an organisation's session maximum age.
+
 ## 0.2.0
 
 ### Minor Changes
