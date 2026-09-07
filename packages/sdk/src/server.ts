@@ -128,16 +128,33 @@ export class IdentizenServer {
     return { ...tokens, claims };
   }
 
-  /** Verify an id_token issued by the index for this client. */
+  /**
+   * Verify an id_token issued by the index for this client. Only an id_token passes: the
+   * header must say `typ: JWT` and `alg: ES256`, every documented claim must be present with
+   * its type, and a logout token's `events` claim is refused (RFC 8725 §3.12: each kind of JWT
+   * the index signs is validated by rules the other kinds cannot satisfy).
+   */
   async verifyIdToken(idToken: string, nonce?: string): Promise<IdentizenIdToken> {
     const { payload } = await jwtVerify(idToken, this.keys(), {
       issuer: this.indexUrl,
       audience: this.clientId,
+      algorithms: ['ES256'],
+      typ: 'JWT',
+      requiredClaims: ['sub', 'sid', 'acr', 'amr', 'auth_time', 'idz_device', 'iat', 'exp'],
     });
+    const bad = (why: string): never => {
+      throw new IdentizenError('invalid_id_token', `id_token ${why}`);
+    };
+    if (payload.events !== undefined) bad('carries an events claim (that is a logout token)');
+    if (typeof payload.sub !== 'string' || typeof payload.sid !== 'string')
+      bad('is missing sub or sid');
+    if (payload.acr !== 'idz:login' && payload.acr !== 'idz:mfa') bad('has an unknown acr');
+    if (!Array.isArray(payload.amr) || !payload.amr.every((a) => typeof a === 'string'))
+      bad('has a malformed amr');
+    if (typeof payload.auth_time !== 'number') bad('has no auth_time');
+    if (typeof payload.idz_device !== 'string') bad('has no idz_device');
     if (nonce !== undefined && payload.nonce !== nonce)
       throw new IdentizenError('nonce_mismatch', 'id_token nonce does not match');
-    if (typeof payload.sub !== 'string' || typeof payload.sid !== 'string')
-      throw new IdentizenError('invalid_id_token', 'id_token is missing sub or sid');
     return payload as IdentizenIdToken;
   }
 
@@ -187,6 +204,7 @@ export class IdentizenServer {
     const { payload } = await jwtVerify(body, this.keys(), {
       issuer: this.indexUrl,
       audience: this.clientId,
+      algorithms: ['ES256'],
       typ: 'idz-webhook+jwt',
     });
     if (payload.event !== 'verification.resolved' || typeof payload.verification_id !== 'string') {
@@ -200,6 +218,7 @@ export class IdentizenServer {
     const { payload } = await jwtVerify(token, this.keys(), {
       issuer: this.indexUrl,
       audience: this.clientId,
+      algorithms: ['ES256'],
       typ: 'logout+jwt',
     });
     const events = payload.events as Record<string, unknown> | undefined;

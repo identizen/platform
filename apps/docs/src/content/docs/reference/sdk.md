@@ -74,16 +74,16 @@ const identizen = createIdentizenServer({
 });
 ```
 
-| Method                                                                                              | What it does                                                                        |
-| --------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------- |
-| `authorizationUrl({ redirectUri, state, nonce, codeChallenge, scope?, acr?, loginHint?, prompt? })` | Builds the `/authorize` URL                                                         |
-| `exchangeCode({ code, redirectUri, codeVerifier, nonce? })`                                         | `POST /token`, verifies the id_token against the JWKS, returns tokens plus `claims` |
-| `verifyIdToken(idToken, nonce?)`                                                                    | Verifies issuer, audience, signature, nonce                                         |
-| `userinfo(accessToken)`                                                                             | `GET /userinfo`                                                                     |
-| `verify({ sub, reason? })`                                                                          | `POST /v1/verify`                                                                   |
-| `getVerification(id)` / `waitForVerification(id, { timeoutMs?, intervalMs? })`                      | Poll the Verification API                                                           |
-| `verifyWebhook(body)`                                                                               | Verifies a webhook JWT (`typ: idz-webhook+jwt`) and returns the event               |
-| `verifyLogoutToken(token)`                                                                          | Verifies a back-channel logout token and returns `{ sid }`                          |
+| Method                                                                                              | What it does                                                                                                                                                                       |
+| --------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `authorizationUrl({ redirectUri, state, nonce, codeChallenge, scope?, acr?, loginHint?, prompt? })` | Builds the `/authorize` URL                                                                                                                                                        |
+| `exchangeCode({ code, redirectUri, codeVerifier, nonce? })`                                         | `POST /token`, verifies the id_token against the JWKS, returns tokens plus `claims`                                                                                                |
+| `verifyIdToken(idToken, nonce?)`                                                                    | Verifies signature (ES256 only), issuer, audience, `typ: JWT`, nonce, and that every documented claim is present; a logout, access or webhook token from the same index is refused |
+| `userinfo(accessToken)`                                                                             | `GET /userinfo`                                                                                                                                                                    |
+| `verify({ sub, reason? })`                                                                          | `POST /v1/verify`                                                                                                                                                                  |
+| `getVerification(id)` / `waitForVerification(id, { timeoutMs?, intervalMs? })`                      | Poll the Verification API                                                                                                                                                          |
+| `verifyWebhook(body)`                                                                               | Verifies a webhook JWT (ES256, `typ: idz-webhook+jwt`) and returns the event                                                                                                       |
+| `verifyLogoutToken(token)`                                                                          | Verifies a back-channel logout token (ES256, `typ: logout+jwt`) and returns `{ sid }`                                                                                              |
 
 Every failure throws an `IdentizenError` with `code`, `message`, `status` (HTTP, when applicable), and `docsUrl` pointing at the [errors page](/errors/).
 

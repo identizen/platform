@@ -21,6 +21,7 @@ import { Hono } from 'hono';
 import { z } from 'zod';
 import type { AppEnv } from '../app';
 import { badRequest, conflict, forbidden } from '../lib/errors';
+import { destinationProblem, outboundPolicy } from '../lib/outbound';
 import { deviceAuth } from '../middleware/idz-signature';
 import { fireBackchannelLogout } from '../services/sessions';
 import { checkRegistrationNonce, issueRegistrationNonce } from '../services/registration-nonce';
@@ -34,6 +35,16 @@ const PushTokenSchema = z
   .strict();
 
 const RevokeSchema = z.object({ device_id: z.string() }).strict();
+
+/** A web push token that is a URL is a destination the index will POST to: policy-checked. */
+function requirePushDestination(
+  env: { OUTBOUND_ALLOW_LOCAL?: string | undefined },
+  token: string | null,
+): void {
+  if (!token || !/^https?:\/\//.test(token)) return;
+  const problem = destinationProblem(token, outboundPolicy(env));
+  if (problem) throw badRequest('invalid_destination', `push_token: ${problem}`);
+}
 
 export function devicesRoutes(): Hono<AppEnv> {
   const r = new Hono<AppEnv>();
@@ -68,6 +79,7 @@ export function devicesRoutes(): Hono<AppEnv> {
     } else if (!verifyIdentityProof(body.device_pubkey, body.master_sig, masterPub)) {
       throw badRequest('bad_identity_proof', 'master_sig does not verify over device_pubkey');
     }
+    requirePushDestination(c.env, body.push_token ?? null);
     const idz = identityId(masterPub);
     const known = await getDeviceByPubkey(db, fromBase64Url(body.device_pubkey));
     if (known) {
@@ -143,6 +155,7 @@ export function devicesRoutes(): Hono<AppEnv> {
       throw forbidden('wrong_device', 'signature is for a different device');
     const { db } = c.get('services');
     const body = PushTokenSchema.parse(JSON.parse(c.get('rawBody') || '{}'));
+    requirePushDestination(c.env, body.push_token);
     const updated = await updatePushToken(db, device.id, body.push_token, body.push_platform);
     return c.json({ device_id: updated.id, push_platform: updated.pushPlatform });
   });

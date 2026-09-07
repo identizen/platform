@@ -799,7 +799,7 @@ export const OPENAPI_DOCUMENT: Record<string, unknown> = {
             }
           },
           "400": {
-            "description": "`invalid_request` — body failed validation; `bad_identity_proof` — `master_sig` does not verify over `device_pubkey` (and `index` + `nonce` when a nonce was sent); `bad_nonce` — the nonce is not one this index issued; `nonce_expired`.",
+            "description": "`invalid_request` — body failed validation; `bad_identity_proof` — `master_sig` does not verify over `device_pubkey` (and `index` + `nonce` when a nonce was sent); `bad_nonce` — the nonce is not one this index issued; `nonce_expired`; `invalid_destination` — a URL `push_token` the index will not call.",
             "content": {
               "application/json": {
                 "schema": {
@@ -954,7 +954,14 @@ export const OPENAPI_DOCUMENT: Record<string, unknown> = {
             }
           },
           "400": {
-            "$ref": "#/components/responses/InvalidRequest"
+            "description": "`invalid_request` — body failed validation; `invalid_destination` — a URL push token the index will not call.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
           },
           "401": {
             "$ref": "#/components/responses/DeviceUnauthorized"
@@ -2338,7 +2345,14 @@ export const OPENAPI_DOCUMENT: Record<string, unknown> = {
             }
           },
           "400": {
-            "$ref": "#/components/responses/InvalidRequest"
+            "description": "`invalid_request` — body failed validation; `invalid_destination` — `webhook_url` or `backchannel_logout_uri` is one the index will not call (not https, credentials in the URL, or a local, private or link-local address).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
           },
           "403": {
             "description": "`registration_closed` — registration needs the site registration token on this index.",

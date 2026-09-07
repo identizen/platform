@@ -3,7 +3,8 @@ import { normalizeRpId, ulid } from '@identizen/protocol';
 import { Hono } from 'hono';
 import { z } from 'zod';
 import type { AppEnv } from '../app';
-import { forbidden, notFound, unauthorized } from '../lib/errors';
+import { badRequest, forbidden, notFound, unauthorized } from '../lib/errors';
+import { destinationProblem, outboundPolicy } from '../lib/outbound';
 import { bearer, hashSecret, randomToken, safeEqual } from '../lib/util';
 
 const CreateSiteSchema = z
@@ -32,6 +33,17 @@ const PatchSiteSchema = z
   .strict();
 
 const WebhookSchema = z.object({ webhook_url: z.string().url().nullable() }).strict();
+
+/** A URL the index will POST to must pass the egress policy before it is stored. */
+function requireDestination(
+  env: { OUTBOUND_ALLOW_LOCAL?: string | undefined },
+  field: string,
+  url: string | null | undefined,
+): void {
+  if (!url) return;
+  const problem = destinationProblem(url, outboundPolicy(env));
+  if (problem) throw badRequest('invalid_destination', `${field}: ${problem}`);
+}
 
 export function publicSite(s: Site): Record<string, unknown> {
   return {
@@ -83,6 +95,8 @@ export function sitesRoutes(): Hono<AppEnv> {
       }
     }
     const body = CreateSiteSchema.parse(await c.req.json());
+    requireDestination(env, 'backchannel_logout_uri', body.backchannel_logout_uri);
+    requireDestination(env, 'webhook_url', body.webhook_url);
     const clientId = `idz_${body.environment}_${ulid()}`;
     const clientSecret = body.public ? null : randomToken(32);
     const webhookSecret = body.webhook_url ? randomToken(32) : null;
@@ -113,6 +127,8 @@ export function sitesRoutes(): Hono<AppEnv> {
     const { db } = c.get('services');
     const site = await requireSiteSecret(c, db, c.req.param('client_id'));
     const body = PatchSiteSchema.parse(await c.req.json());
+    requireDestination(c.env, 'backchannel_logout_uri', body.backchannel_logout_uri);
+    requireDestination(c.env, 'webhook_url', body.webhook_url);
     const newClientSecret = body.rotate_client_secret ? randomToken(32) : null;
     const newWebhookSecret = body.rotate_webhook_secret ? randomToken(32) : null;
     const updated = await updateSite(db, site.clientId, {
@@ -138,6 +154,7 @@ export function sitesRoutes(): Hono<AppEnv> {
     const { db } = c.get('services');
     const site = await requireSiteSecret(c, db, c.req.param('client_id'));
     const body = WebhookSchema.parse(await c.req.json());
+    requireDestination(c.env, 'webhook_url', body.webhook_url);
     const webhookSecret = body.webhook_url ? randomToken(32) : null;
     const updated = await updateSite(db, site.clientId, {
       webhookUrl: body.webhook_url,

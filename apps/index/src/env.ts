@@ -28,6 +28,12 @@ export interface Env {
    */
   OIDC_PKCE_OPTIONAL?: string;
   SITE_REGISTRATION_TOKEN?: string;
+  /**
+   * "true" lets the index send webhooks, logout tokens and web pushes to plain-http, loopback,
+   * private and link-local destinations. Local development and the test suites only; the
+   * hosted index never sets it and a self-hosted index next to internal services must not.
+   */
+  OUTBOUND_ALLOW_LOCAL?: string;
   /** Per-minute abuse limits (M10.2); defaults in middleware/rate-limit.ts. */
   RATE_LIMIT_CHALLENGES_PER_CLIENT?: string;
   RATE_LIMIT_REQUESTS_PER_IP?: string;

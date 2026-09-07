@@ -1,102 +1,69 @@
 import { DurableObject } from 'cloudflare:workers';
 import type { Env } from '../env';
-
-const WINDOW_MS = 2 * 60_000;
-/** Max signed requests per device per minute. */
-const RATE_LIMIT_PER_MINUTE = 120;
-/** Max challenge pushes per device per minute (push-bombing guard). */
-const PUSH_LIMIT_PER_MINUTE = 10;
+import { GuardState, WINDOW_MS, type GuardRecord } from './guard-state';
 
 /**
- * Per-device guard: replay protection for `Idz-Signature` and rate limits.
- * Ephemeral coordination state only; nothing here outlives the two-minute window.
+ * Per-device guard: replay protection for `Idz-Signature`, rate limits, and the challenge inbox.
+ * The state lives in Durable Object storage (see GuardState), so an eviction, a deploy, or a
+ * restart neither reopens a replay window nor loses a queued challenge. The alarm sweeps aged
+ * entries once per window.
  */
 export class RequestGuard extends DurableObject<Env> {
-  private seen = new Map<string, number>();
-  private requests: number[] = [];
-  private pushes: number[] = [];
-  private inbox: string[] = [];
+  private readonly state = new GuardState({
+    get: (key) => this.ctx.storage.get<GuardRecord>(key),
+    put: (key, value) => this.ctx.storage.put(key, value),
+    delete: async (key) => {
+      await this.ctx.storage.delete(key);
+    },
+  });
   private armed = false;
 
-  /** Schedule the sweep once per window instead of on every call (fewer storage writes and timers). */
-  private async arm(now: number): Promise<void> {
+  /** Schedule the sweep once per window instead of on every call (fewer timers). */
+  private async arm(): Promise<void> {
     if (this.armed) return;
     this.armed = true;
     if ((await this.ctx.storage.getAlarm()) === null) {
-      await this.ctx.storage.setAlarm(now + WINDOW_MS);
+      await this.ctx.storage.setAlarm(Date.now() + WINDOW_MS);
     }
   }
 
   /** Returns false if `(timestamp, sig)` was already seen or the device exceeds its rate limit. */
   async check(timestamp: number, sig: string): Promise<boolean> {
-    const now = Date.now();
-    this.prune(now);
-    const key = `${timestamp}:${sig}`;
-    if (this.seen.has(key)) return false;
-    if (this.requests.length >= RATE_LIMIT_PER_MINUTE) return false;
-    this.seen.set(key, now);
-    this.requests.push(now);
-    await this.arm(now);
-    return true;
+    const ok = await this.state.check(timestamp, sig);
+    await this.arm();
+    return ok;
   }
 
   /** Returns false when the device has been pushed too often in the last minute. */
   async allowPush(): Promise<boolean> {
-    const now = Date.now();
-    this.prune(now);
-    if (this.pushes.length >= PUSH_LIMIT_PER_MINUTE) return false;
-    this.pushes.push(now);
-    await this.arm(now);
-    return true;
+    const ok = await this.state.allowPush();
+    await this.arm();
+    return ok;
   }
-
-  private buckets = new Map<string, number[]>();
 
   /**
    * Generic sliding-window limiter: at most `limit` events per minute for `bucket`.
    * The DO instance name scopes it (e.g. `client:<id>`, `ip:<addr>`).
    */
   async allowRate(bucket: string, limit: number): Promise<boolean> {
-    const now = Date.now();
-    const events = (this.buckets.get(bucket) ?? []).filter((t) => now - t < 60_000);
-    if (events.length >= limit) {
-      this.buckets.set(bucket, events);
-      return false;
-    }
-    events.push(now);
-    this.buckets.set(bucket, events);
-    await this.arm(now);
-    return true;
+    const ok = await this.state.allowRate(bucket, limit);
+    await this.arm();
+    return ok;
   }
 
   /** Queue a challenge id for the device's inbox (every phone drains it; idempotent per id). */
   async enqueue(challengeId: string): Promise<void> {
-    if (this.inbox.includes(challengeId)) return;
-    this.inbox.push(challengeId);
-    if (this.inbox.length > 50) this.inbox.shift();
-    await this.arm(Date.now());
+    await this.state.enqueue(challengeId);
+    await this.arm();
   }
 
   /** Return and clear queued challenge ids. */
-  drain(): string[] {
-    const out = this.inbox;
-    this.inbox = [];
-    return out;
+  drain(): Promise<string[]> {
+    return this.state.drain();
   }
 
   override async alarm(): Promise<void> {
     this.armed = false;
-    this.prune(Date.now());
-    this.inbox = [];
-    this.buckets.clear();
-    if (this.seen.size > 0 || this.requests.length > 0 || this.pushes.length > 0) {
-      await this.ctx.storage.setAlarm(Date.now() + WINDOW_MS);
-    }
-  }
-
-  private prune(now: number): void {
-    for (const [k, t] of this.seen) if (now - t > WINDOW_MS) this.seen.delete(k);
-    this.requests = this.requests.filter((t) => now - t < 60_000);
-    this.pushes = this.pushes.filter((t) => now - t < 60_000);
+    if (await this.state.sweep()) await this.arm();
   }
 }

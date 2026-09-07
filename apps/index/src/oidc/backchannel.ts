@@ -1,6 +1,7 @@
 import { getSite, listBindingsForIdentity, type Session } from '@identizen/db';
 import type { Env } from '../env';
 import type { Services } from '../lib/services';
+import { fetchOutbound, outboundPolicy, type OutboundPolicy } from '../lib/outbound';
 import { loadKeyring } from './keys';
 import { mintLogoutToken } from './tokens';
 
@@ -29,7 +30,7 @@ export async function sendLogoutTokens(
         sid: session.sid,
         now: services.now(),
       });
-      await postWithRetry(fetchImpl, site.backchannelLogoutUri, token);
+      await postWithRetry(fetchImpl, site.backchannelLogoutUri, token, outboundPolicy(env));
     }),
   );
 }
@@ -45,18 +46,25 @@ async function postWithRetry(
   fetchImpl: typeof fetch,
   url: string,
   token: string,
+  policy: OutboundPolicy,
 ): Promise<boolean> {
   for (const delay of RETRY_DELAYS_MS) {
     if (delay) await new Promise((r) => setTimeout(r, delay));
     try {
-      const res = await fetchImpl(url, {
-        method: 'POST',
-        headers: {
-          'content-type': 'application/x-www-form-urlencoded',
-          'cache-control': 'no-store',
+      // Site-supplied URL: policy-checked, five-second deadline per attempt, no redirects.
+      const res = await fetchOutbound(
+        fetchImpl,
+        url,
+        {
+          method: 'POST',
+          headers: {
+            'content-type': 'application/x-www-form-urlencoded',
+            'cache-control': 'no-store',
+          },
+          body: new URLSearchParams({ logout_token: token }),
         },
-        body: new URLSearchParams({ logout_token: token }),
-      });
+        policy,
+      );
       if (res.ok) return true;
       if (res.status >= 400 && res.status < 500 && res.status !== 429) return false;
     } catch {

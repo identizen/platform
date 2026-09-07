@@ -3,6 +3,7 @@ import { fromBase64Url, toBase64Url, utf8Encode } from '@identizen/protocol';
 import { SignJWT, importPKCS8 } from 'jose';
 import type { RequestGuard } from '../do/request-guard';
 import type { Env } from '../env';
+import { fetchOutbound, outboundPolicy, type OutboundPolicy } from '../lib/outbound';
 
 /** The only payload that transits APNs / FCM / Web Push (PROTOCOL.md section 7). */
 export interface PushPayload {
@@ -40,6 +41,7 @@ export class WebPushSender implements PushSender {
   constructor(
     private readonly guards: DurableObjectNamespace<RequestGuard> | null = null,
     private readonly fetchImpl: typeof fetch = (input, init) => fetch(input, init),
+    private readonly policy: OutboundPolicy = { allowLocal: false },
   ) {}
   async send(device: PushTarget, payload: PushPayload): Promise<PushResult> {
     const token = device.pushToken ?? '';
@@ -50,11 +52,17 @@ export class WebPushSender implements PushSender {
     }
     if (/^https?:\/\//.test(token)) {
       try {
-        const res = await this.fetchImpl(token, {
-          method: 'POST',
-          headers: { 'content-type': 'application/json' },
-          body: JSON.stringify(payload),
-        });
+        // A device-supplied URL: policy-checked, five-second deadline, no redirects.
+        const res = await fetchOutbound(
+          this.fetchImpl,
+          token,
+          {
+            method: 'POST',
+            headers: { 'content-type': 'application/json' },
+            body: JSON.stringify(payload),
+          },
+          this.policy,
+        );
         return { ok: res.ok, provider: 'web', detail: `status ${res.status}` };
       } catch (err) {
         return { ok: false, provider: 'web', detail: String(err) };
@@ -254,7 +262,7 @@ export function createPushSender(env: Env): PushSender {
     return new RoutingPushSender({ web: new PollOnlySender(env.REQUEST_GUARD, noop) }, noop);
   }
   const senders: Partial<Record<'apns' | 'fcm' | 'web' | 'expo', PushSender>> = {
-    web: new WebPushSender(env.REQUEST_GUARD),
+    web: new WebPushSender(env.REQUEST_GUARD, undefined, outboundPolicy(env)),
     expo: new ExpoPushSender(env.EXPO_ACCESS_TOKEN ?? null),
   };
   if (env.APNS_KEY_ID && env.APNS_TEAM_ID && env.APNS_PRIVATE_KEY && env.APNS_TOPIC) {

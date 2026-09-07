@@ -1,3 +1,4 @@
+import { randomBytes } from 'node:crypto';
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { detectProject, type Framework } from '../lib/detect.js';
@@ -68,6 +69,8 @@ export async function init(opts: InitOptions): Promise<InitResult> {
     IDENTIZEN_CLIENT_ID: site.client_id,
     IDENTIZEN_CLIENT_SECRET: site.client_secret ?? '',
     IDENTIZEN_SITE_URL: siteUrl,
+    // Signs the app's own session cookie (Next template); separate from the OIDC client secret.
+    IDENTIZEN_SESSION_SECRET: randomBytes(24).toString('base64url'),
   });
   log(`  wrote ${envFile}`);
 

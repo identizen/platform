@@ -187,7 +187,9 @@ export interface IdentizenSession { sub: string; sid: string; acr: string; amr: 
 export async function getIdentizenSession(): Promise<IdentizenSession | null> { return null; }
 export async function setIdentizenSession(_s: IdentizenSession): Promise<void> {}
 export async function clearIdentizenSession(): Promise<void> {}
-export const revokedSids = new Set<string>();
+export interface RevocationStore { revoke(sid: string): Promise<void>; isRevoked(sid: string): Promise<boolean> }
+export const revocations: RevocationStore = { revoke: async () => {}, isRevoked: async () => false };
+export const TX_COOKIE = { httpOnly: true, sameSite: 'lax' as const, secure: false, path: '/', maxAge: 600 };
 `,
   );
   // node_modules resolution: point at the workspace root so @identizen/* and react resolve.

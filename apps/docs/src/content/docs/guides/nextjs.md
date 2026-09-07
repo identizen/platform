@@ -108,10 +108,10 @@ export async function GET(req: Request): Promise<Response> {
 
 ## Back-channel logout
 
-When the user revokes a device or a session in the Identizen app, the index POSTs a logout token to `/api/auth/backchannel-logout`. The scaffold records the `sid` in an in-memory set that the session helper checks. Replace that set with your session store in production.
+When the user revokes a device or a session in the Identizen app, the index POSTs a logout token to `/api/auth/backchannel-logout`. The scaffold records the `sid` through a two-call `revocations` store that the session helper checks on every request. The default lives in one process; point it at your database or cache before running more than one instance. The scaffold signs its session cookie with `IDENTIZEN_SESSION_SECRET`, which `identizen init` generates, never with the OIDC client secret, and sessions last a day (`IDENTIZEN_SESSION_TTL`) unless a revocation ends them first.
 
 ```ts title="app/api/auth/backchannel-logout/route.ts"
-import { identizen, revokedSids } from '@/lib/identizen';
+import { identizen, revocations } from '@/lib/identizen';
 
 export async function POST(req: Request): Promise<Response> {
   const form = await req.formData();
@@ -120,7 +120,7 @@ export async function POST(req: Request): Promise<Response> {
     return Response.json({ error: 'invalid_request' }, { status: 400 });
   try {
     const { sid } = await identizen.verifyLogoutToken(token);
-    revokedSids.add(sid);
+    await revocations.revoke(sid);
     return new Response(null, { status: 200, headers: { 'cache-control': 'no-store' } });
   } catch (err) {
     return Response.json({ error: 'invalid_request', detail: String(err) }, { status: 400 });

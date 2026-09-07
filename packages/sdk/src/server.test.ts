@@ -244,3 +244,44 @@ describe('IdentizenServer', () => {
     expect(() => new IdentizenServer({ indexUrl: INDEX, clientId: '' })).toThrow(/clientId/);
   });
 });
+
+describe('verifyIdToken accepts only an id_token (RFC 8725 §3.12)', () => {
+  const idz = createIdentizenServer({ indexUrl: INDEX, clientId: CLIENT, clientSecret: SECRET });
+  const claims = {
+    sub: 'S'.repeat(32),
+    sid: 'sid1',
+    acr: 'idz:login',
+    amr: ['face', 'hwk'],
+    auth_time: Math.floor(Date.now() / 1000),
+    idz_device: 'dev_x',
+  };
+
+  it('a logout token, an access token, or a webhook token is refused as an id_token', async () => {
+    const logout = await sign(
+      { ...claims, events: { 'http://schemas.openid.net/event/backchannel-logout': {} } },
+      'logout+jwt',
+    );
+    await expect(idz.verifyIdToken(logout)).rejects.toThrow();
+    const smuggled = await sign(
+      { ...claims, events: { 'http://schemas.openid.net/event/backchannel-logout': {} } },
+      'JWT',
+    );
+    await expect(idz.verifyIdToken(smuggled)).rejects.toMatchObject({ code: 'invalid_id_token' });
+    const access = await sign({ sid: 'sid1', scope: 'openid', client_id: CLIENT }, 'at+jwt');
+    await expect(idz.verifyIdToken(access)).rejects.toThrow();
+    const hook = await sign({ ...claims, event: 'verification.resolved' }, 'idz-webhook+jwt');
+    await expect(idz.verifyIdToken(hook)).rejects.toThrow();
+  });
+
+  it('every documented claim must be present with its type', async () => {
+    for (const missing of ['sub', 'sid', 'acr', 'amr', 'auth_time', 'idz_device'] as const) {
+      const { [missing]: _omit, ...rest } = claims;
+      const token = await sign(rest, 'JWT');
+      await expect(idz.verifyIdToken(token), missing).rejects.toThrow();
+    }
+    const badAcr = await sign({ ...claims, acr: 'urn:other' }, 'JWT');
+    await expect(idz.verifyIdToken(badAcr)).rejects.toMatchObject({ code: 'invalid_id_token' });
+    const ok = await sign(claims, 'JWT');
+    expect((await idz.verifyIdToken(ok)).sid).toBe('sid1');
+  });
+});

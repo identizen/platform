@@ -445,3 +445,44 @@ describe('S06: the device id a site sees is per site', () => {
     expect(ui.idz_device).toBe(claim(other.tokens.id_token));
   });
 });
+
+describe('S07: the index only sends requests to destinations the policy allows', () => {
+  // The test index runs with OUTBOUND_ALLOW_LOCAL=true (the fake phone lives on localhost), so
+  // the scheme and credential rules are what can be exercised end to end here; the address rules
+  // are covered in outbound.test.ts.
+  it('a site cannot register a webhook or logout endpoint the index would refuse to call', async () => {
+    for (const url of [
+      'ftp://hooks.example.com/x',
+      'https://user:pw@hooks.example.com/x',
+      'javascript:alert(1)',
+    ]) {
+      const res = await post('/sites', {
+        name: 'x',
+        rp_id: 'x.example',
+        redirect_uris: ['https://x.example/cb'],
+        webhook_url: url,
+      });
+      expect(res.status, url).toBe(400);
+      expect(await json(res)).toMatchObject({
+        error: expect.stringMatching(/invalid_(destination|request)/),
+      });
+      const res2 = await post('/sites', {
+        name: 'y',
+        rp_id: 'y.example',
+        redirect_uris: ['https://y.example/cb'],
+        backchannel_logout_uri: url,
+      });
+      expect(res2.status, url).toBe(400);
+    }
+  });
+
+  it('a device cannot register a push URL the index would refuse to call', async () => {
+    const phone = await registerPhone();
+    const res = await signedFetch(phone, 'POST', `/devices/${phone.deviceId}/push-token`, {
+      push_token: 'https://user:pw@phone.example/push',
+      push_platform: 'web',
+    });
+    expect(res.status).toBe(400);
+    expect(await json(res)).toMatchObject({ error: 'invalid_destination' });
+  });
+});

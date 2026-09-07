@@ -25,7 +25,15 @@ interface Tx {
   verifier: string;
 }
 const transactions = new Map<string, Tx>();
-const revokedSids = new Set<string>();
+// Sessions ended by back-channel logout. This one lives in the process; back it with your
+// database or cache before running more than one instance.
+const revoked = new Set<string>();
+const revocations = {
+  revoke: async (sid: string) => {
+    revoked.add(sid);
+  },
+  isRevoked: async (sid: string) => revoked.has(sid),
+};
 
 const app = express();
 app.use(express.urlencoded({ extended: false }));
@@ -67,7 +75,7 @@ app.post('/api/auth/backchannel-logout', async (req, res) => {
   try {
     const body = req.body as { logout_token?: string };
     const { sid } = await identizen.verifyLogoutToken(String(body.logout_token ?? ''));
-    revokedSids.add(sid);
+    await revocations.revoke(sid);
     res.status(200).end();
   } catch (err) {
     res.status(400).json({ error: 'invalid_request', detail: String(err) });

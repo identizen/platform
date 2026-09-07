@@ -23,7 +23,18 @@ export const identizen = createIdentizenServer({
 
 const SITE_URL = process.env.IDENTIZEN_SITE_URL ?? 'http://localhost:3000';
 const REDIRECT_URI = \`\${SITE_URL}/api/auth/callback\`;
-const revokedSids = new Set${opts.typescript ? '<string>' : ''}();
+
+/**
+ * Where sessions ended by back-channel logout are recorded. The index POSTs a logout token when
+ * the person revokes a device or a session in the Identizen app; every instance of your app must
+ * see that. The default lives in one process: replace it with your database or cache before
+ * running more than one instance (two calls: revoke(sid) and isRevoked(sid)).
+ */
+const memory = new Set${opts.typescript ? '<string>' : ''}();
+export const revocations = {
+  revoke: async (sid${opts.typescript ? ': string' : ''}) => { memory.add(sid); },
+  isRevoked: async (sid${opts.typescript ? ': string' : ''}) => memory.has(sid),
+};
 
 /**
  * Routes: GET /api/auth/login, GET /api/auth/callback, POST /api/auth/logout,
@@ -58,8 +69,12 @@ export function identizenRouter() {
     if (req.query.error) return res.redirect(\`/?error=\${encodeURIComponent(String(req.query.error))}\`);
     if (!tx || typeof req.query.code !== 'string' || req.query.state !== tx.state) return res.redirect('/?error=state_mismatch');
     const { claims } = await identizen.exchangeCode({ code: req.query.code, redirectUri: REDIRECT_URI, codeVerifier: tx.verifier, nonce: tx.nonce });
-    req.session.identizen = { sub: claims.sub, sid: claims.sid, acr: claims.acr, amr: claims.amr };
-    res.redirect('/');
+    // A fresh session id after authentication, so a pre-login session fixation cannot follow the person in.
+    req.session.regenerate((err${opts.typescript ? ': unknown' : ''}) => {
+      if (err) return res.redirect('/?error=session');
+      req.session.identizen = { sub: claims.sub, sid: claims.sid, acr: claims.acr, amr: claims.amr };
+      res.redirect('/');
+    });
   });
 
   r.post('/api/auth/logout', (req, res) => {
@@ -70,7 +85,7 @@ export function identizenRouter() {
   r.post('/api/auth/backchannel-logout', async (req, res) => {
     try {
       const { sid } = await identizen.verifyLogoutToken(String(req.body?.logout_token ?? ''));
-      revokedSids.add(sid);
+      await revocations.revoke(sid);
       res.status(200).end();
     } catch (err) {
       res.status(400).json({ error: 'invalid_request', detail: String(err) });
@@ -82,9 +97,9 @@ export function identizenRouter() {
 
 /** Middleware: exposes req.identizen (null when signed out or revoked). */
 export function identizenSession() {
-  return (req${opts.typescript ? ': any' : ''}, _res${opts.typescript ? ': any' : ''}, next${opts.typescript ? ': () => void' : ''}) => {
+  return async (req${opts.typescript ? ': any' : ''}, _res${opts.typescript ? ': any' : ''}, next${opts.typescript ? ': () => void' : ''}) => {
     const s = req.session?.identizen ?? null;
-    req.identizen = s && !revokedSids.has(s.sid) ? s : null;
+    req.identizen = s && !(await revocations.isRevoked(s.sid)) ? s : null;
     next();
   };
 }

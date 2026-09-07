@@ -40,26 +40,46 @@ export interface IdentizenSession {
 }
 
 const COOKIE = 'identizen_session';
-const key = () => new TextEncoder().encode(env('IDENTIZEN_CLIENT_SECRET'));
+const SECURE = SITE_URL.startsWith('https');
+/** Cookie signing key: its own secret, never the OIDC client secret. \`identizen init\` writes one. */
+const key = () => new TextEncoder().encode(env('IDENTIZEN_SESSION_SECRET'));
 
-/** Read the signed session cookie (null when signed out). Replace with your own session store any time. */
+/**
+ * Where sessions ended by back-channel logout are recorded. The index POSTs a logout token when
+ * the person revokes a device or a session in the Identizen app; every instance of your app must
+ * see that. The default below lives in one process: replace it with your database or cache
+ * before running more than one instance (the interface is two calls).
+ */
+export interface RevocationStore {
+  revoke(sid: string): Promise<void>;
+  isRevoked(sid: string): Promise<boolean>;
+}
+const memory = new Set<string>();
+export const revocations: RevocationStore = {
+  revoke: async (sid) => void memory.add(sid),
+  isRevoked: async (sid) => memory.has(sid),
+};
+
+/** Read the signed session cookie (null when signed out or revoked). Replace with your own session store any time. */
 export async function getIdentizenSession(): Promise<IdentizenSession | null> {
   const jar = await cookies();
   const token = jar.get(COOKIE)?.value;
   if (!token) return null;
   try {
-    const { payload } = await jwtVerify(token, key());
-    if (revokedSids.has(String(payload.sid))) return null;
+    const { payload } = await jwtVerify(token, key(), { algorithms: ['HS256'] });
+    if (await revocations.isRevoked(String(payload.sid))) return null;
     return payload as unknown as IdentizenSession;
   } catch {
     return null;
   }
 }
 
+/** Sessions last a day by default (IDENTIZEN_SESSION_TTL, seconds); a revocation ends them sooner. */
 export async function setIdentizenSession(session: IdentizenSession): Promise<void> {
-  const token = await new SignJWT({ ...session }).setProtectedHeader({ alg: 'HS256' }).setIssuedAt().setExpirationTime('7d').sign(key());
+  const ttl = Number(process.env.IDENTIZEN_SESSION_TTL ?? 86_400);
+  const token = await new SignJWT({ ...session }).setProtectedHeader({ alg: 'HS256' }).setIssuedAt().setExpirationTime(Math.floor(Date.now() / 1000) + ttl).sign(key());
   const jar = await cookies();
-  jar.set(COOKIE, token, { httpOnly: true, sameSite: 'lax', secure: SITE_URL.startsWith('https'), path: '/' });
+  jar.set(COOKIE, token, { httpOnly: true, sameSite: 'lax', secure: SECURE, path: '/', maxAge: ttl });
 }
 
 export async function clearIdentizenSession(): Promise<void> {
@@ -67,15 +87,14 @@ export async function clearIdentizenSession(): Promise<void> {
   jar.delete(COOKIE);
 }
 
-/** Sessions ended by back-channel logout (device revoked, session revoked in the app). In-memory: move to your store. */
-export const revokedSids = new Set<string>();
+export const TX_COOKIE = { httpOnly: true, sameSite: 'lax' as const, secure: SECURE, path: '/', maxAge: 600 };
 `,
     },
     {
       path: `${app}/api/auth/login/route.ts`,
       content: `import { cookies } from 'next/headers';
 import { pkceChallenge, randomString } from '@identizen/sdk/server';
-import { identizen, REDIRECT_URI } from '${importLib}';
+import { identizen, REDIRECT_URI, TX_COOKIE } from '${importLib}';
 
 /** GET /api/auth/login -> redirect to Identizen. Add ?mode=stepup&sub=… for Path B step-up. */
 export async function GET(req: Request): Promise<Response> {
@@ -84,7 +103,7 @@ export async function GET(req: Request): Promise<Response> {
   const nonce = randomString(16);
   const verifier = randomString(32);
   const jar = await cookies();
-  jar.set('identizen_tx', JSON.stringify({ state, nonce, verifier }), { httpOnly: true, sameSite: 'lax', path: '/', maxAge: 600 });
+  jar.set('identizen_tx', JSON.stringify({ state, nonce, verifier }), TX_COOKIE);
   const stepUpSub = url.searchParams.get('mode') === 'stepup' ? url.searchParams.get('sub') : null;
   return Response.redirect(
     identizen.authorizationUrl({
@@ -137,7 +156,7 @@ export async function POST(): Promise<Response> {
     },
     {
       path: `${app}/api/auth/backchannel-logout/route.ts`,
-      content: `import { identizen, revokedSids } from '${importLib}';
+      content: `import { identizen, revocations } from '${importLib}';
 
 /** Identizen posts a logout token here when the user revokes a device or session. */
 export async function POST(req: Request): Promise<Response> {
@@ -146,7 +165,7 @@ export async function POST(req: Request): Promise<Response> {
   if (typeof token !== 'string') return Response.json({ error: 'invalid_request' }, { status: 400 });
   try {
     const { sid } = await identizen.verifyLogoutToken(token);
-    revokedSids.add(sid);
+    await revocations.revoke(sid);
     return new Response(null, { status: 200, headers: { 'cache-control': 'no-store' } });
   } catch (err) {
     return Response.json({ error: 'invalid_request', detail: String(err) }, { status: 400 });

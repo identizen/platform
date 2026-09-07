@@ -17,6 +17,7 @@ import {
 } from '@identizen/protocol';
 import type { Env } from '../env';
 import type { Services } from '../lib/services';
+import { fetchOutbound, outboundPolicy } from '../lib/outbound';
 import { createServices } from '../lib/services';
 import { loadKeyring } from '../oidc/keys';
 import { mintWebhookToken } from '../oidc/tokens';
@@ -146,15 +147,21 @@ export async function deliverWebhook(
   for (const delay of RETRY_DELAYS_MS) {
     if (delay) await new Promise((r) => setTimeout(r, delay));
     try {
-      const res = await fetchImpl(site.webhookUrl, {
-        method: 'POST',
-        headers: {
-          'content-type': 'application/jwt',
-          'idz-event': 'verification.resolved',
-          ...(sigHeader && { 'idz-webhook-signature': sigHeader }),
+      // Site-supplied URL: policy-checked, five-second deadline per attempt, no redirects.
+      const res = await fetchOutbound(
+        fetchImpl,
+        site.webhookUrl,
+        {
+          method: 'POST',
+          headers: {
+            'content-type': 'application/jwt',
+            'idz-event': 'verification.resolved',
+            ...(sigHeader && { 'idz-webhook-signature': sigHeader }),
+          },
+          body,
         },
-        body,
-      });
+        outboundPolicy(env),
+      );
       if (res.ok) return true;
       if (res.status >= 400 && res.status < 500 && res.status !== 429) return false;
     } catch {

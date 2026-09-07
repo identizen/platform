@@ -29,6 +29,7 @@ export default defineWorkersConfig({
             APP_URL: 'http://app.test',
             PUSH_PROVIDER: 'noop',
             OPEN_SITE_REGISTRATION: 'true',
+            OUTBOUND_ALLOW_LOCAL: 'true',
             DASHBOARD_CLIENT_IDS: '*',
             RATE_LIMIT_CHALLENGES_PER_CLIENT: '40',
             RATE_LIMIT_REQUESTS_PER_IP: '12',
