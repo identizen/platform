@@ -25,6 +25,8 @@ const PAGES = [
   '/testing/',
   '/versioning/',
   '/enterprise/',
+  '/enterprise/cloud-setup/',
+  '/enterprise/mfa-and-step-up/',
   '/protocol/',
   '/protocol/vectors/',
 ];

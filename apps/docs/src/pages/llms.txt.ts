@@ -45,8 +45,11 @@ export const GET: APIRoute = async () => {
   section('Operating', [
     'self-hosting',
     'self-hosting-production',
+    'embedding',
     'data-handling',
     'enterprise',
+    'enterprise/cloud-setup',
+    'enterprise/mfa-and-step-up',
     'versioning',
   ]);
   section('Optional', ['protocol', 'protocol/threat-model', 'ai-assistants']);

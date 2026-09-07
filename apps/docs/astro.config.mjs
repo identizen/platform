@@ -73,7 +73,14 @@ export default defineConfig({
         { label: 'Embedding the index', link: '/embedding/' },
         { label: 'Examples', link: '/examples/' },
         { label: 'AI assistants and llms.txt', link: '/ai-assistants/' },
-        { label: 'Enterprise', link: '/enterprise/' },
+        {
+          label: 'Enterprise',
+          items: [
+            { label: 'Overview', link: '/enterprise/' },
+            { label: 'Setting up Identizen Cloud', link: '/enterprise/cloud-setup/' },
+            { label: 'MFA and step-up', link: '/enterprise/mfa-and-step-up/' },
+          ],
+        },
         { label: 'Data handling for relying parties', link: '/data-handling/' },
         { label: 'Versioning, stability, and changelog', link: '/versioning/' },
         {

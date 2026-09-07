@@ -69,7 +69,7 @@ No analytics or advertising SDK is present in the phone app, the index, or the d
 
 ## Data processing agreement
 
-There is no published DPA yet. It is available on request for enterprise engagements, and the [enterprise roadmap](/enterprise/) lists it under compliance packaging with the SOC 2 report and EU/US data residency. Two things reduce what a DPA has to cover: the index holds no direct identifiers, and running your own index removes Identizen as a processor entirely, since no Identizen-operated service is in the path.
+There is no published DPA yet. It is available on request for enterprise engagements, and the [enterprise roadmap](/enterprise/#on-the-roadmap) lists it under compliance packaging with the SOC 2 report. EU/US data residency is available today on a [tenant index](/enterprise/cloud-setup/#data-residency). Two things reduce what a DPA has to cover: the index holds no direct identifiers, and running your own index removes Identizen as a processor entirely, since no Identizen-operated service is in the path.
 
 ## Requests from your users
 
