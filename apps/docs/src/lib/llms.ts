@@ -34,6 +34,8 @@ const ORDER = [
   'enterprise/policy',
   'enterprise/mdm',
   'enterprise/mfa-and-step-up',
+  'enterprise/sso',
+  'enterprise/scim',
   'data-handling',
   'versioning',
   'protocol',

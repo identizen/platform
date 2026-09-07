@@ -84,6 +84,8 @@ export default defineConfig({
             { label: 'Login policy', link: '/enterprise/policy/' },
             { label: 'MDM integration', link: '/enterprise/mdm/' },
             { label: 'MFA and step-up', link: '/enterprise/mfa-and-step-up/' },
+            { label: 'SSO into your apps', link: '/enterprise/sso/' },
+            { label: 'SCIM provisioning', link: '/enterprise/scim/' },
           ],
         },
         { label: 'Data handling for relying parties', link: '/data-handling/' },

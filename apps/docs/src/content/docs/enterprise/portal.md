@@ -5,7 +5,7 @@ description: The admin portal at {tenant}.portal.identizen.com — getting the f
 
 Every Identizen Cloud tenant has an admin portal at `https://{tenant}.portal.identizen.com`. It is a registered OIDC client on the tenant's own index, so you sign in to it the same way as to anything else built on Identizen: with the phone that holds your identity. Everything on this page is what the portal does today; the [overview](/enterprise/#on-the-roadmap) lists what is still to come.
 
-The portal manages one organisation, the tenant itself. Its sections are **Overview** (counts of users, domains, managed devices and pending approvals, recent admin actions), **Organisation**, **Domains**, **Users**, **Devices**, **Approvals**, **Policy**, **Sites**, **Sessions**, **MDM** and **Audit**. Devices and Approvals are described on [Enrolling phones and managing the fleet](/enterprise/enrollment/), the login rules on [Login policy](/enterprise/policy/), and MDM on [MDM integration](/enterprise/mdm/).
+The portal manages one organisation, the tenant itself. Its sections are **Overview** (counts of users, domains, managed devices, pending approvals, SSO apps and members provisioned by SCIM, recent admin actions), **Organisation**, **Domains**, **Users**, **Devices**, **Approvals**, **Policy**, **Sites**, **Sessions**, **MDM**, **SSO**, **SCIM** and **Audit**. Devices and Approvals are described on [Enrolling phones and managing the fleet](/enterprise/enrollment/), the login rules on [Login policy](/enterprise/policy/), MDM on [MDM integration](/enterprise/mdm/), the organisation's applications on [SSO into your apps](/enterprise/sso/), and provisioning on [SCIM provisioning](/enterprise/scim/).
 
 ## Getting the first owner in
 

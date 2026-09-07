@@ -55,6 +55,8 @@ export const GET: APIRoute = async () => {
     'enterprise/policy',
     'enterprise/mdm',
     'enterprise/mfa-and-step-up',
+    'enterprise/sso',
+    'enterprise/scim',
     'versioning',
   ]);
   section('Optional', ['protocol', 'protocol/threat-model', 'ai-assistants']);
