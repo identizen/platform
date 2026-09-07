@@ -1,3 +1,4 @@
+import { nsName } from '../lib/names';
 import {
   getBinding,
   getSite,
@@ -54,6 +55,7 @@ export async function startChallenge(
     Env,
     | 'CHALLENGE_SESSION'
     | 'REQUEST_GUARD'
+    | 'TENANT_KEY'
     | 'RATE_LIMIT_CHALLENGES_PER_CLIENT'
     | 'RATE_LIMIT_REQUESTS_PER_IP'
     | 'SITE_VERIFICATION'
@@ -87,6 +89,14 @@ export async function startChallenge(
     expected = { idz: binding.idz, sub: input.loginHint };
   }
 
+  await services.hooks.onChallengeStart({
+    services,
+    site,
+    acr: input.acr,
+    loginHint: input.loginHint ?? null,
+    target,
+  });
+
   const id = newChallengeId();
   const challenge = createChallenge({
     id,
@@ -100,7 +110,7 @@ export async function startChallenge(
     reason: input.reason ?? null,
   });
   const signed = signChallenge(challenge, indexKey.privateKey);
-  const stub = env.CHALLENGE_SESSION.getByName(id);
+  const stub = env.CHALLENGE_SESSION.getByName(nsName(env, id));
   const state = await stub.create({
     signed,
     clientId: site.clientId,
@@ -136,7 +146,7 @@ export async function pushChallenge(
 ): Promise<boolean> {
   // The push-bombing guard applies to every push, whoever asked for it: discovery, a step-up,
   // or the Verification API.
-  const guard = services.env.REQUEST_GUARD.getByName(device.id);
+  const guard = services.env.REQUEST_GUARD.getByName(nsName(services.env, device.id));
   if (!(await guard.allowPush())) {
     throw new ApiError(429, 'push_rate_limited', 'too many pushes to this device');
   }

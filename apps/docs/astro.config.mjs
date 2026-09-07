@@ -70,6 +70,7 @@ export default defineConfig({
         { label: 'Testing and CI with the fake phone', link: '/testing/' },
         { label: 'Self-hosting', link: '/self-hosting/' },
         { label: 'Running an index in production', link: '/self-hosting-production/' },
+        { label: 'Embedding the index', link: '/embedding/' },
         { label: 'Examples', link: '/examples/' },
         { label: 'AI assistants and llms.txt', link: '/ai-assistants/' },
         { label: 'Enterprise', link: '/enterprise/' },

@@ -1,3 +1,4 @@
+import { nsName } from '../lib/names';
 import { getDevice, getSession, isSessionLive } from '@identizen/db';
 import { parseIdzSignature, verifyRequestSignature } from '@identizen/protocol';
 import type { MiddlewareHandler } from 'hono';
@@ -57,7 +58,7 @@ export function meAuth(
       );
       if (!result.ok)
         throw unauthorized('bad_signature', `request signature rejected: ${result.error}`);
-      const fresh = await c.env.REQUEST_GUARD.getByName(device.id).check(
+      const fresh = await c.env.REQUEST_GUARD.getByName(nsName(c.env, device.id)).check(
         parsed.timestamp,
         parsed.sig,
       );

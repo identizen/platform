@@ -135,6 +135,20 @@ export async function processAssertion(
     );
   }
 
+  try {
+    await services.hooks.onAssert({
+      services,
+      clientId: state.clientId,
+      challengeId,
+      device,
+      assertion,
+    });
+  } catch (err) {
+    if (err instanceof ApiError)
+      throw await deny(err.code, err.message, err.status, device.id, device.idz);
+    throw err;
+  }
+
   let bindingCreated = false;
   try {
     const r = await bindOrVerify(db, {

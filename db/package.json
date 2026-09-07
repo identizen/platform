@@ -1,7 +1,7 @@
 {
   "name": "@identizen/db",
   "version": "0.0.0",
-  "private": true,
+  "private": false,
   "description": "Identizen index schema (Drizzle), migrations, and the typed query module.",
   "license": "Apache-2.0",
   "type": "module",
@@ -20,7 +20,8 @@
   "files": [
     "dist",
     "migrations",
-    "schema.ts"
+    "schema.ts",
+    "README.md"
   ],
   "scripts": {
     "build": "tsc -p tsconfig.build.json",
@@ -40,5 +41,13 @@
     "tsx": "^4.20.5",
     "typescript": "^5.9.2",
     "vitest": "^3.2.4"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/plsft/identizen.git",
+    "directory": "db"
   }
 }

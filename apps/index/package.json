@@ -1,8 +1,8 @@
 {
   "name": "@identizen/index",
   "version": "0.0.0",
-  "private": true,
-  "description": "Identizen index / relay / OIDC provider on Cloudflare Workers.",
+  "private": false,
+  "description": "Identizen index / relay / OIDC provider for Cloudflare Workers, as a deployable Worker and an embeddable library.",
   "license": "Apache-2.0",
   "type": "module",
   "scripts": {
@@ -10,7 +10,7 @@
     "predev": "npm run openapi",
     "dev": "wrangler dev --env dev",
     "prebuild": "npm run openapi",
-    "build": "tsc -p tsconfig.json --noEmit",
+    "build": "tsc -p tsconfig.build.json",
     "pretypecheck": "npm run openapi",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "pretest:unit": "npm run openapi",
@@ -38,5 +38,25 @@
     "vitest": "^3.2.4",
     "wrangler": "^4.34.0",
     "yaml": "^2.9.0"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "main": "./dist/lib.js",
+  "types": "./dist/lib.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/lib.d.ts",
+      "import": "./dist/lib.js"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/plsft/identizen.git",
+    "directory": "apps/index"
   }
 }

@@ -1,3 +1,4 @@
+import { nsName } from '../lib/names';
 import { getDevice, type Device } from '@identizen/db';
 import { parseIdzSignature, verifyRequestSignature } from '@identizen/protocol';
 import type { MiddlewareHandler } from 'hono';
@@ -48,7 +49,7 @@ export function deviceAuth(
     if (!result.ok)
       throw unauthorized('bad_signature', `request signature rejected: ${result.error}`);
 
-    const guard = c.env.REQUEST_GUARD.getByName(device.id);
+    const guard = c.env.REQUEST_GUARD.getByName(nsName(c.env, device.id));
     const fresh = await guard.check(parsed.timestamp, parsed.sig);
     if (!fresh) throw unauthorized('replayed_request', 'this request was already seen');
 

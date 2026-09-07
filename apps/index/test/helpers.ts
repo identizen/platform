@@ -22,6 +22,14 @@ import {
 
 export const BASE = 'http://index.test';
 
+type Fetcher = (input: string, init?: RequestInit) => Promise<Response>;
+let fetcher: Fetcher = (input, init) => SELF.fetch(input, init);
+/** Route the helpers through an app built with `createApp(options)` instead of the deployed Worker. */
+export function useFetcher(next: Fetcher | null): void {
+  fetcher = next ?? ((input, init) => SELF.fetch(input, init));
+}
+export const request: Fetcher = (input, init) => fetcher(input, init);
+
 /** Wipe all rows between tests (the schema is created once by global-setup). */
 export async function resetDb(): Promise<void> {
   const handle = createDb(env.HYPERDRIVE.connectionString, { max: 1 });
@@ -55,7 +63,7 @@ export interface Phone {
 /** Register a device + identity like the app would. */
 /** A fresh registration nonce from the index under test. */
 export async function registrationNonce(): Promise<string> {
-  const res = await SELF.fetch(`${BASE}/devices/nonce`, { method: 'POST' });
+  const res = await request(`${BASE}/devices/nonce`, { method: 'POST' });
   if (res.status !== 200) throw new Error(`nonce failed: ${res.status}`);
   return (await json<{ nonce: string }>(res)).nonce;
 }
@@ -74,7 +82,7 @@ export async function registerPhone(
   const bleKey = generateSeed();
   const devicePub = toBase64Url(device.publicKey);
   const nonce = await registrationNonce();
-  const res = await SELF.fetch(`${BASE}/devices`, {
+  const res = await request(`${BASE}/devices`, {
     method: 'POST',
     headers: { 'content-type': 'application/json' },
     body: JSON.stringify({
@@ -119,7 +127,7 @@ export function signedFetch(
     phone.deviceId,
     phone.device.privateKey,
   );
-  return SELF.fetch(`${BASE}${path}`, {
+  return request(`${BASE}${path}`, {
     method,
     headers: { 'content-type': 'application/json', 'Idz-Signature': header },
     ...(body !== undefined && { body: raw }),
@@ -143,7 +151,7 @@ export async function registerSite(
     webhook_url: string;
   }> = {},
 ): Promise<RegisteredSite> {
-  const res = await SELF.fetch(`${BASE}/sites`, {
+  const res = await request(`${BASE}/sites`, {
     method: 'POST',
     headers: { 'content-type': 'application/json' },
     body: JSON.stringify({
@@ -176,7 +184,7 @@ export async function startChallenge(
   body: Record<string, unknown>,
   headers: Record<string, string> = {},
 ): Promise<StartedChallenge> {
-  const res = await SELF.fetch(`${BASE}/challenge`, {
+  const res = await request(`${BASE}/challenge`, {
     method: 'POST',
     headers: { 'content-type': 'application/json', ...headers },
     body: JSON.stringify(body),
@@ -189,7 +197,7 @@ export async function startChallenge(
 export async function fetchChallenge(
   id: string,
 ): Promise<{ payload: Challenge; sig: string; status: string }> {
-  const res = await SELF.fetch(`${BASE}/challenge/${id}`);
+  const res = await request(`${BASE}/challenge/${id}`);
   if (res.status !== 200) throw new Error(`fetchChallenge failed: ${res.status}`);
   return json(res);
 }
@@ -281,14 +289,14 @@ export function authorize(
 ): Promise<Response> {
   const q = toSearch(params);
   if (method === 'POST') {
-    return SELF.fetch(`${BASE}/authorize`, {
+    return request(`${BASE}/authorize`, {
       method: 'POST',
       headers: { 'content-type': 'application/x-www-form-urlencoded' },
       body: q,
       redirect: 'manual',
     });
   }
-  return SELF.fetch(`${BASE}/authorize?${q.toString()}`, { redirect: 'manual' });
+  return request(`${BASE}/authorize?${q.toString()}`, { redirect: 'manual' });
 }
 
 /** Parsed OIDC error redirect from `/authorize`. */
@@ -349,7 +357,7 @@ export function exchange(
     ...(site.client_secret ? { client_secret: site.client_secret } : {}),
     ...over,
   });
-  return SELF.fetch(`${BASE}/token`, {
+  return request(`${BASE}/token`, {
     method: 'POST',
     headers: { 'content-type': 'application/x-www-form-urlencoded', ...headers },
     body: form,
@@ -382,11 +390,11 @@ export interface JwksDocument {
 }
 
 export async function jwks(): Promise<JwksDocument> {
-  const res = await SELF.fetch(`${BASE}/.well-known/jwks.json`);
+  const res = await request(`${BASE}/.well-known/jwks.json`);
   return json<JwksDocument>(res);
 }
 
 export async function discovery(): Promise<Record<string, unknown>> {
-  const res = await SELF.fetch(`${BASE}/.well-known/openid-configuration`);
+  const res = await request(`${BASE}/.well-known/openid-configuration`);
   return json<Record<string, unknown>>(res);
 }

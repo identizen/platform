@@ -1,6 +1,7 @@
 import { Hono } from 'hono';
 import { cors } from 'hono/cors';
 import type { Env } from './env';
+import { resolveHooks, type AppOptions } from './hooks';
 import { errorToResponse } from './lib/errors';
 import { createServices, type Services } from './lib/services';
 import { challengeRoutes } from './routes/challenge';
@@ -24,8 +25,14 @@ export interface AppEnv {
   Variables: AppVariables;
 }
 
-export function createApp(): Hono<AppEnv> {
+/**
+ * Build the index. Without options this is the hosted single-tenant index. A host that embeds
+ * the index (docs: "Embedding the index") passes `resolveEnv` to pick per-request bindings,
+ * `hooks` to take part in enrolment, logins and token issuance, and `extend` to mount routes.
+ */
+export function createApp(options: AppOptions = {}): Hono<AppEnv> {
   const app = new Hono<AppEnv>();
+  const hooks = resolveHooks(options.hooks);
 
   app.use(
     '*',
@@ -33,7 +40,8 @@ export function createApp(): Hono<AppEnv> {
   );
 
   app.use('*', async (c, next) => {
-    const services = createServices(c.env);
+    if (options.resolveEnv) c.env = await options.resolveEnv(c.req.raw, c.env);
+    const services = createServices(c.env, hooks);
     c.set('services', services);
     try {
       await next();
@@ -56,6 +64,7 @@ export function createApp(): Hono<AppEnv> {
   app.route('/', sitesRoutes());
   app.route('/', oidcRoutes());
   app.route('/', verifyRoutes());
+  options.extend?.(app);
 
   return app;
 }

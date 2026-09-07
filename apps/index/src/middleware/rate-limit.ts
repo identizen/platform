@@ -1,3 +1,4 @@
+import { nsName } from '../lib/names';
 import type { MiddlewareHandler } from 'hono';
 import type { AppEnv } from '../app';
 import type { Env } from '../env';
@@ -43,7 +44,7 @@ export function ipRateLimit(): MiddlewareHandler<AppEnv> {
   return async (c, next) => {
     const ip = clientIp(c.req.raw.headers);
     if (ip !== 'unknown') {
-      const ok = await c.env.REQUEST_GUARD.getByName(`ip:${ip}`).allowRate(
+      const ok = await c.env.REQUEST_GUARD.getByName(nsName(c.env, `ip:${ip}`)).allowRate(
         'ip',
         limits(c.env).requestsPerIp,
       );
@@ -58,11 +59,14 @@ export function ipRateLimit(): MiddlewareHandler<AppEnv> {
 export async function checkClientRate(
   env: Pick<
     Env,
-    'REQUEST_GUARD' | 'RATE_LIMIT_CHALLENGES_PER_CLIENT' | 'RATE_LIMIT_REQUESTS_PER_IP'
+    | 'REQUEST_GUARD'
+    | 'TENANT_KEY'
+    | 'RATE_LIMIT_CHALLENGES_PER_CLIENT'
+    | 'RATE_LIMIT_REQUESTS_PER_IP'
   >,
   clientId: string,
 ): Promise<void> {
-  const ok = await env.REQUEST_GUARD.getByName(`client:${clientId}`).allowRate(
+  const ok = await env.REQUEST_GUARD.getByName(nsName(env, `client:${clientId}`)).allowRate(
     'client',
     limits(env).challengesPerClient,
   );

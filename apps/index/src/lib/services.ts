@@ -1,12 +1,15 @@
 import { createDb, type Db } from '@identizen/db';
 import { fromHex, keyPairFromPrivateKey, type KeyPair } from '@identizen/protocol';
 import type { Env } from '../env';
+import { defaultHooks, type IndexHooks } from '../hooks';
 import { createPushSender, type PushSender } from '../push';
 
 /** Per-request service bundle. Built once per request in `app.ts`. */
 export interface Services {
   env: Env;
   db: Db;
+  /** Host extension points (`createApp({ hooks })`); no-ops on a plain index. */
+  hooks: IndexHooks;
   push: PushSender;
   /** Index Ed25519 signing key (challenges, pairings). */
   indexKey: KeyPair;
@@ -18,13 +21,14 @@ export interface Services {
   close: () => Promise<void>;
 }
 
-export function createServices(env: Env): Services {
+export function createServices(env: Env, hooks: IndexHooks = defaultHooks): Services {
   const handle = createDb(env.HYPERDRIVE.connectionString, { max: 2 });
   const indexKey = keyPairFromPrivateKey(fromHex(requireEnv(env, 'INDEX_SIGNING_KEY')));
   const pending: Promise<unknown>[] = [];
   return {
     env,
     db: handle.db,
+    hooks,
     push: createPushSender(env),
     indexKey,
     indexUrl: stripSlash(requireEnv(env, 'INDEX_URL')),

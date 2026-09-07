@@ -22,6 +22,8 @@ export interface IdTokenInput {
   orgId?: string | null | undefined;
   accessToken: string;
   now: number;
+  /** Host-provided claims (`hooks.onTokenClaims`); standard claims override them. */
+  extra?: Record<string, unknown> | undefined;
 }
 
 /**
@@ -31,6 +33,7 @@ export interface IdTokenInput {
  */
 export async function mintIdToken(ring: OidcKeyring, input: IdTokenInput): Promise<string> {
   const claims: JWTPayload & Record<string, unknown> = {
+    ...(input.extra ?? {}),
     sid: input.sid,
     amr: input.amr,
     acr: input.acr,

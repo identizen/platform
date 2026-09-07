@@ -57,6 +57,13 @@ export interface Env {
   VAPID_PRIVATE_KEY?: string;
   VAPID_SUBJECT?: string;
 
+  /**
+   * Optional namespace for Durable Object names and rate-limit buckets. Unset on a
+   * single-tenant index. A multi-tenant host sets it per request via createApp({ resolveEnv })
+   * so tenants never share a challenge session, a request guard or a bucket.
+   */
+  TENANT_KEY?: string;
+
   HYPERDRIVE: Hyperdrive;
   CHALLENGE_SESSION: DurableObjectNamespace<ChallengeSession>;
   REQUEST_GUARD: DurableObjectNamespace<RequestGuard>;

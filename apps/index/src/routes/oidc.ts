@@ -1,3 +1,4 @@
+import { nsName } from '../lib/names';
 import {
   createSession,
   getDevice,
@@ -210,7 +211,7 @@ export function oidcRoutes(): Hono<AppEnv> {
     // Redeem the code at the session DO (single use).
     const [challengeId, secret] = code.split('.');
     if (!challengeId || !secret) return tokenError('invalid_grant', 'malformed code');
-    const stub = c.env.CHALLENGE_SESSION.getByName(challengeId);
+    const stub = c.env.CHALLENGE_SESSION.getByName(nsName(c.env, challengeId));
     // Every check (client, redirect, PKCE, expiry) runs inside the session and the code is only
     // consumed when all of them pass, so a wrong verifier cannot burn a legitimate login.
     const redeemed = await stub.redeemCode({
@@ -253,6 +254,7 @@ export function oidcRoutes(): Hono<AppEnv> {
 
     const now = services.now();
     const sid = randomToken(24);
+    await services.hooks.onSessionCreate({ services, site, identity, device, sid, assertion });
     await createSession(services.db, {
       sid,
       idz: device.idz,
@@ -279,7 +281,18 @@ export function oidcRoutes(): Hono<AppEnv> {
       scope,
       now,
     });
+    const extra = await services.hooks.onTokenClaims({
+      services,
+      site,
+      identity,
+      device,
+      sid,
+      scope,
+      assertion,
+      audience: 'id_token',
+    });
     const idToken = await mintIdToken(ring, {
+      extra,
       issuer: services.indexUrl,
       clientId: site.clientId,
       sub: assertion.sub,
@@ -339,14 +352,26 @@ export function oidcRoutes(): Hono<AppEnv> {
     const session = await getSession(services.db, claims.sid);
     if (!session || !isSessionLive(session)) return invalid('session has been revoked');
     const identity = await getIdentity(services.db, session.idz);
+    if (!identity) return invalid('identity no longer exists');
     const site = await getSite(services.db, session.clientId);
+    const extra = await services.hooks.onTokenClaims({
+      services,
+      site: site ?? null,
+      identity,
+      device: await getDevice(services.db, session.deviceId),
+      sid: session.sid,
+      scope: claims.scope,
+      assertion: null,
+      audience: 'userinfo',
+    });
     return c.json({
+      ...extra,
       sub: claims.sub,
       idz_device: pairwiseDeviceId(site?.rpId ?? session.clientId, session.deviceId),
-      ...(claims.scope.split(' ').includes('handle') && identity?.handle
+      ...(claims.scope.split(' ').includes('handle') && identity.handle
         ? { idz_handle: identity.handle }
         : {}),
-      ...(identity?.orgId ? { idz_org: identity.orgId } : {}),
+      ...(identity.orgId ? { idz_org: identity.orgId } : {}),
     });
   };
   r.get('/userinfo', userinfo);

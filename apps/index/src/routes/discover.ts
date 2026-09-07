@@ -1,3 +1,4 @@
+import { nsName } from '../lib/names';
 import {
   getPairingWithDevice,
   listActiveBleDevices,
@@ -49,7 +50,7 @@ export function discoverRoutes(): Hono<AppEnv> {
   r.post('/discover/ble', ipRateLimit(), async (c) => {
     const services = c.get('services');
     const body = BleSchema.parse(await c.req.json());
-    const stub = c.env.CHALLENGE_SESSION.getByName(body.challenge_id);
+    const stub = c.env.CHALLENGE_SESSION.getByName(nsName(c.env, body.challenge_id));
     const state = await stub.getState();
     if (!state || state.status !== 'pending')
       throw notFound('unknown_challenge', 'no pending challenge');
@@ -66,7 +67,7 @@ export function discoverRoutes(): Hono<AppEnv> {
   r.post('/discover/paired', ipRateLimit(), async (c) => {
     const services = c.get('services');
     const body = PairedSchema.parse(await c.req.json());
-    const stub = c.env.CHALLENGE_SESSION.getByName(body.challenge_id);
+    const stub = c.env.CHALLENGE_SESSION.getByName(nsName(c.env, body.challenge_id));
     const state = await stub.getState();
     if (!state || state.status !== 'pending')
       throw notFound('unknown_challenge', 'no pending challenge');

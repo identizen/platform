@@ -27,7 +27,12 @@ export const AUDIT_KINDS = [
   'site.updated',
   'site.verified',
 ] as const;
-export type AuditKind = (typeof AUDIT_KINDS)[number];
+export type KnownAuditKind = (typeof AUDIT_KINDS)[number];
+/**
+ * Known kinds plus any `<area>.<event>` a host registers (an enterprise edition writes its own
+ * `org.*`, `member.*`, `policy.*` events through the same table).
+ */
+export type AuditKind = KnownAuditKind | (string & Record<never, never>);
 
 export interface RecordAuditInput {
   kind: AuditKind;

@@ -1,3 +1,4 @@
+import { nsName } from '../lib/names';
 import type { Device } from '@identizen/db';
 import { fromBase64Url, toBase64Url, utf8Encode } from '@identizen/protocol';
 import { SignJWT, importPKCS8 } from 'jose';
@@ -42,12 +43,13 @@ export class WebPushSender implements PushSender {
     private readonly guards: DurableObjectNamespace<RequestGuard> | null = null,
     private readonly fetchImpl: typeof fetch = (input, init) => fetch(input, init),
     private readonly policy: OutboundPolicy = { allowLocal: false },
+    private readonly nameOf: (name: string) => string = (n) => n,
   ) {}
   async send(device: PushTarget, payload: PushPayload): Promise<PushResult> {
     const token = device.pushToken ?? '';
     if (token === 'poll') {
       if (!this.guards) return { ok: false, provider: 'web', detail: 'inbox unavailable' };
-      await this.guards.getByName(device.id).enqueue(payload.challenge_id);
+      await this.guards.getByName(this.nameOf(device.id)).enqueue(payload.challenge_id);
       return { ok: true, provider: 'web', detail: 'queued for polling' };
     }
     if (/^https?:\/\//.test(token)) {
@@ -167,10 +169,11 @@ class PollOnlySender implements PushSender {
   constructor(
     private readonly guards: DurableObjectNamespace<RequestGuard>,
     private readonly fallback: PushSender,
+    private readonly nameOf: (name: string) => string = (n) => n,
   ) {}
   async send(device: PushTarget, payload: PushPayload): Promise<PushResult> {
     if (device.pushToken === 'poll') {
-      await this.guards.getByName(device.id).enqueue(payload.challenge_id);
+      await this.guards.getByName(this.nameOf(device.id)).enqueue(payload.challenge_id);
       return { ok: true, provider: 'web', detail: 'queued for polling' };
     }
     return this.fallback.send(device, payload);
@@ -259,10 +262,15 @@ export function createPushSender(env: Env): PushSender {
   const noop = new NoopPushSender();
   if ((env.PUSH_PROVIDER ?? 'noop') === 'noop') {
     // Even with pushes disabled, polling devices (push_token 'poll') get their inbox.
-    return new RoutingPushSender({ web: new PollOnlySender(env.REQUEST_GUARD, noop) }, noop);
+    return new RoutingPushSender(
+      { web: new PollOnlySender(env.REQUEST_GUARD, noop, (n) => nsName(env, n)) },
+      noop,
+    );
   }
   const senders: Partial<Record<'apns' | 'fcm' | 'web' | 'expo', PushSender>> = {
-    web: new WebPushSender(env.REQUEST_GUARD, undefined, outboundPolicy(env)),
+    web: new WebPushSender(env.REQUEST_GUARD, undefined, outboundPolicy(env), (n) =>
+      nsName(env, n),
+    ),
     expo: new ExpoPushSender(env.EXPO_ACCESS_TOKEN ?? null),
   };
   if (env.APNS_KEY_ID && env.APNS_TEAM_ID && env.APNS_PRIVATE_KEY && env.APNS_TOPIC) {
