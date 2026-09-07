@@ -151,7 +151,7 @@ test('search, social and answer-engine discovery', async ({ page, request }) => 
     ['/rss.xml', 'xml', '<item>'],
     ['/llms.txt', 'text/plain', '# Identizen'],
     ['/robots.txt', 'text/plain', 'GPTBot'],
-    ['/sitemap-index.xml', 'xml', 'sitemap-0.xml'],
+    ['/sitemap.xml', 'xml', '<urlset'],
     ['/site.webmanifest', 'manifest', '"Identizen"'],
     ['/.well-known/security.txt', 'text/plain', 'Expires:'],
     ['/og.png', 'image/png', ''],

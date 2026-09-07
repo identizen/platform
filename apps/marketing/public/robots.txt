@@ -29,4 +29,4 @@ User-agent: YouBot
 Allow: /
 Disallow: /api/
 
-Sitemap: https://identizen.com/sitemap-index.xml
+Sitemap: https://identizen.com/sitemap.xml

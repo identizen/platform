@@ -1,0 +1,7 @@
+# docs.identizen.com — everything is public and crawlable, including by AI assistants.
+# Machine-readable summary for language models: https://docs.identizen.com/llms.txt
+
+User-agent: *
+Allow: /
+
+Sitemap: https://docs.identizen.com/sitemap.xml
