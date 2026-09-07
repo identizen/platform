@@ -95,7 +95,9 @@ export class FakePhone {
     this.indexIssuer = (opts.indexIssuer ?? this.indexUrl).replace(/\/+$/, '');
     this.pushUrl = opts.pushUrl ?? null;
     this.policy = opts.policy ?? 'approve';
-    this.amr = opts.amr ?? ['face', 'hwk'];
+    // A simulator asserts what it is configured to; the default stands in for a phone whose
+    // owner approved with Face ID. It never asserts hwk: nothing here is hardware-isolated.
+    this.amr = opts.amr ?? ['face'];
     this.fetchImpl = opts.fetchImpl ?? fetch;
     this.onStateChange = opts.onStateChange;
     this.state = opts.state ?? FakePhone.freshState(opts.handle ?? null);

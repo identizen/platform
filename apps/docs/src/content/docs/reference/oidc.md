@@ -72,7 +72,7 @@ A decoded id_token after a login from the demo bank looks like this (values shor
   "sub": "NcSuRV6Y3pDcgKd0-mbxGnDqXf9E9k5w",
   "sid": "3kQ9vZ2mX…",
   "acr": "idz:login",
-  "amr": ["face", "hwk"],
+  "amr": ["face"],
   "auth_time": 1757116788,
   "idz_device": "dev_01M1…"
 }
@@ -80,27 +80,27 @@ A decoded id_token after a login from the demo bank looks like this (values shor
 
 `sub` is the value to store: it is the person's identifier at your site and stays the same across phones, restores, and sessions. See [Users, sign-up, and linking identities](/users/) for how to build on it.
 
-| Claim        | Value                                                                                                                                               |
-| ------------ | --------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `iss`        | index URL                                                                                                                                           |
-| `sub`        | per-site identifier: `base64url(SHA-256(per-site public key))[0:32]`                                                                                |
-| `aud`        | your `client_id`                                                                                                                                    |
-| `iat`, `exp` | issued-at and expiry (60 minutes)                                                                                                                   |
-| `nonce`      | echoed when sent                                                                                                                                    |
-| `sid`        | Identizen session id; back-channel logout refers to it                                                                                              |
-| `amr`        | authentication methods from the phone, e.g. `["face","hwk"]`, `["fingerprint","hwk"]`                                                               |
-| `acr`        | `idz:login` or `idz:mfa`                                                                                                                            |
-| `auth_time`  | when the person approved on the phone (unix seconds); every login is a fresh approval, so `max_age` checks work                                     |
-| `at_hash`    | left-most 128 bits of SHA-256 of the access token, base64url                                                                                        |
-| `idz_device` | per-site device id (`dev_…`) for your own session/device UI; derived per site like `sub`, so another site sees a different value for the same phone |
-| `idz_handle` | the user's handle — only with the `handle` scope and only if the user set one                                                                       |
-| `idz_org`    | organisation id for org identities (absent for personal)                                                                                            |
+| Claim        | Value                                                                                                                                                                                                                                          |
+| ------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `iss`        | index URL                                                                                                                                                                                                                                      |
+| `sub`        | per-site identifier: `base64url(SHA-256(per-site public key))[0:32]`                                                                                                                                                                           |
+| `aud`        | your `client_id`                                                                                                                                                                                                                               |
+| `iat`, `exp` | issued-at and expiry (60 minutes)                                                                                                                                                                                                              |
+| `nonce`      | echoed when sent                                                                                                                                                                                                                               |
+| `sid`        | Identizen session id; back-channel logout refers to it                                                                                                                                                                                         |
+| `amr`        | what verified the person on the phone: `["face"]`, `["fingerprint"]`, `["iris"]`, `["pin"]` (device passcode), `["user"]` (a biometric, type unknown), `["swk"]` (nothing; development). Never more than happened; `hwk` is not asserted today |
+| `acr`        | `idz:login` or `idz:mfa`                                                                                                                                                                                                                       |
+| `auth_time`  | when the person approved on the phone (unix seconds); every login is a fresh approval, so `max_age` checks work                                                                                                                                |
+| `at_hash`    | left-most 128 bits of SHA-256 of the access token, base64url                                                                                                                                                                                   |
+| `idz_device` | per-site device id (`dev_…`) for your own session/device UI; derived per site like `sub`, so another site sees a different value for the same phone                                                                                            |
+| `idz_handle` | the user's handle — only with the `handle` scope and only if the user set one                                                                                                                                                                  |
+| `idz_org`    | organisation id for org identities (absent for personal)                                                                                                                                                                                       |
 
 Verify with the JWKS at `/.well-known/jwks.json`; two ES256 keys are published so rotation never breaks verification.
 
 ## `GET /userinfo`
 
-`GET` or `POST` with `Authorization: Bearer <access_token>`. Returns `sub`, `idz_device`, `idz_handle` (with the `handle` scope), `idz_org`. Returns `401 invalid_token` with a `WWW-Authenticate: Bearer …` challenge (RFC 6750) when the token is missing, malformed, an id_token, or its session has been revoked, so it doubles as a liveness check.
+`GET` or `POST` with `Authorization: Bearer <access_token>` (a `POST` may instead carry `access_token` in an `application/x-www-form-urlencoded` body, RFC 6750 §2.2). Returns `sub`, `idz_device`, `idz_handle` (with the `handle` scope), `idz_org`. Returns `401 invalid_token` with a `WWW-Authenticate: Bearer …` challenge (RFC 6750) when the token is missing, malformed, an id_token, or its session has been revoked, so it doubles as a liveness check.
 
 ## Sessions and back-channel logout
 

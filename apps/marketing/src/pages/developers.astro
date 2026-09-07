@@ -27,8 +27,9 @@ const claims = [
   ['sub', 'Stable per-site identifier (derived key hash). Two sites cannot match a user by it.'],
   ['sid', 'Session id; back-channel logout revokes by it.'],
   ['acr', 'idz:login (primary) or idz:mfa (step-up).'],
-  ['amr', '["face","hwk"], ["fingerprint","hwk"], …'],
-  ['idz_device', 'Opaque device id for your own session / device UI.'],
+  ['amr', 'What verified the person: ["face"], ["fingerprint"], ["pin"], …'],
+  ['auth_time', 'When the person approved on the phone (unix seconds).'],
+  ['idz_device', 'Device id for your own session / device UI, derived per site like sub.'],
   ['idz_handle', 'Optional human handle, only with the handle scope and only if set.'],
   ['idz_org', 'Org identifier for org identities (enterprise).'],
 ];

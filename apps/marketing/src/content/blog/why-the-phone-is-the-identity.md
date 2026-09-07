@@ -19,11 +19,11 @@ At install, the app generates an Ed25519 key pair. The private key never leaves 
 
 ## The site sees plain OIDC
 
-None of this leaks into your integration. A site registers with an index and gets a standard OpenID Connect provider. `npm install @identizen/react`, one component, done. The `id_token` carries a stable per-site `sub` and nothing else — no email, no name, no cross-site identifier. Two sites cannot correlate a user without the user's consent, because the key each site sees is derived for that site alone.
+None of this leaks into your integration. A site registers with an index and gets a standard OpenID Connect provider. `npm install @identizen/react`, one component, done. The `id_token` carries a stable per-site `sub`, a session id, how and when the person approved, and a per-site device id — no email, no name, no cross-site identifier. Two sites cannot correlate a user without the user's consent, because the key each site sees is derived for that site alone.
 
 ## One tap, Face ID, in
 
-Click **Continue with Identizen**. If this browser has logged in before, the request goes straight to your phone. If not, Chromium finds the phone over Bluetooth, or you scan a QR. The phone shows the site name, a two-digit match code, and the biometric prompt. That is the entire user interface, on purpose.
+Click **Continue with Identizen**. If this browser has logged in before, the request goes straight to your phone. If not, you scan a QR, or on Chromium click to find the phone over Bluetooth. The phone shows the site name, a two-digit match code, and the biometric prompt. That is the entire user interface, on purpose.
 
 The site's origin is inside the signed challenge, so a phished login on a lookalike domain produces a signature the real site rejects. The match code defeats push bombing. There is no code to type and no secret to reuse.
 

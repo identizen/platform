@@ -9,6 +9,7 @@ import {
   type Device,
 } from '@identizen/db';
 import {
+  USER_VERIFYING_AMR,
   fromBase64Url,
   pairingId as newPairingId,
   signPairing,
@@ -113,6 +114,17 @@ export async function processAssertion(
     );
   }
   const assertion = verified.value;
+  // The phone reports what actually verified the person (PROTOCOL.md §4). A step-up is only a
+  // second factor if something did: a software-only approval (`swk`) cannot satisfy idz:mfa.
+  if (challenge.acr === 'idz:mfa' && !assertion.amr.some((a) => USER_VERIFYING_AMR.includes(a))) {
+    throw await deny(
+      'insufficient_amr',
+      'a step-up needs a user-verifying method (face, fingerprint, iris, pin or user)',
+      403,
+      device.id,
+      device.idz,
+    );
+  }
   if (state.expectedSub !== null && assertion.sub !== state.expectedSub) {
     throw await deny(
       'wrong_subject',

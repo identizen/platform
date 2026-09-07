@@ -39,7 +39,7 @@ test('Path B: password login, enroll a phone, step-up with acr idz:mfa, Verifica
   expect(challenge.detail?.via).toBe('push');
   expect(challenge.detail?.acr).toBe('idz:mfa');
   await expect(page.getByTestId('acr')).toHaveText('idz:mfa');
-  await expect(page.getByTestId('amr')).toHaveText('face,hwk');
+  await expect(page.getByTestId('amr')).toHaveText('face');
 
   // Verification API: the site asks the index to verify a transaction with a reason.
   logLen = (await phone.log()).length;

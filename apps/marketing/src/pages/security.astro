@@ -47,7 +47,7 @@ const honest = [
   },
   {
     title: 'Hardware-isolated keys are planned, not shipped',
-    text: 'Keys sit behind the platform keychain or keystore and the device biometric. Secure Enclave and StrongBox wrapping is on the roadmap, and until it ships the hardware-key value in the amr claim should be read as advisory.',
+    text: 'Keys sit behind the platform keychain or keystore and the device biometric. Secure Enclave and StrongBox wrapping is on the roadmap. Until it ships the app never claims a hardware-isolated key: the amr claim reports only what verified the person.',
   },
   {
     title: 'No external audit yet',

@@ -10,7 +10,7 @@ npm install
 
 const INIT_OUTPUT = `# What \`identizen init\` did:
 #   registered "my-bank" with https://index.identizen.com
-#   wrote IDENTIZEN_INDEX_URL, IDENTIZEN_CLIENT_ID, IDENTIZEN_CLIENT_SECRET, IDENTIZEN_SITE_URL to .env.local
+#   wrote IDENTIZEN_INDEX_URL, IDENTIZEN_CLIENT_ID, IDENTIZEN_CLIENT_SECRET, IDENTIZEN_SITE_URL, IDENTIZEN_SESSION_SECRET to .env.local
 #   created app/api/auth/login/route.ts, callback/route.ts, logout/route.ts,
 #           app/api/auth/backchannel-logout/route.ts, lib/identizen.ts
 `;
@@ -32,7 +32,7 @@ export default async function Dashboard() {
   const session = await getIdentizenSession();
   if (!session) redirect('/api/auth/login');
   // session.sub  stable per-site id      session.acr  'idz:login' | 'idz:mfa'
-  // session.sid  for back-channel logout session.amr  ['face', 'hwk'] ...
+  // session.sid  for back-channel logout session.amr  ['face'] ...
   return <h1>Hello, {session.sub.slice(0, 8)}</h1>;
 }
 `;

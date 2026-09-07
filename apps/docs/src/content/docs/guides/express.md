@@ -85,6 +85,6 @@ app.post('/api/auth/backchannel-logout', async (req, res) => {
 app.listen(3000);
 ```
 
-The scaffolded `identizen.ts` is the same flow packaged as a `Router`, keyed on `req.session`. Mount it with `app.use(identizenRouter())` and read `req.identizen` after `app.use(identizenSession())`.
+The scaffolded `identizen.ts` is the same flow packaged as a `Router`, keyed on `req.session`: it keeps the transaction in the session, regenerates the session id after the code exchange (no fixation), and checks the `revocations` store on every request. Mount it with `app.use(identizenRouter())` and read `req.identizen` after `app.use(identizenSession())`.
 
 Step-up and enrollment work the same way as in the [Next.js guide](/guides/nextjs/): add `acr: 'idz:mfa', loginHint: sub` or `prompt: 'enroll'` to `authorizationUrl`. Server-to-server approvals use the [Verification API](/reference/verification-api/).

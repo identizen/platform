@@ -5,9 +5,9 @@ import { DocsLayout, P, Step } from '../components/docs-layout';
 
 const CLAIMS = `{
   "sub": "NcSuRV6Y3pDcgKd0-mbxGnDqXf9E9k5w",   // unique to jtmerlin.com, stable for life
-  "sid": "ses_01M1…",                            // this Identizen session; changes every login
+  "sid": "3kQ9vZ2mXc7…",                         // this Identizen session; changes every login
   "acr": "idz:login",                            // or idz:mfa after a step-up
-  "amr": ["face", "hwk"],                        // how the phone authenticated the person
+  "amr": ["face"],                        // how the phone authenticated the person
   "idz_device": "dev_01M1…",                     // which phone signed; changes per device
   "idz_handle": "jordan"                         // optional, only if set and the site asked
 }`;

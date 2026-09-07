@@ -229,7 +229,7 @@ describe('identity lifecycle', () => {
     expect(pending.challenge.reason).toBe('Approve wire of $12,000?');
     expect(challengeStore.find(c.id)).toBeDefined();
 
-    const result = await approveChallenge(pending.challenge, ['face', 'hwk']);
+    const result = await approveChallenge(pending.challenge, ['face']);
     expect(result.status).toBe(200);
     expect(result.sub).toMatch(/^[A-Za-z0-9_-]{32}$/);
     expect(result.redirect).toBe('https://site.test/cb?code=1');

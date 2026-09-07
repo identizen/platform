@@ -64,7 +64,7 @@ Two integration styles:
 
 2. **Step-up over OIDC**
 
-   After your primary auth, when a sensitive action needs the second factor, redirect with `acr_values=idz:mfa` and the bound `sub`. The index pushes straight to the phone (no QR); the user approves with biometrics; you receive an `id_token` with `acr: "idz:mfa"` and `amr` such as `["face","hwk"]`.
+   After your primary auth, when a sensitive action needs the second factor, redirect with `acr_values=idz:mfa` and the bound `sub`. The index pushes straight to the phone (no QR); the user approves with a biometric or the device passcode; you receive an `id_token` with `acr: "idz:mfa"` and `amr` saying which (`["face"]`, `["fingerprint"]`, `["pin"]`, …). The index only issues `idz:mfa` when something verified the person: an approval from a development phone that skipped its prompt (`["swk"]`) is refused with `insufficient_amr`.
 
    <Tabs syncKey="mfa-side">
      <TabItem label="Server">

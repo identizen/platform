@@ -402,7 +402,7 @@ export const OPENAPI_DOCUMENT: Record<string, unknown> = {
         ],
         "operationId": "authorize",
         "summary": "OIDC authorization endpoint (hosted login page)",
-        "description": "Authorization Code flow with PKCE. Creates a challenge session and renders the hosted\nlogin page (match code, QR, WebSocket to the session). After the phone approves, the\npage redirects the browser to `redirect_uri?code=…&state=…`. The code is single-use and\nbound to the client.\n\nValidation order: unknown `client_id` or unregistered `redirect_uri` is a JSON `400`\n(nothing is redirected to an unverified URI). Every later failure is an OIDC error\nredirect (`302` to `redirect_uri` with `error`, `error_description`, and `state`):\n`invalid_request` (missing `response_type`, missing or malformed PKCE,\n`acr_values=idz:mfa` without `login_hint`, `prompt=none` combined with another value),\n`unsupported_response_type`, `request_not_supported`, `request_uri_not_supported`,\n`invalid_scope` (no `openid`), `interaction_required` (`prompt=none`), and\n`login_required` (no active device is bound to `login_hint`). Unknown scopes and\nunknown `acr_values` are ignored (RFC 6749 §3.3; `acr` is a voluntary claim).\n\n`acr_values=idz:mfa` with `login_hint=<sub>` is step-up: the challenge is pushed to the\ndevice bound to `sub`. `login_hint` alone pushes to the bound device at `idz:login`.\n`prompt=enroll` marks an enrollment (the resulting `sub` is what the site stores).\nRate limited per source IP (`429 rate_limited`) and per client (`429 client_rate_limited`).\nThe same request may be sent as `POST` with a form body (OpenID Connect Core §3.1.2.1).\n",
+        "description": "Authorization Code flow with PKCE. Creates a challenge session and renders the hosted\nlogin page (match code, QR, WebSocket to the session). After the phone approves, the\npage redirects the browser to `redirect_uri?code=…&state=…`. The code is single-use and\nbound to the client.\n\nValidation order: unknown `client_id` or unregistered `redirect_uri` is a JSON `400`\n(nothing is redirected to an unverified URI). Every later failure is an OIDC error\nredirect (`302` to `redirect_uri` with `error`, `error_description`, and `state`):\n`invalid_request` (missing `response_type`, missing or malformed PKCE,\n`acr_values=idz:mfa` alone without `login_hint`, `prompt=none` combined with another value),\n`unsupported_response_type`, `request_not_supported`, `request_uri_not_supported`,\n`invalid_scope` (no `openid`), `interaction_required` (`prompt=none`), and\n`login_required` (no active device is bound to `login_hint`). Unknown scopes and\nunknown `acr_values` are ignored (RFC 6749 §3.3; `acr` is a voluntary claim).\n\n`acr_values=idz:mfa` with `login_hint=<sub>` is step-up: the challenge is pushed to the\ndevice bound to `sub`. `login_hint` alone pushes to the bound device at `idz:login`.\n`prompt=enroll` marks an enrollment (the resulting `sub` is what the site stores).\nRate limited per source IP (`429 rate_limited`) and per client (`429 client_rate_limited`); a step-up whose push would exceed the device's quota is `429 push_rate_limited`.\nThe same request may be sent as `POST` with a form body (OpenID Connect Core §3.1.2.1).\n",
         "parameters": [
           {
             "name": "response_type",
@@ -483,7 +483,7 @@ export const OPENAPI_DOCUMENT: Record<string, unknown> = {
             "schema": {
               "type": "string"
             },
-            "description": "Space-separated; each value must be `idz:login` or `idz:mfa`. `idz:mfa` requires `login_hint`."
+            "description": "Space-separated; each value must be `idz:login` or `idz:mfa`. `idz:mfa` requires `login_hint` unless `idz:login` is also listed, in which case the login proceeds at `idz:login`."
           },
           {
             "name": "login_hint",
@@ -515,7 +515,14 @@ export const OPENAPI_DOCUMENT: Record<string, unknown> = {
             "$ref": "#/components/responses/AuthorizeBadRequest"
           },
           "429": {
-            "$ref": "#/components/responses/RateLimited"
+            "description": "`rate_limited` — per-IP limit; `client_rate_limited` — the site started too many challenges this minute; `push_rate_limited` — a step-up would push to a device that was pushed ten times in the last minute.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
           }
         }
       },
@@ -547,7 +554,14 @@ export const OPENAPI_DOCUMENT: Record<string, unknown> = {
             "$ref": "#/components/responses/AuthorizeBadRequest"
           },
           "429": {
-            "$ref": "#/components/responses/RateLimited"
+            "description": "`rate_limited` — per-IP limit; `client_rate_limited` — the site started too many challenges this minute; `push_rate_limited` — a step-up would push to a device that was pushed ten times in the last minute.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
           }
         }
       }
@@ -827,6 +841,9 @@ export const OPENAPI_DOCUMENT: Record<string, unknown> = {
                 }
               }
             }
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimited"
           }
         }
       }
@@ -1156,7 +1173,7 @@ export const OPENAPI_DOCUMENT: Record<string, unknown> = {
             }
           },
           "400": {
-            "description": "`invalid_request` — body failed validation; `login_hint_required`; `login_required` — no active device is bound to `login_hint` for this site.",
+            "description": "`invalid_request` — body failed validation, or (with `redirect_uri`) an authorization-request rule failed; `invalid_scope` — `scope` without `openid`; `interaction_required` — `prompt=none`; `login_hint_required`; `login_required` — no active device is bound to `login_hint` for this site.",
             "content": {
               "application/json": {
                 "schema": {
@@ -1505,7 +1522,7 @@ export const OPENAPI_DOCUMENT: Record<string, unknown> = {
             }
           },
           "403": {
-            "description": "`device_inactive`; `wrong_device` — `payload.device_id` differs from the signing device, or an untargeted challenge was routed to another device; `wrong_identity` — the challenge was issued for another identity (step-up, Verification API); `wrong_subject` — the assertion `sub` is not the one the challenge was issued for.",
+            "description": "`device_inactive`; `wrong_device` — `payload.device_id` differs from the signing device, or an untargeted challenge was routed to another device; `wrong_identity` — the challenge was issued for another identity (step-up, Verification API); `wrong_subject` — the assertion `sub` is not the one the challenge was issued for; `insufficient_amr` — an `idz:mfa` assertion whose `amr` names nothing that verified the person.",
             "content": {
               "application/json": {
                 "schema": {
@@ -2473,7 +2490,14 @@ export const OPENAPI_DOCUMENT: Record<string, unknown> = {
             }
           },
           "400": {
-            "$ref": "#/components/responses/InvalidRequest"
+            "description": "`invalid_request` — body failed validation; `invalid_destination` — `webhook_url` or `backchannel_logout_uri` is one the index will not call (not https, credentials in the URL, or a local, private or link-local address).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
           },
           "401": {
             "$ref": "#/components/responses/InvalidClient"
@@ -2573,7 +2597,14 @@ export const OPENAPI_DOCUMENT: Record<string, unknown> = {
             }
           },
           "400": {
-            "$ref": "#/components/responses/InvalidRequest"
+            "description": "`invalid_request` — body failed validation; `invalid_destination` — `webhook_url` or `backchannel_logout_uri` is one the index will not call (not https, credentials in the URL, or a local, private or link-local address).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
           },
           "401": {
             "$ref": "#/components/responses/InvalidClient"
@@ -3342,6 +3373,7 @@ export const OPENAPI_DOCUMENT: Record<string, unknown> = {
         "enum": [
           "face",
           "fingerprint",
+          "iris",
           "pin",
           "hwk",
           "user",

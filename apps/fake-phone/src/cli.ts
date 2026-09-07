@@ -1,11 +1,12 @@
 #!/usr/bin/env node
 /**
- * identizen-fake-phone --index http://localhost:8787 --port 4400 --policy approve [--state ./phone.json]
+ * identizen-fake-phone --index http://localhost:8787 --port 4400 --policy approve [--amr face] [--state ./phone.json]
  * Environment fallbacks: INDEX_URL, FAKE_PHONE_PORT, FAKE_PHONE_POLICY, FAKE_PHONE_STATE, FAKE_PHONE_URL, FAKE_PHONE_HANDLE, FAKE_PHONE_HOST, FAKE_PHONE_ISSUER
  */
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname } from 'node:path';
 import { FakePhone, type PhoneState, type Policy } from './phone.js';
+import type { Amr } from '@identizen/protocol';
 import { startPhoneServer } from './server.js';
 
 function arg(name: string, fallback: string | undefined): string | undefined {
@@ -16,6 +17,11 @@ function arg(name: string, fallback: string | undefined): string | undefined {
 const indexUrl = arg('index', process.env.INDEX_URL) ?? 'http://localhost:8787';
 const port = Number(arg('port', process.env.FAKE_PHONE_PORT) ?? 4400);
 const policy = (arg('policy', process.env.FAKE_PHONE_POLICY) ?? 'approve') as Policy;
+/** What the simulated approval claims verified the person (comma-separated RFC 8176 values). */
+const amr = (arg('amr', process.env.FAKE_PHONE_AMR) ?? 'face')
+  .split(',')
+  .map((a) => a.trim())
+  .filter(Boolean) as Amr[];
 const statePath = arg('state', process.env.FAKE_PHONE_STATE);
 const publicUrl = arg('url', process.env.FAKE_PHONE_URL) ?? `http://localhost:${port}`;
 const handle = arg('handle', process.env.FAKE_PHONE_HANDLE) ?? null;
@@ -31,6 +37,7 @@ if (statePath && existsSync(statePath)) {
 const phone = new FakePhone({
   indexUrl,
   indexIssuer,
+  amr,
   pushUrl: poll ? null : publicUrl,
   policy,
   state,

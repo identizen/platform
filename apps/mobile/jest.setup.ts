@@ -34,7 +34,9 @@ jest.mock('expo-local-authentication', () => ({
   isEnrolledAsync: jest.fn(() => Promise.resolve(true)),
   supportedAuthenticationTypesAsync: jest.fn(() => Promise.resolve([2])),
   authenticateAsync: jest.fn(() => Promise.resolve({ success: true })),
+  getEnrolledLevelAsync: jest.fn(() => Promise.resolve(3)),
   AuthenticationType: { FINGERPRINT: 1, FACIAL_RECOGNITION: 2, IRIS: 3 },
+  SecurityLevel: { NONE: 0, SECRET: 1, BIOMETRIC_WEAK: 2, BIOMETRIC_STRONG: 3 },
 }));
 
 jest.mock('expo-constants', () => ({

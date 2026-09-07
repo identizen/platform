@@ -10,7 +10,7 @@ export interface SessionClaims {
   sid: string;
   /** 'idz:login', or 'idz:mfa' after a step-up. */
   acr: string;
-  /** How the phone authenticated the person: ['face', 'hwk'] and the like. */
+  /** How the phone authenticated the person: ['face'] or ['pin'] and the like. */
   amr: string[];
   idz_handle?: string;
 }

@@ -53,7 +53,8 @@ export interface VirtualPhoneOptions {
 }
 
 export const STORAGE_KEY = 'idz:playground:virtual-phone';
-export const DEFAULT_AMR: Amr[] = ['face', 'hwk'];
+/** The playground simulates a phone whose owner approved with Face ID. Never hwk. */
+export const DEFAULT_AMR: Amr[] = ['face'];
 
 export function memoryStore(initial: VirtualPhoneState | null = null): VirtualPhoneStore {
   let value = initial;

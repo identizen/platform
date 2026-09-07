@@ -24,16 +24,16 @@ npx identizen-fake-phone --index http://localhost:8787 --port 4400 --policy appr
   [--state ./phone.json] [--url http://localhost:4400] [--host 127.0.0.1] [--issuer <url>] [--handle alice] [--poll]
 ```
 
-`--state` saves the seed, device key, and registration to a file and reloads it next time, so the same identity survives restarts. `--url` is the public URL the index will push to. `--host` is the interface the HTTP server binds (`127.0.0.1` by default; `0.0.0.0` when a container has to reach it). `--issuer` is the name the index uses for itself in its challenges when that differs from the URL the phone reaches it at, for example `http://host.docker.internal:8787` while `--index` stays `http://localhost:8787`; without it the phone rejects the challenge as `wrong_index`. `--handle` sets a handle at registration. `--poll` forces inbox polling. Each flag has an environment fallback: `INDEX_URL`, `FAKE_PHONE_PORT`, `FAKE_PHONE_POLICY`, `FAKE_PHONE_STATE`, `FAKE_PHONE_URL`, `FAKE_PHONE_HOST`, `FAKE_PHONE_ISSUER`, `FAKE_PHONE_HANDLE`, `FAKE_PHONE_POLL=true`.
+`--state` saves the seed, device key, and registration to a file and reloads it next time, so the same identity survives restarts. `--url` is the public URL the index will push to. `--host` is the interface the HTTP server binds (`127.0.0.1` by default; `0.0.0.0` when a container has to reach it). `--issuer` is the name the index uses for itself in its challenges when that differs from the URL the phone reaches it at, for example `http://host.docker.internal:8787` while `--index` stays `http://localhost:8787`; without it the phone rejects the challenge as `wrong_index`. `--amr` is what the simulated approval claims verified the person (comma-separated, default `face`). `--handle` sets a handle at registration. `--poll` forces inbox polling. Each flag has an environment fallback: `INDEX_URL`, `FAKE_PHONE_PORT`, `FAKE_PHONE_POLICY`, `FAKE_PHONE_STATE`, `FAKE_PHONE_URL`, `FAKE_PHONE_HOST`, `FAKE_PHONE_ISSUER`, `FAKE_PHONE_AMR`, `FAKE_PHONE_HANDLE`, `FAKE_PHONE_POLL=true`.
 
 ## Policies
 
-| Policy    | What happens when a challenge arrives                                                                                                 |
-| --------- | ------------------------------------------------------------------------------------------------------------------------------------- |
-| `approve` | Signs the assertion with `amr: ["face", "hwk"]` and posts it at once. Default.                                                        |
-| `deny`    | Posts `POST /challenge/:id/deny` at once. The browser is sent back with `error=access_denied`; a verification resolves as `denied`.   |
-| `manual`  | Leaves the challenge pending. Approve or deny it from the UI or with `POST /approve/:id` and `POST /deny/:id`.                        |
-| `ignore`  | Leaves the challenge pending and expects nobody to act. The challenge expires after 60 seconds; a verification resolves as `timeout`. |
+| Policy    | What happens when a challenge arrives                                                                                                                             |
+| --------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `approve` | Signs the assertion with the configured `amr` (default `["face"]`, `--amr face,pin` to change it; a simulator never asserts `hwk`) and posts it at once. Default. |
+| `deny`    | Posts `POST /challenge/:id/deny` at once. The browser is sent back with `error=access_denied`; a verification resolves as `denied`.                               |
+| `manual`  | Leaves the challenge pending. Approve or deny it from the UI or with `POST /approve/:id` and `POST /deny/:id`.                                                    |
+| `ignore`  | Leaves the challenge pending and expects nobody to act. The challenge expires after 60 seconds; a verification resolves as `timeout`.                             |
 
 `manual` and `ignore` behave the same in code; the name states the intent. Every policy still fetches and verifies the challenge, so a challenge signed by a key other than the one pinned at registration is rejected before the policy runs. The policy can be changed at any time with `POST /policy`.
 

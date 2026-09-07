@@ -47,7 +47,7 @@ The id_token `nonce` differs from the one you sent. Keep the nonce with the tran
 
 ### invalid_id_token
 
-The id_token is missing `sub` or `sid`. The token was not issued by an Identizen index.
+The token is not an Identizen id_token for this client: the header is not `alg: ES256` with `typ: JWT`, a documented claim (`sub`, `sid`, `acr`, `amr`, `auth_time`, `idz_device`, `iat`, `exp`) is missing or has the wrong type, `acr` is not `idz:login` or `idz:mfa`, or the token carries an `events` claim, which makes it a logout token. A logout, access, or webhook token from the same index is refused here on purpose (RFC 8725 §3.12).
 
 ### invalid_webhook
 
@@ -93,11 +93,15 @@ Only `authorization_code` is supported; there are no refresh tokens.
 
 ### login_required
 
-Step-up (`acr_values=idz:mfa`) targeted a `sub` that is not bound to an active device for this site. Run enrollment (`prompt=enroll`) first. The Verification API reports this as `unknown_sub`.
+The `login_hint` (with `acr_values=idz:mfa` for a step-up, or alone for a repeat login) is not a `sub` bound to an active device for this site: an OIDC error redirect from `/authorize`, a JSON `400` from `POST /challenge`. Run enrollment (`prompt=enroll`) first. The Verification API reports this as `unknown_sub`. The hosted login page also redirects with `error=login_required` when the challenge expires unanswered.
 
 ### login_hint_required
 
 `acr=idz:mfa` was requested on `POST /challenge` without `login_hint`.
+
+### access_denied
+
+Sent to the site's `redirect_uri` by the hosted login page when the person declines on the phone.
 
 ### interaction_required
 
@@ -156,6 +160,10 @@ HTTP 404. WebFinger: the host in `acct:<handle>@<host>` is not this index. Query
 ### wrong_identity
 
 HTTP 403. The challenge was issued for a different identity (a step-up with `login_hint`, or a Verification API request for a `sub`). Only that person's devices may approve, decline, or be routed the challenge by discovery. The verification stays pending.
+
+### insufficient_amr
+
+HTTP 403. A step-up (`idz:mfa`) assertion whose `amr` names nothing that verified the person (for example `["swk"]` from a development phone that skipped its prompt). A second factor has to be one.
 
 ### wrong_subject
 

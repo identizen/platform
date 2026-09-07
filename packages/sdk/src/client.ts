@@ -68,7 +68,7 @@ export class Identizen {
     };
   }
 
-  /** Start a login. Discovery order: paired browser -> Web Bluetooth -> QR; deep link on mobile. */
+  /** Start a login. Discovery: paired browser -> QR (Web Bluetooth only on request via useBluetooth); deep link on mobile. */
   startLogin(options: StartLoginOptions = {}): LoginSession {
     const listeners = new Set<(s: LoginState) => void>();
     let resolveDone: (s: LoginState) => void = () => undefined;

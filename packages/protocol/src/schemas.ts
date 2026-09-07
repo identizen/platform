@@ -18,8 +18,18 @@ export const CLOCK_SKEW_SECONDS = 5;
 export const AcrSchema = z.enum([ACR_LOGIN, ACR_MFA]);
 export type Acr = z.infer<typeof AcrSchema>;
 
-export const AmrSchema = z.enum(['face', 'fingerprint', 'pin', 'hwk', 'user', 'swk']);
+/**
+ * Authentication methods, in RFC 8176 terms with Identizen's spellings. A phone reports what
+ * verified the person at the gate: `face`, `fingerprint`, `iris`, `pin` (device passcode),
+ * `user` (a biometric verified the person but the platform cannot say which), `swk` (nothing
+ * verified the person; a software-held key signed, as in development). `hwk` is reserved for
+ * hardware-isolated keys and is not asserted by any Identizen client today.
+ */
+export const AmrSchema = z.enum(['face', 'fingerprint', 'iris', 'pin', 'hwk', 'user', 'swk']);
 export type Amr = z.infer<typeof AmrSchema>;
+
+/** The methods that verified the person. A step-up (`idz:mfa`) assertion must carry one. */
+export const USER_VERIFYING_AMR: readonly Amr[] = ['face', 'fingerprint', 'iris', 'pin', 'user'];
 
 export const ChallengeIdSchema = z.string().regex(new RegExp(`^ch_${ULID}$`));
 export const DeviceIdSchema = z.string().regex(new RegExp(`^dev_${ULID}$`));

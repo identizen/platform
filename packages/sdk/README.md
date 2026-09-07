@@ -30,7 +30,7 @@ const final = await session.done;
 if (final.status === 'approved' && final.redirect) location.assign(final.redirect);
 ```
 
-Discovery order: paired browser (push straight to the phone) → Web Bluetooth (Chromium) → QR. On mobile the deep link opens the app. Pairing is on by default; pass `pairing: false` to opt out.
+Discovery order: paired browser (push straight to the phone) → QR, with Web Bluetooth on Chromium when the person clicks to use it (`session.useBluetooth()`). On mobile the deep link opens the app. Pairing is on by default; pass `pairing: false` to opt out.
 
 Path B: `identizen.enroll()` binds the phone to an existing account; `identizen.stepUp(sub, { reason })` pushes an approval to the bound phone.
 

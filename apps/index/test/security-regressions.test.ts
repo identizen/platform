@@ -486,3 +486,45 @@ describe('S07: the index only sends requests to destinations the policy allows',
     expect(await json(res)).toMatchObject({ error: 'invalid_destination' });
   });
 });
+
+describe('S05: the index trusts amr only as far as it goes', () => {
+  it('a step-up refuses an approval that verified nobody; a login records it honestly', async () => {
+    const site = await registerSite();
+    const phone = await registerPhone();
+    const sub = await bindSub(site, phone);
+    const stepUp = await startChallenge({
+      client_id: site.client_id,
+      acr: 'idz:mfa',
+      login_hint: sub,
+    });
+    const { payload } = await fetchChallenge(stepUp.challenge_id);
+    const soft = await signedFetch(
+      phone,
+      'POST',
+      `/challenge/${stepUp.challenge_id}/assert`,
+      buildAssertion(phone, payload, { amr: ['swk'] }),
+    );
+    expect(soft.status).toBe(403);
+    expect(await json(soft)).toMatchObject({ error: 'insufficient_amr' });
+    const real = await signedFetch(
+      phone,
+      'POST',
+      `/challenge/${stepUp.challenge_id}/assert`,
+      buildAssertion(phone, payload, { amr: ['pin'] }),
+    );
+    expect(real.status).toBe(200);
+
+    // A plain login records a software-only approval as what it was.
+    const login = await startChallenge({ client_id: site.client_id });
+    const { payload: loginPayload } = await fetchChallenge(login.challenge_id);
+    const soft2 = await signedFetch(
+      phone,
+      'POST',
+      `/challenge/${login.challenge_id}/assert`,
+      buildAssertion(phone, loginPayload, { amr: ['swk'] }),
+    );
+    expect(soft2.status).toBe(200);
+    const state = await env.CHALLENGE_SESSION.getByName(login.challenge_id).getState();
+    expect(state?.assertion?.amr).toEqual(['swk']);
+  });
+});

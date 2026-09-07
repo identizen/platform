@@ -26,7 +26,7 @@ export const FAQ_GROUPS: readonly { heading: string; items: readonly Faq[] }[] =
       {
         question: 'Is Identizen an authenticator app like Google Authenticator or Duo?',
         answer:
-          'No. Authenticator apps produce a second factor on top of a password. Identizen is the whole login: there is no password to add a factor to. The phone signs a challenge that includes the site, the browser, and the action, so the approval cannot be phished or replayed on another site.',
+          'No. Authenticator apps produce a second factor on top of a password. Identizen is the whole login: there is no password to add a factor to. The phone signs a challenge that includes the site, this one request, and the action, so the approval cannot be phished or replayed on another site.',
       },
       {
         question: 'What does the user see when they sign in?',
@@ -46,7 +46,7 @@ export const FAQ_GROUPS: readonly { heading: string; items: readonly Faq[] }[] =
       {
         question: 'Do I need to run my own server?',
         answer:
-          'No. The public index at index.identizen.com is a hosted OpenID Provider that any site can use for free. If you want to control the infrastructure, the index is open source and runs on Cloudflare Workers with Postgres; the self-hosting guide covers it.',
+          'No. The public index at index.identizen.com is a hosted OpenID Provider that sites use for free; registration is by token today, ask at contact@identizen.com. If you want to control the infrastructure, the index is open source and runs on Cloudflare Workers with Postgres; the self-hosting guide covers it.',
       },
       {
         question: 'What is step-up approval?',
@@ -92,7 +92,7 @@ export const FAQ_GROUPS: readonly { heading: string; items: readonly Faq[] }[] =
       {
         question: 'Is Identizen resistant to phishing?',
         answer:
-          'Yes. The phone signs the site’s registered identifier, the browser session, and the action, and shows a match code that the browser also shows. A look-alike site cannot present a request for the real site, and an approval captured on one site is useless on another.',
+          'Yes. The phone signs the site’s registered identifier, this one request, and the action, and shows a match code that the browser also shows. A look-alike site cannot present a request for the real site, and an approval captured on one site is useless on another.',
       },
       {
         question: 'Which phones are supported?',

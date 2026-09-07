@@ -49,7 +49,7 @@ export interface Claims {
   sub: string; // stable per-site user id
   sid: string; // Identizen session id (back-channel logout refers to it)
   acr: 'idz:login' | 'idz:mfa';
-  amr: string[]; // e.g. ['face', 'hwk']
+  amr: string[]; // what verified the person, e.g. ['face'] or ['pin']
   auth_time: number; // when the person approved on the phone, unix seconds
   idz_device: string;
   idz_handle?: string;
@@ -203,7 +203,7 @@ app.post('/api/session', async (req, res) => {
 app.listen(3000);
 ```
 
-`verifyIdToken` checks issuer, audience, signature (ES256, two published keys), and expiry. Pass the `nonce` you sent when you can. Every failure throws an `IdentizenError` with `code`, `message`, and `docsUrl`.
+`verifyIdToken` checks the signature (ES256 only, two published keys), `typ: JWT`, issuer, audience, expiry, and that every documented claim (`sub`, `sid`, `acr`, `amr`, `auth_time`, `idz_device`) is present; a logout, access or webhook token from the same index is refused. Pass the `nonce` you sent when you can. Every failure throws an `IdentizenError` with `code`, `message`, and `docsUrl`.
 
 ## 4. Run it with a fake phone
 

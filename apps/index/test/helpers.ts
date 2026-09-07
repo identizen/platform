@@ -17,6 +17,7 @@ import {
   type Challenge,
   type KeyPair,
   type SignedAssertion,
+  type Amr,
 } from '@identizen/protocol';
 
 export const BASE = 'http://index.test';
@@ -200,7 +201,7 @@ export function buildAssertion(
   over: Partial<{
     iat: number;
     deviceId: string;
-    amr: ('face' | 'hwk' | 'pin' | 'fingerprint')[];
+    amr: Amr[];
   }> = {},
 ): SignedAssertion {
   const site = deriveSiteKey(phone.seed, challenge.rp_id);
@@ -208,7 +209,7 @@ export function buildAssertion(
     challenge,
     sitePublicKey: site.publicKey,
     deviceId: over.deviceId ?? phone.deviceId,
-    amr: over.amr ?? ['face', 'hwk'],
+    amr: over.amr ?? ['face'],
     ...(over.iat !== undefined && { iat: over.iat }),
   });
   return signAssertion(assertion, site.privateKey, phone.device.privateKey);

@@ -62,7 +62,7 @@ You need Node 22+ and an index to talk to. For local development run the index f
    // session.sub  — stable per-site identifier
    // session.sid  — Identizen session id (used for back-channel logout)
    // session.acr  — 'idz:login' (or 'idz:mfa' after a step-up)
-   // session.amr  — ['face', 'hwk'] or similar
+   // session.amr  — ['face'], ['fingerprint'], ['pin'] … what verified the person
    ```
 
    That is the whole login. There is no email in the token; if your app needs one, ask the user after login like any app.

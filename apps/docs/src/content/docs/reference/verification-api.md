@@ -54,7 +54,7 @@ Response `201`:
 
 `code` is the two-digit match code shown on the phone; show it to the user if your flow has a screen.
 
-Errors: `401 invalid_client` (bad or missing secret), `404 unknown_client` (unknown `Idz-Client-Id`), `404 unknown_sub` (no active device is bound to that `sub` for your site), `400 invalid_request` (validation), `429 client_rate_limited` (too many challenges from this client in a minute).
+Errors: `401 invalid_client` (bad or missing secret), `404 unknown_client` (unknown `Idz-Client-Id`), `404 unknown_sub` (no active device is bound to that `sub` for your site), `400 invalid_request` (validation), `429 client_rate_limited` (too many challenges from this client in a minute), `429 push_rate_limited` (the bound device was pushed ten times in the last minute).
 
 ## `GET /v1/verify/:id`
 
@@ -71,7 +71,7 @@ Poll with the same credentials. `status` is one of `pending`, `approved`, `denie
     "site_pubkey": "…",
     "device_id": "dev_…",
     "iat": 1756560012,
-    "amr": ["face", "hwk"],
+    "amr": ["face"],
     "acr": "idz:mfa",
     "reason_hash": "…"
   },

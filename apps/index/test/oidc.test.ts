@@ -180,7 +180,7 @@ describe('authorization code flow', () => {
     expect(payload.sub).toBe(sub);
     expect(payload.nonce).toBe('n0nce');
     expect(payload.acr).toBe('idz:login');
-    expect(payload.amr).toEqual(['face', 'hwk']);
+    expect(payload.amr).toEqual(['face']);
     expect(payload.idz_device).toBe(pairwiseDeviceId('app.example.com', phone.deviceId));
     expect(payload.idz_handle).toBe('george');
     expect(payload.idz_org).toBeUndefined();
@@ -346,7 +346,7 @@ describe('step-up and enrollment', () => {
     });
     expect(payload.sub).toBe(enrolled.sub);
     expect(payload.acr).toBe('idz:mfa');
-    expect(payload.amr).toEqual(['face', 'hwk']);
+    expect(payload.amr).toEqual(['face']);
   });
 });
 

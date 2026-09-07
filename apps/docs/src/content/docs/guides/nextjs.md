@@ -20,11 +20,17 @@ IDENTIZEN_INDEX_URL=https://index.identizen.com
 IDENTIZEN_CLIENT_ID=idz_live_…
 IDENTIZEN_CLIENT_SECRET=…
 IDENTIZEN_SITE_URL=https://app.example.com
+# Signs the scaffold's own session cookie; `identizen init` generates it. Never the client secret.
+IDENTIZEN_SESSION_SECRET=…
+# Optional: session lifetime in seconds (default 86400).
+# IDENTIZEN_SESSION_TTL=86400
 ```
 
 `IDENTIZEN_SITE_URL` must match the origin you registered; the callback is `${IDENTIZEN_SITE_URL}/api/auth/callback`.
 
 ## The server client
+
+The scaffold reads every variable through a helper that throws when one is missing; the excerpt below uses defaults for brevity. The real file also exports the session helpers, the `revocations` store, and `TX_COOKIE` (the transaction cookie settings, `Secure` on https).
 
 ```ts title="lib/identizen.ts (excerpt)"
 import { createIdentizenServer } from '@identizen/sdk/server';

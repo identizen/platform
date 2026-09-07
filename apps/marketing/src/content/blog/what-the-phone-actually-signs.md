@@ -46,7 +46,7 @@ When you tap Approve, the phone produces an assertion:
   "site_pubkey": "…",
   "device_id": "dev_01M1…",
   "iat": 1757116812,
-  "amr": ["face", "hwk"],
+  "amr": ["face"],
   "acr": "idz:mfa",
   "reason_hash": "…"
 }
@@ -62,7 +62,7 @@ It is signed twice: once with a key derived for this site alone, and once with t
 
 **`device_id`** and the second signature name the phone. Revoke the phone and its signatures stop verifying, everywhere, at once.
 
-**`amr`** says how the person approved: face or fingerprint. We are careful here. The app currently also asserts a hardware-key value that anticipates enclave storage we have not shipped, and the [threat model](https://docs.identizen.com/protocol/threat-model/) lists that as an open item rather than pretending otherwise.
+**`amr`** says what verified the person: `face`, `fingerprint`, `iris`, or `pin` for the device passcode. The app reports what actually happened and never more. If it had to fall back to the passcode it says `pin`; if the platform cannot say which biometric it used it says `user`; a development build that skipped the prompt says `swk`, and the index refuses that for a step-up. It does not claim a hardware-isolated key, because the keys are not in one yet; `hwk` stays reserved until they are.
 
 **`reason_hash`** is the one people care about most. It is the hash of the exact text the phone showed. Change one character of the amount or the payee and the hash changes, the signature fails, and the approval is worthless. An approval for "$12,000.00 to Acme" cannot be reused for "$120,000.00 to Acme", or for anything at all.
 

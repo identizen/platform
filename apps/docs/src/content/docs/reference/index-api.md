@@ -70,10 +70,10 @@ Challenges live 60 seconds. `acr` is `idz:login` or `idz:mfa`; `reason` (≤ 140
 
 ## Discovery
 
-| Method | Path               | Purpose                                                                                                                                                                                                                                                                |
-| ------ | ------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `POST` | `/discover/ble`    | `{ challenge_id, rotating_id }` — resolves the 16-byte rotating BLE id (current window ±1) and pushes; `202`, `404 unknown_challenge` / `no_device`, `429 push_rate_limited`                                                                                           |
-| `POST` | `/discover/paired` | `{ challenge_id, pairing_id, sig }` — ECDSA P-256 signature over `"identizen/v1/paired\n" + challenge_id`; pushes straight to the paired device; `202`, `404 unknown_challenge`, `401 pairing_inactive` / `device_inactive` / `bad_signature`, `429 push_rate_limited` |
+| Method | Path               | Purpose                                                                                                                                                                                                                                                                                                                |
+| ------ | ------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `POST` | `/discover/ble`    | `{ challenge_id, rotating_id }` — resolves the 16-byte rotating BLE id (current window ±1) and pushes; `202`, `403 wrong_identity`, `404 unknown_challenge` / `no_device`, `409 challenge_targeted`, `429 push_rate_limited`                                                                                           |
+| `POST` | `/discover/paired` | `{ challenge_id, pairing_id, sig }` — ECDSA P-256 signature over `"identizen/v1/paired\n" + challenge_id`; pushes straight to the paired device; `202`, `401 pairing_inactive` / `device_inactive` / `bad_signature`, `403 wrong_identity`, `404 unknown_challenge`, `409 challenge_targeted`, `429 push_rate_limited` |
 
 Pairings are issued on approval when the browser supplied a public key and are returned in the `approved` event as a signed pairing record `{ payload: { type, pairing_id, device_id, browser_pubkey, issued_at }, sig }`.
 

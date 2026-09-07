@@ -188,7 +188,7 @@ describe('VirtualPhone', () => {
     expect(result.ok).toBe(true);
     const signed = index.assertions.get(CH_A);
     expect(signed?.payload.challenge_id).toBe(CH_A);
-    expect(signed?.payload.amr).toEqual(['face', 'hwk']);
+    expect(signed?.payload.amr).toEqual(['face']);
     expect(signed?.payload.sub).toBe(result.sub);
     expect(phone.pending.size).toBe(0);
     // A second site gets a different sub (per-site key).

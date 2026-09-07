@@ -57,7 +57,7 @@ Trust boundaries: phone ↔ index (TLS, Idz-Signature), browser ↔ index (TLS, 
 ## 4. Residual risks (accepted for now)
 
 - **Index operator trust.** The operator can issue challenges for any site to any device (the user still has to approve on the phone with the code displayed) and can mint tokens for any `sub` (a site cannot detect a forged approval unless it also checks the double-signed assertion via the Verification API). Self-hosting removes this trust for regulated deployments.
-- **Key storage on the phone.** Keys are protected by the platform keychain or keystore and the device biometric, not yet by a hardware-isolated key. The `hwk` value in `amr` anticipates the planned enclave wrapping; treat it as advisory until that ships.
+- **Key storage on the phone.** Keys are protected by the platform keychain or keystore and the device biometric, not yet by a hardware-isolated key. `amr` says exactly what happened at the gate (PROTOCOL.md §4): a biometric only when a biometrics-only prompt succeeded, `pin` for the passcode, `user` when the platform cannot name the biometric, `swk` when the prompt was skipped, and never `hwk` until enclave-backed keys ship. The index refuses a step-up whose assertion verified nobody.
 - **Device time skew.** ±5 s (assertion) / ±60 s (request) windows; badly skewed phones fail closed.
 - **APNs/FCM as a dependency.** Transport only; payload is `{ challenge_id }`. Every challenge is also queued in the device's inbox, so delivery does not depend on the push provider.
 - **Code in the front channel.** Standard OIDC; PKCE + single-use + client binding limit the blast radius.
