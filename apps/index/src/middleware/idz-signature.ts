@@ -19,7 +19,7 @@ export interface DeviceAuthOptions {
 /**
  * `Idz-Signature` authentication (PROTOCOL.md section 8).
  * Verifies the device signature over method + path + body hash + timestamp, checks the
- * timestamp window, rejects replays via the per-device RequestGuard DO, and loads the device.
+ * timestamp window, rejects replays via the per-device guard store, and loads the device.
  */
 export function deviceAuth(
   opts: DeviceAuthOptions = {},
@@ -29,7 +29,7 @@ export function deviceAuth(
     if (!parsed)
       throw unauthorized('missing_signature', 'Idz-Signature header is missing or malformed');
 
-    const { db, now } = c.get('services');
+    const { db, now, stores } = c.get('services');
     const device = await getDevice(db, parsed.device_id);
     if (!device) throw unauthorized('unknown_device', 'device is not registered');
 
@@ -49,7 +49,7 @@ export function deviceAuth(
     if (!result.ok)
       throw unauthorized('bad_signature', `request signature rejected: ${result.error}`);
 
-    const guard = c.env.REQUEST_GUARD.getByName(nsName(c.env, device.id));
+    const guard = stores.guard(nsName(c.env, device.id));
     const fresh = await guard.check(parsed.timestamp, parsed.sig);
     if (!fresh) throw unauthorized('replayed_request', 'this request was already seen');
 

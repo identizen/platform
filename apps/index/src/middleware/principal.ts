@@ -58,10 +58,9 @@ export function meAuth(
       );
       if (!result.ok)
         throw unauthorized('bad_signature', `request signature rejected: ${result.error}`);
-      const fresh = await c.env.REQUEST_GUARD.getByName(nsName(c.env, device.id)).check(
-        parsed.timestamp,
-        parsed.sig,
-      );
+      const fresh = await services.stores
+        .guard(nsName(c.env, device.id))
+        .check(parsed.timestamp, parsed.sig);
       if (!fresh) throw unauthorized('replayed_request', 'this request was already seen');
       if (device.status !== 'active' && !opts.allowInactive)
         throw forbidden('device_inactive', `device is ${device.status}`);

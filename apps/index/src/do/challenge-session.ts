@@ -81,7 +81,8 @@ export interface SessionState {
   resolvedAt: number | null;
 }
 
-interface Stored extends SessionState {
+/** The persisted session: the public state plus the signed challenge the phone fetches. */
+export interface StoredSession extends SessionState {
   signed: SignedChallenge;
 }
 
@@ -122,12 +123,12 @@ export type SessionEvent =
  * Nothing persists beyond the login.
  */
 export class ChallengeSession extends DurableObject<Env> {
-  private cache: Stored | null = null;
+  private cache: StoredSession | null = null;
 
   async create(init: SessionInit): Promise<SessionState> {
     const existing = await this.load();
     if (existing) throw new Error('session already exists');
-    const stored: Stored = {
+    const stored: StoredSession = {
       status: 'pending',
       challengeId: init.signed.payload.id,
       clientId: init.clientId,
@@ -353,7 +354,7 @@ export class ChallengeSession extends DurableObject<Env> {
     }
   }
 
-  private terminalEvent(s: Stored): SessionEvent {
+  private terminalEvent(s: StoredSession): SessionEvent {
     if (s.status === 'approved') {
       return {
         type: 'approved',
@@ -366,9 +367,9 @@ export class ChallengeSession extends DurableObject<Env> {
     return { type: 'expired', challenge_id: s.challengeId };
   }
 
-  private async load(): Promise<Stored | null> {
+  private async load(): Promise<StoredSession | null> {
     if (this.cache) return this.cache;
-    const s = await this.ctx.storage.get<Stored>('session');
+    const s = await this.ctx.storage.get<StoredSession>('session');
     if (s) {
       // Sessions stored before these fields existed.
       s.expectedIdz ??= null;
@@ -378,18 +379,18 @@ export class ChallengeSession extends DurableObject<Env> {
     return this.cache;
   }
 
-  private async require(): Promise<Stored> {
+  private async require(): Promise<StoredSession> {
     const s = await this.load();
     if (!s) throw new Error('unknown session');
     return s;
   }
 
-  private async save(s: Stored): Promise<void> {
+  private async save(s: StoredSession): Promise<void> {
     await this.ctx.storage.put('session', s);
     this.cache = s;
   }
 
-  private publicState(s: Stored): SessionState {
+  private publicState(s: StoredSession): SessionState {
     const { signed: _signed, ...rest } = s;
     return rest;
   }

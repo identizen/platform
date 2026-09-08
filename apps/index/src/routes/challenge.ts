@@ -109,7 +109,7 @@ export function challengeRoutes(): Hono<AppEnv> {
 
   /** Phone fetches the signed challenge (after push, deep link, or QR). */
   r.get('/challenge/:id', async (c) => {
-    const stub = c.env.CHALLENGE_SESSION.getByName(nsName(c.env, c.req.param('id')));
+    const stub = c.get('services').stores.challenge(nsName(c.env, c.req.param('id')));
     const [signed, state] = await Promise.all([stub.getSigned(), stub.getState()]);
     if (!signed || !state) throw notFound('unknown_challenge', 'no such challenge');
     return c.json({ ...signed, status: state.status });
@@ -117,7 +117,7 @@ export function challengeRoutes(): Hono<AppEnv> {
 
   /** Browser polls (fallback for environments without WebSocket). */
   r.get('/challenge/:id/state', async (c) => {
-    const stub = c.env.CHALLENGE_SESSION.getByName(nsName(c.env, c.req.param('id')));
+    const stub = c.get('services').stores.challenge(nsName(c.env, c.req.param('id')));
     const state = await stub.getState();
     if (!state) throw notFound('unknown_challenge', 'no such challenge');
     return c.json({
@@ -134,24 +134,24 @@ export function challengeRoutes(): Hono<AppEnv> {
       .object({ browser_pubkey: z.string().regex(/^[A-Za-z0-9_-]{80,100}$/) })
       .strict()
       .parse(await c.req.json());
-    const stub = c.env.CHALLENGE_SESSION.getByName(nsName(c.env, c.req.param('id')));
+    const stub = c.get('services').stores.challenge(nsName(c.env, c.req.param('id')));
     const state = await stub.getState();
     if (!state) throw notFound('unknown_challenge', 'no such challenge');
     const ok = await stub.setBrowserPubkey(body.browser_pubkey, browserMeta(c));
     return c.json({ ok });
   });
 
-  /** Browser WebSocket to the session DO. */
+  /** Browser WebSocket to the session store (the page polls `/state` if the store has none). */
   r.get('/challenge/:id/ws', (c) => {
-    const stub = c.env.CHALLENGE_SESSION.getByName(nsName(c.env, c.req.param('id')));
-    return stub.fetch(c.req.raw);
+    const stub = c.get('services').stores.challenge(nsName(c.env, c.req.param('id')));
+    return stub.websocket(c.req.raw);
   });
 
   /** Phone submits the signed assertion. Signed request (device auth) + double-signed body. */
   r.post('/challenge/:id/assert', deviceAuth(), async (c) => {
     const services = c.get('services');
     const id = c.req.param('id');
-    const stub = c.env.CHALLENGE_SESSION.getByName(nsName(c.env, id));
+    const stub = services.stores.challenge(nsName(c.env, id));
     const body: unknown = JSON.parse(c.get('rawBody') || '{}');
     const caller = c.get('device');
     const claimed = (body as { payload?: { device_id?: string } }).payload?.device_id;
@@ -171,9 +171,9 @@ export function challengeRoutes(): Hono<AppEnv> {
 
   /** Phone declines. */
   r.post('/challenge/:id/deny', deviceAuth(), async (c) => {
-    const { db } = c.get('services');
+    const { db, stores } = c.get('services');
     const id = c.req.param('id');
-    const stub = c.env.CHALLENGE_SESSION.getByName(nsName(c.env, id));
+    const stub = stores.challenge(nsName(c.env, id));
     const state = await stub.getState();
     if (!state) throw notFound('unknown_challenge', 'no such challenge');
     if (state.status !== 'pending') return c.json({ status: state.status, challenge_id: id });

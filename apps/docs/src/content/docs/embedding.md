@@ -78,6 +78,45 @@ the same `services` (`c.get('services')`) and can reuse the exported middleware:
 dashboard bearer or a signed device request, `deviceAuth` for the phone, `ipRateLimit` for
 public endpoints.
 
+## Stores (`stores`)
+
+The index keeps two things outside Postgres while a login is in flight: the challenge session
+(the signed challenge and its state until it is approved, denied or expired) and the request
+guard (a device's replay window, rate limits and challenge inbox; also the per-client and per-IP
+rate buckets). On Cloudflare those are the `ChallengeSession` and `RequestGuard` Durable Objects,
+and `createApp()` uses them through `defaultStores(env)`. A host that runs the index where
+Durable Objects do not exist, several replicas on-prem over one database for example, passes
+`stores` and the two bindings are never read:
+
+```ts
+import { createApp, type ChallengeStore, type GuardStore, type Stores } from '@identizen/index';
+
+declare function postgresChallengeStore(name: string): ChallengeStore;
+declare function postgresGuardStore(name: string): GuardStore;
+
+const stores: Stores = {
+  challenge: (name) => postgresChallengeStore(name),
+  guard: (name) => postgresGuardStore(name),
+};
+
+export const app = createApp({ stores: () => stores });
+```
+
+`stores(env)` is called once per request with the resolved bindings and returns a `Stores`:
+`challenge(name)` and `guard(name)` take names that are already namespaced with `TENANT_KEY`
+(`nsName`), so a multi-tenant host keeps its isolation. `ChallengeStore` has the session's
+methods (`create`, `getState`, `approve`, `redeemCode`, `websocket`, …) and `GuardStore` the
+guard's (`check`, `allowPush`, `allowRate`, `enqueue`, `drain`); their doc comments spell out
+what the Durable Object alarms do today and an implementation must reproduce: expiry at the
+challenge's `exp`, keeping a resolved session for `CODE_TTL_MS`, the two-minute replay window,
+per-minute rate windows, and an inbox that drains atomically. A store without a WebSocket bridge
+returns `426` from `websocket` and the login page polls `/challenge/:id/state` instead.
+
+`GuardState` is exported and reusable as is: give it a `GuardStorage` over your database and every
+`GuardStore` method is one call on it. For sessions, `StoredSession` is the persisted shape and
+`ChallengeSession` in `@identizen/index` is the reference for every transition; call
+`expireVerification` when you expire a session that carries a `verificationId`.
+
 ## Host migrations
 
 `@identizen/db` applies migrations from several folders in one run, ordered by their journal

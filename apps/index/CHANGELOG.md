@@ -1,5 +1,22 @@
 # @identizen/index
 
+## 0.4.0
+
+### Minor Changes
+
+- `createApp({ stores })` makes the in-flight state pluggable. `Stores` resolves a `ChallengeStore`
+  (one login's session) and a `GuardStore` (one device's replay guard, rate limits and inbox) by
+  name; the default, `defaultStores(env)`, is the two Durable Objects, and every route now goes
+  through `services.stores` instead of the `CHALLENGE_SESSION` and `REQUEST_GUARD` bindings. A
+  host running the index without Durable Objects (several replicas over one database) supplies its
+  own stores and the bindings are never read. The interfaces document the alarm semantics an
+  implementation must honour (expiry at `exp`, code retention, replay and rate windows, inbox
+  draining); `GuardState`, `GuardStorage`, `GuardRecord`, the session types (`StoredSession`,
+  `SessionInit`, `SessionState`, `RedeemCodeInput`, `RedeemCodeResult`, `BrowserMeta`,
+  `OidcParams`), `CODE_TTL_MS` and `expireVerification` are exported so a database-backed store can
+  reuse the reference logic. `checkClientRate` and `createPushSender` take the request's stores.
+  Without the option nothing changes.
+
 ## 0.3.0
 
 ### Minor Changes

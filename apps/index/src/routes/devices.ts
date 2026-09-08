@@ -173,7 +173,7 @@ export function devicesRoutes(): Hono<AppEnv> {
     const device = c.get('device');
     if (device.id !== c.req.param('id'))
       throw forbidden('wrong_device', 'signature is for a different device');
-    const ids = await c.env.REQUEST_GUARD.getByName(nsName(c.env, device.id)).drain();
+    const ids = await c.get('services').stores.guard(nsName(c.env, device.id)).drain();
     return c.json({ challenge_ids: ids }, 200, { 'cache-control': 'no-store' });
   });
 

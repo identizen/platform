@@ -1,10 +1,12 @@
-import { nsName } from '../lib/names';
 import type { Device } from '@identizen/db';
 import { fromBase64Url, toBase64Url, utf8Encode } from '@identizen/protocol';
 import { SignJWT, importPKCS8 } from 'jose';
-import type { RequestGuard } from '../do/request-guard';
 import type { Env } from '../env';
 import { fetchOutbound, outboundPolicy, type OutboundPolicy } from '../lib/outbound';
+import type { GuardStore } from '../stores';
+
+/** The guard (inbox) for a device id; the caller namespaces the name. */
+export type GuardFor = (deviceId: string) => GuardStore;
 
 /** The only payload that transits APNs / FCM / Web Push (PROTOCOL.md section 7). */
 export interface PushPayload {
@@ -40,16 +42,15 @@ export class NoopPushSender implements PushSender {
  */
 export class WebPushSender implements PushSender {
   constructor(
-    private readonly guards: DurableObjectNamespace<RequestGuard> | null = null,
+    private readonly guard: GuardFor | null = null,
     private readonly fetchImpl: typeof fetch = (input, init) => fetch(input, init),
     private readonly policy: OutboundPolicy = { allowLocal: false },
-    private readonly nameOf: (name: string) => string = (n) => n,
   ) {}
   async send(device: PushTarget, payload: PushPayload): Promise<PushResult> {
     const token = device.pushToken ?? '';
     if (token === 'poll') {
-      if (!this.guards) return { ok: false, provider: 'web', detail: 'inbox unavailable' };
-      await this.guards.getByName(this.nameOf(device.id)).enqueue(payload.challenge_id);
+      if (!this.guard) return { ok: false, provider: 'web', detail: 'inbox unavailable' };
+      await this.guard(device.id).enqueue(payload.challenge_id);
       return { ok: true, provider: 'web', detail: 'queued for polling' };
     }
     if (/^https?:\/\//.test(token)) {
@@ -167,13 +168,12 @@ export class FcmPushSender implements PushSender {
 /** Queues for polling devices; hands everything else to the fallback. */
 class PollOnlySender implements PushSender {
   constructor(
-    private readonly guards: DurableObjectNamespace<RequestGuard>,
+    private readonly guard: GuardFor,
     private readonly fallback: PushSender,
-    private readonly nameOf: (name: string) => string = (n) => n,
   ) {}
   async send(device: PushTarget, payload: PushPayload): Promise<PushResult> {
     if (device.pushToken === 'poll') {
-      await this.guards.getByName(this.nameOf(device.id)).enqueue(payload.challenge_id);
+      await this.guard(device.id).enqueue(payload.challenge_id);
       return { ok: true, provider: 'web', detail: 'queued for polling' };
     }
     return this.fallback.send(device, payload);
@@ -258,19 +258,15 @@ export class RoutingPushSender implements PushSender {
   }
 }
 
-export function createPushSender(env: Env): PushSender {
+/** Build the sender for `env`; `guard` resolves a device's inbox (`services.stores.guard`). */
+export function createPushSender(env: Env, guard: GuardFor): PushSender {
   const noop = new NoopPushSender();
   if ((env.PUSH_PROVIDER ?? 'noop') === 'noop') {
     // Even with pushes disabled, polling devices (push_token 'poll') get their inbox.
-    return new RoutingPushSender(
-      { web: new PollOnlySender(env.REQUEST_GUARD, noop, (n) => nsName(env, n)) },
-      noop,
-    );
+    return new RoutingPushSender({ web: new PollOnlySender(guard, noop) }, noop);
   }
   const senders: Partial<Record<'apns' | 'fcm' | 'web' | 'expo', PushSender>> = {
-    web: new WebPushSender(env.REQUEST_GUARD, undefined, outboundPolicy(env), (n) =>
-      nsName(env, n),
-    ),
+    web: new WebPushSender(guard, undefined, outboundPolicy(env)),
     expo: new ExpoPushSender(env.EXPO_ACCESS_TOKEN ?? null),
   };
   if (env.APNS_KEY_ID && env.APNS_TEAM_ID && env.APNS_PRIVATE_KEY && env.APNS_TOPIC) {

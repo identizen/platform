@@ -1,7 +1,8 @@
 /**
  * @identizen/index as a library. The hosted Worker (src/index.ts) is `createApp()` with no
  * options; a host that embeds the index builds it with options and re-exports the two Durable
- * Object classes from its own Worker entry. Docs: "Embedding the index".
+ * Object classes from its own Worker entry, or passes `stores` to run without them. Docs:
+ * "Embedding the index".
  */
 export { createApp, type AppEnv, type AppVariables } from './app';
 export type { Env } from './env';
@@ -16,8 +17,32 @@ export {
   type SessionCreateResult,
   type TokenClaimsContext,
 } from './hooks';
-export { ChallengeSession } from './do/challenge-session';
+export {
+  CODE_TTL_MS,
+  ChallengeSession,
+  type BrowserMeta,
+  type OidcParams,
+  type RedeemCodeInput,
+  type RedeemCodeResult,
+  type SessionEvent,
+  type SessionInit,
+  type SessionState,
+  type SessionStatus,
+  type StoredSession,
+} from './do/challenge-session';
 export { RequestGuard } from './do/request-guard';
+export {
+  GUARD_KEY,
+  GuardState,
+  INBOX_LIMIT,
+  PUSH_LIMIT_PER_MINUTE,
+  RATE_LIMIT_PER_MINUTE,
+  WINDOW_MS,
+  type GuardRecord,
+  type GuardStorage,
+} from './do/guard-state';
+export { defaultStores, type ChallengeStore, type GuardStore, type Stores } from './stores';
+export { expireVerification } from './services/verification';
 export {
   ApiError,
   badRequest,

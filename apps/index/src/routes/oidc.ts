@@ -208,10 +208,10 @@ export function oidcRoutes(): Hono<AppEnv> {
       }
     }
 
-    // Redeem the code at the session DO (single use).
+    // Redeem the code at the session store (single use).
     const [challengeId, secret] = code.split('.');
     if (!challengeId || !secret) return tokenError('invalid_grant', 'malformed code');
-    const stub = c.env.CHALLENGE_SESSION.getByName(nsName(c.env, challengeId));
+    const stub = services.stores.challenge(nsName(c.env, challengeId));
     // Every check (client, redirect, PKCE, expiry) runs inside the session and the code is only
     // consumed when all of them pass, so a wrong verifier cannot burn a legitimate login.
     const redeemed = await stub.redeemCode({

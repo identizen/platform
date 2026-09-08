@@ -4,6 +4,7 @@ import type { Hono } from 'hono';
 import type { AppEnv } from './app';
 import type { Env } from './env';
 import type { Services } from './lib/services';
+import type { Stores } from './stores';
 
 /**
  * Extension points for hosts that embed the index (`createApp(options)`). Every hook runs
@@ -105,4 +106,11 @@ export interface AppOptions {
   /** Mount additional routers after the built-in ones. */
   extend?: (app: Hono<AppEnv>) => void;
   hooks?: Partial<IndexHooks>;
+  /**
+   * Replace the in-flight state stores (challenge sessions and request guards). Called once per
+   * request with the resolved bindings; the default is the two Durable Objects. A host running
+   * without Durable Objects supplies stores over its own database and the `CHALLENGE_SESSION`
+   * and `REQUEST_GUARD` bindings are never read. See `Stores` for the semantics to honour.
+   */
+  stores?: (env: Env) => Stores;
 }

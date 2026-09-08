@@ -3,6 +3,8 @@ import { sql } from 'drizzle-orm';
 import { decodeJwt } from 'jose';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { createApp } from '../src/app';
+import type { ChallengeSession } from '../src/do/challenge-session';
+import type { RequestGuard } from '../src/do/request-guard';
 import type { AppOptions } from '../src/hooks';
 import { ApiError, forbidden } from '../src/lib/errors';
 import {
@@ -17,9 +19,11 @@ import {
   registerSite,
   request,
   resetDb,
+  signedFetch,
   startChallenge,
   useFetcher,
 } from './helpers';
+import { MemoryStores } from './memory-stores';
 
 /** Route the helpers through an index built with options instead of the deployed Worker. */
 function appFetcher(options: AppOptions) {
@@ -30,6 +34,30 @@ function appFetcher(options: AppOptions) {
     await waitOnExecutionContext(ctx);
     return res;
   };
+}
+
+type PoisonedNamespace = DurableObjectNamespace<ChallengeSession> &
+  DurableObjectNamespace<RequestGuard>;
+
+/** A binding that fails on any use: proves the routes never reach the Durable Objects. */
+function poisoned(binding: string): PoisonedNamespace {
+  return new Proxy({} as PoisonedNamespace, {
+    get() {
+      throw new Error(`${binding} was used although stores were supplied`);
+    },
+  });
+}
+
+/** An index over in-memory stores whose Durable Object namespaces throw when touched. */
+function withoutDurableObjects(stores: MemoryStores) {
+  return appFetcher({
+    stores: () => stores,
+    resolveEnv: (_req, base) => ({
+      ...base,
+      CHALLENGE_SESSION: poisoned('CHALLENGE_SESSION'),
+      REQUEST_GUARD: poisoned('REQUEST_GUARD'),
+    }),
+  });
 }
 
 async function lastDenialReason(): Promise<string | undefined> {
@@ -215,5 +243,60 @@ describe('createApp(options)', () => {
     const res = await exchange(site, login.code);
     expect(res.status).toBe(403);
     expect((await json<{ error: string }>(res)).error).toBe('session_policy');
+  });
+});
+
+describe('createApp({ stores })', () => {
+  beforeEach(resetDb);
+  afterEach(() => useFetcher(null));
+
+  it('runs a full login (challenge, assert, code exchange) without the Durable Objects', async () => {
+    const stores = new MemoryStores();
+    useFetcher(withoutDurableObjects(stores));
+    const phone = await registerPhone();
+    const site = await registerSite();
+    const { login, tokens } = await loginAndExchange(site, phone);
+    expect(decodeJwt(tokens.id_token).sub).toBe(login.sub);
+    const session = stores.sessions.get(login.challengeId);
+    expect(session?.status).toBe('approved');
+    expect(session?.codeUsed).toBe(true);
+    expect(session?.sid).toBeTruthy();
+    // Single use here too, and a reuse revokes the session the first exchange created.
+    expect((await exchange(site, login.code)).status).toBe(400);
+    const state = await json<{ status: string }>(
+      await request(`${BASE}/challenge/${login.challengeId}/state`),
+    );
+    expect(state.status).toBe('approved');
+    // No socket bridge in this store: the page falls back to polling.
+    expect((await request(`${BASE}/challenge/${login.challengeId}/ws`)).status).toBe(426);
+  });
+
+  it('rate-limits through the supplied guard store', async () => {
+    const stores = new MemoryStores();
+    useFetcher(withoutDurableObjects(stores));
+    const site = await registerSite();
+    const headers = { 'cf-connecting-ip': '198.51.100.7' };
+    for (let i = 0; i < 12; i++) await startChallenge({ client_id: site.client_id }, headers);
+    const res = await request(`${BASE}/challenge`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json', ...headers },
+      body: JSON.stringify({ client_id: site.client_id }),
+    });
+    expect(res.status).toBe(429);
+    expect((await json<{ error: string }>(res)).error).toBe('rate_limited');
+    expect(stores.guards.has('ip:198.51.100.7:guard')).toBe(true);
+  });
+
+  it('rejects a replayed signature through the supplied guard store', async () => {
+    const stores = new MemoryStores();
+    useFetcher(withoutDurableObjects(stores));
+    const phone = await registerPhone();
+    const timestamp = Math.floor(Date.now() / 1000);
+    const path = `/devices/${phone.deviceId}/inbox`;
+    expect((await signedFetch(phone, 'GET', path, undefined, timestamp)).status).toBe(200);
+    const replay = await signedFetch(phone, 'GET', path, undefined, timestamp);
+    expect(replay.status).toBe(401);
+    expect((await json<{ error: string }>(replay)).error).toBe('replayed_request');
+    expect(stores.guards.has(`${phone.deviceId}:guard`)).toBe(true);
   });
 });

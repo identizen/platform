@@ -2,7 +2,9 @@ import { createDb, type Db } from '@identizen/db';
 import { fromHex, keyPairFromPrivateKey, type KeyPair } from '@identizen/protocol';
 import type { Env } from '../env';
 import { defaultHooks, type IndexHooks } from '../hooks';
+import { nsName } from './names';
 import { createPushSender, type PushSender } from '../push';
+import { defaultStores, type Stores } from '../stores';
 
 /** Per-request service bundle. Built once per request in `app.ts`. */
 export interface Services {
@@ -10,6 +12,8 @@ export interface Services {
   db: Db;
   /** Host extension points (`createApp({ hooks })`); no-ops on a plain index. */
   hooks: IndexHooks;
+  /** Challenge sessions and request guards (`createApp({ stores })`); the Durable Objects by default. */
+  stores: Stores;
   push: PushSender;
   /** Index Ed25519 signing key (challenges, pairings). */
   indexKey: KeyPair;
@@ -21,7 +25,11 @@ export interface Services {
   close: () => Promise<void>;
 }
 
-export function createServices(env: Env, hooks: IndexHooks = defaultHooks): Services {
+export function createServices(
+  env: Env,
+  hooks: IndexHooks = defaultHooks,
+  stores: Stores = defaultStores(env),
+): Services {
   const handle = createDb(env.HYPERDRIVE.connectionString, { max: 2 });
   const indexKey = keyPairFromPrivateKey(fromHex(requireEnv(env, 'INDEX_SIGNING_KEY')));
   const pending: Promise<unknown>[] = [];
@@ -29,7 +37,8 @@ export function createServices(env: Env, hooks: IndexHooks = defaultHooks): Serv
     env,
     db: handle.db,
     hooks,
-    push: createPushSender(env),
+    stores,
+    push: createPushSender(env, (deviceId) => stores.guard(nsName(env, deviceId))),
     indexKey,
     indexUrl: stripSlash(requireEnv(env, 'INDEX_URL')),
     appUrl: stripSlash(env.APP_URL || requireEnv(env, 'INDEX_URL')),

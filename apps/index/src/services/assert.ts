@@ -18,9 +18,10 @@ import {
   type SignedChallenge,
   type SignedPairing,
 } from '@identizen/protocol';
-import type { ChallengeSession, SessionState } from '../do/challenge-session';
+import type { SessionState } from '../do/challenge-session';
 import { ApiError } from '../lib/errors';
 import type { Services } from '../lib/services';
+import type { ChallengeStore } from '../stores';
 
 export interface AssertOutcome {
   state: SessionState;
@@ -38,7 +39,7 @@ export interface AssertOutcome {
  */
 export async function processAssertion(
   services: Services,
-  stub: DurableObjectStub<ChallengeSession>,
+  stub: ChallengeStore,
   challengeId: string,
   body: unknown,
 ): Promise<AssertOutcome> {

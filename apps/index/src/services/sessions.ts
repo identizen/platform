@@ -2,9 +2,10 @@ import { getVerification, recordAudit, resolveVerification, type Session } from 
 import { randomToken } from '../lib/util';
 import { backchannelLogout } from './backchannel';
 import { deliverWebhook } from './verification';
-import type { ChallengeSession, SessionState } from '../do/challenge-session';
+import type { SessionState } from '../do/challenge-session';
 import type { Env } from '../env';
 import type { Services } from '../lib/services';
+import type { ChallengeStore } from '../stores';
 import type { AssertOutcome } from './assert';
 
 export interface CompletedApproval {
@@ -20,7 +21,7 @@ export interface CompletedApproval {
 export async function completeApproval(
   services: Services,
   _env: Env,
-  stub: DurableObjectStub<ChallengeSession>,
+  stub: ChallengeStore,
   outcome: AssertOutcome,
 ): Promise<CompletedApproval> {
   const { db } = services;

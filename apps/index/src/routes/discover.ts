@@ -10,11 +10,11 @@ import { fromBase64Url, pairedSignatureBytes, resolveBleId } from '@identizen/pr
 import { Hono } from 'hono';
 import { z } from 'zod';
 import type { AppEnv } from '../app';
-import type { ChallengeSession } from '../do/challenge-session';
 import { conflict, forbidden, notFound, unauthorized } from '../lib/errors';
 import { browserMeta } from '../lib/util';
 import { pushChallenge } from '../services/challenge';
 import { ipRateLimit } from '../middleware/rate-limit';
+import type { ChallengeStore } from '../stores';
 
 const BleSchema = z
   .object({ challenge_id: z.string().min(1), rotating_id: z.string().regex(/^[A-Za-z0-9_-]{22}$/) })
@@ -29,11 +29,7 @@ const PairedSchema = z
   .strict();
 
 /** Route the challenge to a discovered device, or explain why it cannot go there. */
-async function routeTo(
-  stub: DurableObjectStub<ChallengeSession>,
-  deviceId: string,
-  idz: string,
-): Promise<void> {
+async function routeTo(stub: ChallengeStore, deviceId: string, idz: string): Promise<void> {
   const routed = await stub.setTargetDevice(deviceId, idz);
   if (routed === 'ok') return;
   if (routed === 'wrong_identity')
@@ -50,7 +46,7 @@ export function discoverRoutes(): Hono<AppEnv> {
   r.post('/discover/ble', ipRateLimit(), async (c) => {
     const services = c.get('services');
     const body = BleSchema.parse(await c.req.json());
-    const stub = c.env.CHALLENGE_SESSION.getByName(nsName(c.env, body.challenge_id));
+    const stub = services.stores.challenge(nsName(c.env, body.challenge_id));
     const state = await stub.getState();
     if (!state || state.status !== 'pending')
       throw notFound('unknown_challenge', 'no pending challenge');
@@ -67,7 +63,7 @@ export function discoverRoutes(): Hono<AppEnv> {
   r.post('/discover/paired', ipRateLimit(), async (c) => {
     const services = c.get('services');
     const body = PairedSchema.parse(await c.req.json());
-    const stub = c.env.CHALLENGE_SESSION.getByName(nsName(c.env, body.challenge_id));
+    const stub = services.stores.challenge(nsName(c.env, body.challenge_id));
     const state = await stub.getState();
     if (!state || state.status !== 'pending')
       throw notFound('unknown_challenge', 'no pending challenge');

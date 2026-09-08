@@ -3,6 +3,7 @@ import type { MiddlewareHandler } from 'hono';
 import type { AppEnv } from '../app';
 import type { Env } from '../env';
 import { tooMany } from '../lib/errors';
+import type { Stores } from '../stores';
 
 /** Per-minute limits (PRD 12: rate limiting on challenge issuance; M10.2). Overridable per env. */
 export const DEFAULT_LIMITS = {
@@ -44,10 +45,10 @@ export function ipRateLimit(): MiddlewareHandler<AppEnv> {
   return async (c, next) => {
     const ip = clientIp(c.req.raw.headers);
     if (ip !== 'unknown') {
-      const ok = await c.env.REQUEST_GUARD.getByName(nsName(c.env, `ip:${ip}`)).allowRate(
-        'ip',
-        limits(c.env).requestsPerIp,
-      );
+      const ok = await c
+        .get('services')
+        .stores.guard(nsName(c.env, `ip:${ip}`))
+        .allowRate('ip', limits(c.env).requestsPerIp);
       if (!ok)
         throw tooMany('rate_limited', 'too many requests from this address; try again in a minute');
     }
@@ -55,20 +56,14 @@ export function ipRateLimit(): MiddlewareHandler<AppEnv> {
   };
 }
 
-/** Limit challenge issuance per site client. */
+/** Limit challenge issuance per site client (`stores` is the request's `services.stores`). */
 export async function checkClientRate(
-  env: Pick<
-    Env,
-    | 'REQUEST_GUARD'
-    | 'TENANT_KEY'
-    | 'RATE_LIMIT_CHALLENGES_PER_CLIENT'
-    | 'RATE_LIMIT_REQUESTS_PER_IP'
-  >,
+  stores: Stores,
+  env: Pick<Env, 'TENANT_KEY' | 'RATE_LIMIT_CHALLENGES_PER_CLIENT' | 'RATE_LIMIT_REQUESTS_PER_IP'>,
   clientId: string,
 ): Promise<void> {
-  const ok = await env.REQUEST_GUARD.getByName(nsName(env, `client:${clientId}`)).allowRate(
-    'client',
-    limits(env).challengesPerClient,
-  );
+  const ok = await stores
+    .guard(nsName(env, `client:${clientId}`))
+    .allowRate('client', limits(env).challengesPerClient);
   if (!ok) throw tooMany('client_rate_limited', 'this site is starting too many logins; slow down');
 }

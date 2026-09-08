@@ -28,7 +28,8 @@ export interface AppEnv {
 /**
  * Build the index. Without options this is the hosted single-tenant index. A host that embeds
  * the index (docs: "Embedding the index") passes `resolveEnv` to pick per-request bindings,
- * `hooks` to take part in enrolment, logins and token issuance, and `extend` to mount routes.
+ * `hooks` to take part in enrolment, logins and token issuance, `extend` to mount routes, and
+ * `stores` to keep in-flight sessions and guards somewhere other than Durable Objects.
  */
 export function createApp(options: AppOptions = {}): Hono<AppEnv> {
   const app = new Hono<AppEnv>();
@@ -41,7 +42,7 @@ export function createApp(options: AppOptions = {}): Hono<AppEnv> {
 
   app.use('*', async (c, next) => {
     if (options.resolveEnv) c.env = await options.resolveEnv(c.req.raw, c.env);
-    const services = createServices(c.env, hooks);
+    const services = createServices(c.env, hooks, options.stores?.(c.env));
     c.set('services', services);
     try {
       await next();

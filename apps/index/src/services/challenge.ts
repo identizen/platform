@@ -47,14 +47,12 @@ export interface StartChallengeResult {
   pushedTo: Device | null;
 }
 
-/** Create a ChallengeSession for a site and, for step-up, push to the bound device. */
+/** Create a challenge session for a site and, for step-up, push to the bound device. */
 export async function startChallenge(
   services: Services,
   input: StartChallengeInput,
   env: Pick<
     Env,
-    | 'CHALLENGE_SESSION'
-    | 'REQUEST_GUARD'
     | 'TENANT_KEY'
     | 'RATE_LIMIT_CHALLENGES_PER_CLIENT'
     | 'RATE_LIMIT_REQUESTS_PER_IP'
@@ -72,7 +70,7 @@ export async function startChallenge(
       await updateSite(db, registered.clientId, { verifiedAt });
     },
   });
-  await checkClientRate(env, site.clientId);
+  await checkClientRate(services.stores, env, site.clientId);
 
   let target: Device | null = null;
   let expected: { idz: string; sub: string } | null = null;
@@ -111,8 +109,7 @@ export async function startChallenge(
     reason: input.reason ?? null,
   });
   const signed = signChallenge(challenge, indexKey.privateKey);
-  const stub = env.CHALLENGE_SESSION.getByName(nsName(env, id));
-  const state = await stub.create({
+  const state = await services.stores.challenge(nsName(env, id)).create({
     signed,
     clientId: site.clientId,
     targetDeviceId: target?.id ?? null,
@@ -147,7 +144,7 @@ export async function pushChallenge(
 ): Promise<boolean> {
   // The push-bombing guard applies to every push, whoever asked for it: discovery, a step-up,
   // or the Verification API.
-  const guard = services.env.REQUEST_GUARD.getByName(nsName(services.env, device.id));
+  const guard = services.stores.guard(nsName(services.env, device.id));
   if (!(await guard.allowPush())) {
     throw new ApiError(429, 'push_rate_limited', 'too many pushes to this device');
   }
