@@ -35,7 +35,7 @@ export function LinkIdentityRoute() {
   return (
     <DocsLayout
       title="Link an identity to a customer"
-      lede="Identizen proves that a specific phone-held identity approved a sign-in. It does not tell you who that person is. The bank attaches a person, with a name and contact details, to that identity once, on sign-up, and recognises it forever after. This page shows how."
+      lede="Identizen proves that a specific phone-held identity approved a sign-in. It does not tell you who that person is. The bank attaches a person, with a name and contact details, to that identity once, on sign-up, and recognizes it forever after. This page shows how."
     >
       <Step n={1} title="What the id_token gives you">
         <P>

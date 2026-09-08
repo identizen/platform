@@ -6,7 +6,7 @@ description: Configure Identizen as a standard OpenID Connect provider with mozi
 Identizen is a standard OpenID Connect provider (Authorization Code + PKCE). Any Django OIDC client works; this page uses `mozilla-django-oidc`.
 
 :::caution[Unverified sample]
-Written from the provider's behaviour and the library's documented settings; not yet run against Django in CI. Please report differences.
+Written from the provider's behavior and the library's documented settings; not yet run against Django in CI. Please report differences.
 :::
 
 ## Register the site
@@ -54,7 +54,7 @@ class IdentizenBackend(OIDCAuthenticationBackend):
         return "sub" in claims
 ```
 
-`acr` (`idz:login` or `idz:mfa`), `amr`, `auth_time`, `sid`, `idz_device`, and `idz_handle` (with the `handle` scope) are available in the claims; keep `sid` on the session so you can honour back-channel logout.
+`acr` (`idz:login` or `idz:mfa`), `amr`, `auth_time`, `sid`, `idz_device`, and `idz_handle` (with the `handle` scope) are available in the claims; keep `sid` on the session so you can honor back-channel logout.
 
 ## Step-up
 

@@ -5,7 +5,7 @@ import type { ChallengeStore, GuardStore, Stores } from '../src/stores';
 
 /**
  * A `Stores` over two Maps: what a host without Durable Objects would write over its database,
- * reduced to a test double. It honours the semantics documented on `ChallengeStore` and
+ * reduced to a test double. It honors the semantics documented on `ChallengeStore` and
  * `GuardStore` (lazy expiry, single-use codes, the guard's sliding windows via `GuardState`)
  * and never touches a Durable Object namespace.
  */

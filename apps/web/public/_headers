@@ -1,4 +1,4 @@
-# Security headers for every static response (Workers static assets honour this file).
+# Security headers for every static response (Workers static assets honor this file).
 #
 # - Vite bundles every script and index.html carries no inline script, so script-src stays
 #   'self'. React and Radix set inline style attributes, hence 'unsafe-inline' for styles only.

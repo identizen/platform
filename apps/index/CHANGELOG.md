@@ -22,7 +22,7 @@
   through `services.stores` instead of the `CHALLENGE_SESSION` and `REQUEST_GUARD` bindings. A
   host running the index without Durable Objects (several replicas over one database) supplies its
   own stores and the bindings are never read. The interfaces document the alarm semantics an
-  implementation must honour (expiry at `exp`, code retention, replay and rate windows, inbox
+  implementation must honor (expiry at `exp`, code retention, replay and rate windows, inbox
   draining); `GuardState`, `GuardStorage`, `GuardRecord`, the session types (`StoredSession`,
   `SessionInit`, `SessionState`, `RedeemCodeInput`, `RedeemCodeResult`, `BrowserMeta`,
   `OidcParams`), `CODE_TTL_MS` and `expireVerification` are exported so a database-backed store can
@@ -33,7 +33,7 @@
 
 ### Minor Changes
 
-- ec00d81: `hooks.onSessionCreate` may return `{ ttlSeconds }` to shorten a session (never beyond the index default), so an embedder can enforce an organisation's session maximum age.
+- ec00d81: `hooks.onSessionCreate` may return `{ ttlSeconds }` to shorten a session (never beyond the index default), so an embedder can enforce an organization's session maximum age.
 
 ## 0.2.0
 
@@ -48,7 +48,7 @@
 - 59f9011: The index, the schema package and the design system are published so a host can embed the
   index instead of forking it. `createApp(options)` gains `resolveEnv` (per-request bindings, for
   multi-tenant hosts), `extend` (extra routers) and `hooks` (challenge start, assertion,
-  enrolment, session creation, token claims). `TENANT_KEY` namespaces Durable Object names and
+  enrollment, session creation, token claims). `TENANT_KEY` namespaces Durable Object names and
   rate-limit buckets. `migrateDb` accepts several migration folders and orders them by journal
   time. Audit kinds accept host-registered values. Without options nothing changes.
 

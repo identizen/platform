@@ -7,7 +7,7 @@ The routes behind the portal's **Devices**, **Approvals** and **MDM** pages, the
 
 ## Model
 
-An **enrollment** is a one-time token, stored hashed, issued for a member. The phone that presents it becomes a **managed device** of the organisation (`org_id`, `managed: true`, an attestation status) and the enrollment links the member to the phone's identity, with the same effect as accepting an invitation plus device management. Approval is automatic (by policy, or for the MDM channel with `auto_approve_mdm`) or by an administrator from the approvals queue.
+An **enrollment** is a one-time token, stored hashed, issued for a member. The phone that presents it becomes a **managed device** of the organization (`org_id`, `managed: true`, an attestation status) and the enrollment links the member to the phone's identity, with the same effect as accepting an invitation plus device management. Approval is automatic (by policy, or for the MDM channel with `auto_approve_mdm`) or by an administrator from the approvals queue.
 
 ```ts
 type EnrollmentStatus = 'pending' | 'claimed' | 'approved' | 'denied' | 'expired' | 'revoked';
@@ -84,13 +84,13 @@ The whole policy document, including the login rules, is on the [Policy API](/en
 | `GET`  | `/orgs/enrollments`             | helpdesk+ (`members.support`) | query `status`, `member_id`, `limit`, `cursor` → `{ enrollments: Enrollment[], next_cursor }`                                                                                                            |
 | `GET`  | `/orgs/enrollments/:id`         | helpdesk+ (`members.support`) | `{ enrollment, device: ManagedDevice \| null }`                                                                                                                                                          |
 | `POST` | `/orgs/enrollments/:id/approve` | admin+ (`members.write`)      | → `{ enrollment, device, member }`. Only from `claimed` (`409 not_claimed`). Links the member (`idz`, status `active`) and marks the device managed                                                      |
-| `POST` | `/orgs/enrollments/:id/deny`    | admin+ (`members.write`)      | `{ reason? }` → `{ enrollment }`. Only from `claimed`: the device loses the organisation (`org_id` null, `managed` false) and is **revoked**, since the phone was never trusted; the member is unchanged |
+| `POST` | `/orgs/enrollments/:id/deny`    | admin+ (`members.write`)      | `{ reason? }` → `{ enrollment }`. Only from `claimed`: the device loses the organization (`org_id` null, `managed` false) and is **revoked**, since the phone was never trusted; the member is unchanged |
 | `POST` | `/orgs/enrollments/:id/revoke`  | helpdesk+ (`members.support`) | → `{ enrollment }`. Only from `pending` (`409 not_pending`): the token stops working                                                                                                                     |
 | `GET`  | `/orgs/fleet/summary`           | helpdesk+ (`members.support`) | `{ managed_devices, pending_approvals }`                                                                                                                                                                 |
 
 ## Devices
 
-`/orgs/devices` lists every device whose identity belongs to a member, managed or not, so an administrator sees the phones a member enrolled before the organisation existed as well.
+`/orgs/devices` lists every device whose identity belongs to a member, managed or not, so an administrator sees the phones a member enrolled before the organization existed as well.
 
 | Method | Path                        | Role                          | Body → Response                                                                                                                             |
 | ------ | --------------------------- | ----------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -98,7 +98,7 @@ The whole policy document, including the login rules, is on the [Policy API](/en
 | `GET`  | `/orgs/devices/:id`         | helpdesk+ (`members.support`) | `{ device, member, sessions, audit }`                                                                                                       |
 | `POST` | `/orgs/devices/:id/disable` | helpdesk+ (`members.support`) | → `{ device, sessions_revoked }`. The open index's `disabled` status: the phone cannot approve logins, its sessions are revoked; reversible |
 | `POST` | `/orgs/devices/:id/enable`  | helpdesk+ (`members.support`) | → `{ device }`. `409 not_disabled` unless the device is disabled                                                                            |
-| `POST` | `/orgs/devices/:id/revoke`  | admin+ (`members.write`)      | → `{ device, sessions_revoked }`. Irreversible; the member enrols again                                                                     |
+| `POST` | `/orgs/devices/:id/revoke`  | admin+ (`members.write`)      | → `{ device, sessions_revoked }`. Irreversible; the member enrolls again                                                                    |
 
 ## MDM tokens and profile
 
@@ -113,9 +113,9 @@ Reading the token list and the profile is gated on `org.read`, so every admin ro
 
 ## Self-service (org app)
 
-| Method | Path                   | Role                                 | Body → Response                                                                                                                                                               |
-| ------ | ---------------------- | ------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `POST` | `/orgs/me/enrollments` | bearer; member `invited` or `active` | → `IssuedEnrollment` (`201`). A member enrols another phone of their own, or their first right after accepting an invitation; channel `link`; approval follows `auto_approve` |
+| Method | Path                   | Role                                 | Body → Response                                                                                                                                                                |
+| ------ | ---------------------- | ------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `POST` | `/orgs/me/enrollments` | bearer; member `invited` or `active` | → `IssuedEnrollment` (`201`). A member enrolls another phone of their own, or their first right after accepting an invitation; channel `link`; approval follows `auto_approve` |
 
 ## MDM issue
 
@@ -133,7 +133,7 @@ The phone registers on the tenant index first (`POST /devices/nonce`, `POST /dev
 | `POST` | `/enroll/:token/claim`  | device (`Idz-Signature`)   | `{ attestation?: { platform: 'ios' \| 'android', key_id?: string, payload: string } }` → `{ enrollment, approval_required: boolean }`. Verifies the attestation when present; with `require_attestation`, a missing or failed one is `403 attestation_required` / `403 attestation_failed`. When approval is automatic, `enrollment.status` is `approved` and the member is linked |
 | `GET`  | `/enroll/:token/status` | device (inactive accepted) | → `{ status, approval_required }` for the claiming device to poll                                                                                                                                                                                                                                                                                                                  |
 
-A device already linked to another member of this organisation is refused with `409 device_already_enrolled`. A device whose identity is already a member (re-enrolment) is allowed and replaces that member's previous managed device. Claiming with a phone that is not yet managed counts against the `devices` quota (`409 quota_exceeded`).
+A device already linked to another member of this organization is refused with `409 device_already_enrolled`. A device whose identity is already a member (re-enrollment) is allowed and replaces that member's previous managed device. Claiming with a phone that is not yet managed counts against the `devices` quota (`409 quota_exceeded`).
 
 ### Attestation
 

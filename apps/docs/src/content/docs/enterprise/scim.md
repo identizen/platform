@@ -11,16 +11,16 @@ An owner or admin creates a SCIM token in **SCIM**, with a name for the system t
 
 ## What each operation does
 
-A SCIM `User` is a member of the organisation. `id` is the member id, `userName` is the email, and:
+A SCIM `User` is a member of the organization. `id` is the member id, `userName` is the email, and:
 
 | SCIM attribute                 | Member                                                                                 |
 | ------------------------------ | -------------------------------------------------------------------------------------- |
-| `userName`, `emails[primary]`  | email (unique in the organisation; 409 `uniqueness` on a clash)                        |
+| `userName`, `emails[primary]`  | email (unique in the organization; 409 `uniqueness` on a clash)                        |
 | `name.givenName`, `familyName` | kept as the member's profile; `displayName` or `name.formatted` sets the display name  |
 | `externalId`                   | your system's id for the person, searchable with `filter=externalId eq "…"`            |
 | `active`                       | `true` for `invited` and `active` members; `false` for `suspended` and `deprovisioned` |
 
-- **Create** (`POST /Users`) creates a member with the role `member`, `source: scim` and status `invited`, and emails the invitation to the address (the link is valid 7 days, as for a portal invitation). The person enrols a phone on the tenant index and accepts, as described in [Administering your organisation](/enterprise/portal/#inviting). Creating with `active: false` makes the member `suspended` straight away.
+- **Create** (`POST /Users`) creates a member with the role `member`, `source: scim` and status `invited`, and emails the invitation to the address (the link is valid 7 days, as for a portal invitation). The person enrolls a phone on the tenant index and accepts, as described in [Administering your organization](/enterprise/portal/#inviting). Creating with `active: false` makes the member `suspended` straight away.
 - **Update** (`PUT`, or `PATCH` with `replace`/`add`/`remove` operations) changes the email, names and `externalId`. `active: false` suspends the member: every session is revoked, back-channel logout goes to every site, and the phone is refused at its next login with `member_suspended`. `active: true` reinstates them (`active` if they have a phone, `invited` if they never enrolled).
 - **Delete** (`DELETE /Users/:id`) deprovisions the member: every device and session is revoked, and the member disappears from SCIM listings while staying in the portal as `deprovisioned` for the audit trail.
 - **Owners and admins are never touched by SCIM.** Deactivating or deleting one answers 403 `scim_protected_role`; demote them in the portal first.

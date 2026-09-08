@@ -1,4 +1,4 @@
-// Rasterise the social card and the icons from the brand SVGs. Social crawlers (X, LinkedIn,
+// Rasterize the social card and the icons from the brand SVGs. Social crawlers (X, LinkedIn,
 // Slack, iMessage) do not render SVG, so og.png is what they fetch. The card is rendered in
 // Chromium with the site's fonts so it matches the pages; the icons go through sharp.
 //

@@ -38,7 +38,7 @@ export async function beginEnrollment(link: EnrollmentLink): Promise<EnrollmentI
   const body = (await res.json()) as Partial<EnrollmentInfo>;
   return {
     org: {
-      display_name: body.org?.display_name ?? 'Your organisation',
+      display_name: body.org?.display_name ?? 'Your organization',
       logo_url: body.org?.logo_url ?? null,
     },
     member_email_masked: body.member_email_masked ?? '',

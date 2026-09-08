@@ -4,7 +4,7 @@ import { blogPosting, faqPage, graph, jsonLd, organization, softwareApplication 
 import { SITE } from './site';
 
 describe('structured data', () => {
-  it('builds one graph with the organisation and website first', () => {
+  it('builds one graph with the organization and website first', () => {
     const g = graph([softwareApplication()]);
     expect(g['@context']).toBe('https://schema.org');
     const types = (g['@graph'] as { '@type': string }[]).map((n) => n['@type']);
@@ -41,7 +41,7 @@ describe('structured data', () => {
     expect(post.image).toBe(`${SITE.url}/og.png`);
   });
 
-  it('serialises without a way to close the script tag', () => {
+  it('serializes without a way to close the script tag', () => {
     const out = jsonLd({ '@type': 'Thing', name: '</script><script>alert(1)</script>' });
     expect(out).not.toContain('</script>');
     expect(JSON.parse(out)).toMatchObject({ name: '</script><script>alert(1)</script>' });

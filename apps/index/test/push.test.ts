@@ -15,7 +15,7 @@ function fakeFetch(reply: (req: { url: string; init: RequestInit }) => Response)
 }
 
 describe('Expo push relay', () => {
-  it('recognises Expo push tokens and nothing else', () => {
+  it('recognizes Expo push tokens and nothing else', () => {
     expect(isExpoPushToken('ExponentPushToken[xxxxxxxxxxxxxxxxxxxxxx]')).toBe(true);
     expect(isExpoPushToken('ExpoPushToken[abc]')).toBe(true);
     expect(isExpoPushToken('a'.repeat(64))).toBe(false);

@@ -3,11 +3,11 @@ title: Setting up Identizen Cloud
 description: What a tenant is, the hostnames, data residency, what Identizen needs from you, what you receive, and how to register and verify your first site on your own index.
 ---
 
-Identizen Cloud gives your organisation its own index: a dedicated OpenID Provider with its own issuer, signing keys and database, run by Identizen on the same code as the public index. Everything on this page is what exists today. There is no self-serve sign-up: you [contact us](https://identizen.com/contact), we provision the tenant, and you receive the credentials out of band.
+Identizen Cloud gives your organization its own index: a dedicated OpenID Provider with its own issuer, signing keys and database, run by Identizen on the same code as the public index. Everything on this page is what exists today. There is no self-serve sign-up: you [contact us](https://identizen.com/contact), we provision the tenant, and you receive the credentials out of band.
 
 ## What a tenant is
 
-A tenant is one organisation's index. It has:
+A tenant is one organization's index. It has:
 
 - a **slug** (`acme`) that becomes the first label of every hostname;
 - its own **issuer**, `https://acme.index.identizen.com`, with its own OIDC signing keys, JWKS and challenge-signing key, generated at provisioning and sealed in the control plane, never shared with another tenant;
@@ -22,8 +22,8 @@ Sites, identities, devices, sessions and audit events registered on a tenant ind
 | Hostname                        | Serves                                                                                                                            | Status |
 | ------------------------------- | --------------------------------------------------------------------------------------------------------------------------------- | ------ |
 | `{tenant}.index.identizen.com`  | The index: OIDC, challenges, discovery, `/me`, the Verification API, the org API                                                  | Today  |
-| `{tenant}.portal.identizen.com` | [Admin portal](/enterprise/portal/): organisation profile, domains, users and roles, devices, policy, sites, sessions, MDM, audit | Today  |
-| `{tenant}.app.identizen.com`    | [Organisation app](/enterprise/org-app/): members' devices, paired browsers, sessions, activity, invitations                      | Today  |
+| `{tenant}.portal.identizen.com` | [Admin portal](/enterprise/portal/): organization profile, domains, users and roles, devices, policy, sites, sessions, MDM, audit | Today  |
+| `{tenant}.app.identizen.com`    | [Organization app](/enterprise/org-app/): members' devices, paired browsers, sessions, activity, invitations                      | Today  |
 
 The portal and the app are registered as OIDC clients on the tenant's index when the tenant is provisioned; you do not register them. Exactly one label precedes the surface: `a.b.index.identizen.com` is not a tenant host.
 
@@ -51,14 +51,14 @@ Residency is fixed at provisioning and never moved. If you need a region other t
 
 ## What you receive
 
-| Item               | Value                                                                                                                                                                                                                                                                                                                                  |
-| ------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Issuer             | `https://{tenant}.index.identizen.com`                                                                                                                                                                                                                                                                                                 |
-| Discovery          | `https://{tenant}.index.identizen.com/.well-known/openid-configuration`                                                                                                                                                                                                                                                                |
-| JWKS               | `https://{tenant}.index.identizen.com/.well-known/jwks.json`                                                                                                                                                                                                                                                                           |
-| Registration token | Handed over out of band. It is the tenant's `SITE_REGISTRATION_TOKEN`: the bearer that `POST /sites` requires on your index. Keep it where you keep deployment secrets; it is not needed at runtime by any site, only when registering one. Ask us to rotate it.                                                                       |
-| Owner invitation   | A link, `https://{tenant}.portal.identizen.com/invite?token=…`, issued to your admin contact and handed over out of band. It works once and expires after 7 days; ask us for a new one if it lapses. The owner enrols a phone on your index, opens the link and accepts ([the steps](/enterprise/portal/#getting-the-first-owner-in)). |
-| Portal and app     | `https://{tenant}.portal.identizen.com` and `https://{tenant}.app.identizen.com`, already registered as OIDC clients on your index. Nothing to configure.                                                                                                                                                                              |
+| Item               | Value                                                                                                                                                                                                                                                                                                                                   |
+| ------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Issuer             | `https://{tenant}.index.identizen.com`                                                                                                                                                                                                                                                                                                  |
+| Discovery          | `https://{tenant}.index.identizen.com/.well-known/openid-configuration`                                                                                                                                                                                                                                                                 |
+| JWKS               | `https://{tenant}.index.identizen.com/.well-known/jwks.json`                                                                                                                                                                                                                                                                            |
+| Registration token | Handed over out of band. It is the tenant's `SITE_REGISTRATION_TOKEN`: the bearer that `POST /sites` requires on your index. Keep it where you keep deployment secrets; it is not needed at runtime by any site, only when registering one. Ask us to rotate it.                                                                        |
+| Owner invitation   | A link, `https://{tenant}.portal.identizen.com/invite?token=…`, issued to your admin contact and handed over out of band. It works once and expires after 7 days; ask us for a new one if it lapses. The owner enrolls a phone on your index, opens the link and accepts ([the steps](/enterprise/portal/#getting-the-first-owner-in)). |
+| Portal and app     | `https://{tenant}.portal.identizen.com` and `https://{tenant}.app.identizen.com`, already registered as OIDC clients on your index. Nothing to configure.                                                                                                                                                                               |
 
 The registration token and the owner invitation are the only credentials Identizen hands you. Everything else (client ids, client secrets for your own sites) is created by you when you register sites, printed once, and never stored by the index in a recoverable form.
 
@@ -104,7 +104,7 @@ Until then logins fail with [`site_unverified`](/errors/#site_unverified). The i
 
 ## Point everything at your issuer
 
-Every SDK, guide and framework recipe in these docs works unchanged with `indexUrl` set to your issuer. `createIdentizenServer({ indexUrl: 'https://acme.index.identizen.com', … })` fetches your discovery document and JWKS, and `verifyIdToken` pins `iss` to it. A phone holds the same identity on several indexes at once: in the Identizen app, add your issuer under **Settings → Indexes**, or let an enrolment link add it (from the next app build; the build in the stores today registers with one index at a time, set in Settings before registering); for development, `npx identizen dev --index https://acme.index.identizen.com` runs the fake phone against it.
+Every SDK, guide and framework recipe in these docs works unchanged with `indexUrl` set to your issuer. `createIdentizenServer({ indexUrl: 'https://acme.index.identizen.com', … })` fetches your discovery document and JWKS, and `verifyIdToken` pins `iss` to it. A phone holds the same identity on several indexes at once: in the Identizen app, add your issuer under **Settings → Indexes**, or let an enrollment link add it (from the next app build; the build in the stores today registers with one index at a time, set in Settings before registering); for development, `npx identizen dev --index https://acme.index.identizen.com` runs the fake phone against it.
 
 ## What is different from the public index
 
@@ -114,7 +114,7 @@ Every SDK, guide and framework recipe in these docs works unchanged with `indexU
 | One issuer and JWKS shared by every site   | Your own issuer, JWKS and challenge-signing key                                                          |
 | One shared database (US)                   | Your own Postgres in the US or the EU                                                                    |
 | Dashboard at `app.identizen.com`           | Your own at `{tenant}.app.identizen.com`, plus the admin portal at `{tenant}.portal.identizen.com`       |
-| No organisation; every identity is its own | An organisation with owners, admins, helpdesk, auditors and members, invited and managed from the portal |
+| No organization; every identity is its own | An organization with owners, admins, helpdesk, auditors and members, invited and managed from the portal |
 | Provisioned by nobody; anyone can register | Provisioned by Identizen after you contact us                                                            |
 
-Everything else is identical: the same routes, the same claims, the same SDKs and CLI, the same domain verification, the same revocation and back-channel logout, the same audit events, and the same rule that the index holds nothing that can sign for a person. The tenant Worker is `@identizen/index` with per-request bindings resolved from the hostname; the protocol behaviour is the open code's.
+Everything else is identical: the same routes, the same claims, the same SDKs and CLI, the same domain verification, the same revocation and back-channel logout, the same audit events, and the same rule that the index holds nothing that can sign for a person. The tenant Worker is `@identizen/index` with per-request bindings resolved from the hostname; the protocol behavior is the open code's.

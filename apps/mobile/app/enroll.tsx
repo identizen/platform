@@ -39,7 +39,7 @@ export default function Enroll() {
     void pollEnrollment(pending, { signal: controller.signal }).then((result) => {
       if (controller.signal.aborted) return;
       if (result === 'timeout') setPhase({ kind: 'waiting', org: pending.org, polling: false });
-      else if (result !== 'cancelled') setPhase({ kind: result, org: pending.org });
+      else if (result !== 'canceled') setPhase({ kind: result, org: pending.org });
     });
   }, []);
 
@@ -48,11 +48,11 @@ export default function Enroll() {
       setPhase({ kind: 'invalid' });
       return;
     }
-    let cancelled = false;
+    let canceled = false;
     setPhase({ kind: 'loading' });
     void (async () => {
       const state = await readEnrollment();
-      if (cancelled) return;
+      if (canceled) return;
       // Reopened from Home (or a second tap on the same link) after claiming: resume polling.
       if (state.pending && state.pending.token === link.token) {
         poll(state.pending);
@@ -61,18 +61,18 @@ export default function Enroll() {
       try {
         const next = await beginEnrollment(link);
         info.current = next;
-        if (!cancelled) setPhase({ kind: 'ready', info: next, busy: false });
+        if (!canceled) setPhase({ kind: 'ready', info: next, busy: false });
       } catch (err) {
-        if (!cancelled) setPhase(errorPhase(toEnrollmentError(err)));
+        if (!canceled) setPhase(errorPhase(toEnrollmentError(err)));
       }
     })();
     return () => {
-      cancelled = true;
+      canceled = true;
       abort.current?.abort();
     };
   }, [link, poll, attempt]);
 
-  const enrol = async () => {
+  const enroll = async () => {
     if (!link || phase.kind !== 'ready') return;
     setPhase({ ...phase, busy: true });
     try {
@@ -93,7 +93,7 @@ export default function Enroll() {
   return (
     <EnrollScreen
       phase={phase}
-      onEnrol={() => void enrol()}
+      onEnroll={() => void enroll()}
       onCheckLater={leave}
       onRetry={() => {
         // A failed claim keeps the org sheet; a failed begin fetches it again.

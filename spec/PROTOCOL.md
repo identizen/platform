@@ -70,7 +70,7 @@ Issued by the index's `ChallengeSession` Durable Object when a site starts a log
 | `nonce`      | 32 random bytes, base64url. Echoed in the assertion.                                                                                         |
 | `code`       | 2-digit match code (`"00"`–`"99"`), shown in the browser **and** on the phone. Number matching defeats push-bombing.                         |
 | `iat`, `exp` | Unix seconds. `exp - iat = 60`. Expired challenges are rejected by both phone and index.                                                     |
-| `index`      | Issuer URL of the index that created the challenge. The phone only honours challenges from indexes whose public key it has pinned.           |
+| `index`      | Issuer URL of the index that created the challenge. The phone only honors challenges from indexes whose public key it has pinned.            |
 | `acr`        | `"idz:login"` (Path A) or `"idz:mfa"` (Path B step-up and Verification API). The phone chooses its approval UI from it.                      |
 | `reason`     | `null` for plain logins, else a site-supplied string ≤ 140 chars. Displayed verbatim on the phone. Its hash is echoed in the assertion (§4). |
 
@@ -123,7 +123,7 @@ The assertion is **signed twice** (type `"assertion"`, §2):
 7. **TOFU binding.** Look up `(rp_id, sub)` in `site_bindings`. If absent, create it with `site_pubkey` and the device's `idz`. If present, require `site_pubkey` and `idz` to match; otherwise reject (`409 binding_conflict`).
 8. Resolve the challenge as `approved` (the session is the one authority; a competing denial or expiry wins) and only then record the Verification API result, notify the site, and audit. Every failure branch records `login.denied` with the reason.
 
-A phone that receives a challenge for a `rp_id` it does not recognise still signs with the derived key for that `rp_id`; the site domain is inside the signed payload, so a phished login on a lookalike domain produces a signature the real site's `rp_id` will never match.
+A phone that receives a challenge for a `rp_id` it does not recognize still signs with the derived key for that `rp_id`; the site domain is inside the signed payload, so a phished login on a lookalike domain produces a signature the real site's `rp_id` will never match.
 
 ## 5. OIDC output
 
@@ -171,7 +171,7 @@ The phone advertises service UUID `f1d0e1a2-1d2e-4b0c-9c0d-1d3e2f4a5b6c` with a 
 rotating_id = HMAC-SHA256(device_ble_key, UTF8(decimal(floor(now / 900))))[0:16]
 ```
 
-The window is 900 s. The advertisement carries the service UUID and the local name `Identizen`; the service exposes one read-only characteristic, `f1d0e1a2-1d2e-4b0c-9c0d-1d3e2f4a5b6d`, whose value is the 16 raw bytes of the current `rotating_id`. The phone answers reads dynamically, so a window change never requires re-advertising. The SDK scans, connects, reads the characteristic, sends `{ rotating_id }` to `POST /discover/ble`, and the index resolves it to a device by evaluating the current window and ±1 neighbouring windows for every active device's `ble_key`. On a match the index pushes the challenge. A passive observer cannot track a device by BLE: identifiers rotate and only the index holds the key.
+The window is 900 s. The advertisement carries the service UUID and the local name `Identizen`; the service exposes one read-only characteristic, `f1d0e1a2-1d2e-4b0c-9c0d-1d3e2f4a5b6d`, whose value is the 16 raw bytes of the current `rotating_id`. The phone answers reads dynamically, so a window change never requires re-advertising. The SDK scans, connects, reads the characteristic, sends `{ rotating_id }` to `POST /discover/ble`, and the index resolves it to a device by evaluating the current window and ±1 neighboring windows for every active device's `ble_key`. On a match the index pushes the challenge. A passive observer cannot track a device by BLE: identifiers rotate and only the index holds the key.
 
 ### 6.4 Browser pairing (all browsers)
 
@@ -231,9 +231,9 @@ sig = Ed25519.sign(deviceKey, UTF8("identizen/v1/request\n" + METHOD + "\n" + PA
 { "device_pubkey": <base64url>, "index": <INDEX_URL>, "nonce": <nonce> }
 ```
 
-where `nonce` was obtained moments earlier from `POST /devices/nonce` on the same index (valid for two minutes) and `index` is that index's URL. The nonce binds the proof to one index and one moment, and the rule below makes replaying it pointless: a captured proof cannot enrol the key a second time, or on another index. The legacy proof over `{ "device_pubkey": … }` alone (before nonces) may still be accepted by an index for app builds that predate it.
+where `nonce` was obtained moments earlier from `POST /devices/nonce` on the same index (valid for two minutes) and `index` is that index's URL. The nonce binds the proof to one index and one moment, and the rule below makes replaying it pointless: a captured proof cannot enroll the key a second time, or on another index. The legacy proof over `{ "device_pubkey": … }` alone (before nonces) may still be accepted by an index for app builds that predate it.
 
-A device key is enrolled at most once. Registering an active key again returns its existing enrolment (`200`); a revoked or disabled key is refused (`403 device_revoked`) and the phone must enrol with a fresh device key. The index derives `idz` from `master_pubkey`, so a restored phone (new device key, same seed) joins the existing identity.
+A device key is enrolled at most once. Registering an active key again returns its existing enrollment (`200`); a revoked or disabled key is refused (`403 device_revoked`) and the phone must enroll with a fresh device key. The index derives `idz` from `master_pubkey`, so a restored phone (new device key, same seed) joins the existing identity.
 
 ### 8.2 Site verification record
 

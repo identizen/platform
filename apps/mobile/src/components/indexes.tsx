@@ -163,7 +163,7 @@ export function IndexesCard(p: IndexesCardProps) {
       <Text className="font-medium text-base text-fg dark:text-fg-dark">Indexes</Text>
       <Muted>
         One recovery phrase, the same identity on every index. The public index is where sites find
-        you; an organisation adds its own when you enrol. The active one is what Home and the lists
+        you; an organization adds its own when you enroll. The active one is what Home and the lists
         show.
       </Muted>
       {p.indexes.map((i) => (

@@ -3,7 +3,7 @@
  *
  * - Object keys sorted by UTF-16 code units.
  * - No insignificant whitespace.
- * - Numbers serialised per ECMAScript Number::toString (ES6 shortest round-trip form).
+ * - Numbers serialized per ECMAScript Number::toString (ES6 shortest round-trip form).
  * - Strings escaped per RFC 8785 section 3.2.2.2 (which matches JSON.stringify).
  * - `undefined` properties are omitted; `undefined` array elements become `null`.
  * - NaN / Infinity / BigInt / functions / symbols are rejected.
@@ -22,12 +22,12 @@ function serialize(value: unknown, topLevel: boolean): string {
       return value ? 'true' : 'false';
     case 'number':
       if (!Number.isFinite(value)) throw new TypeError('JCS: non-finite number');
-      // -0 serialises as 0 per ES Number::toString.
+      // -0 serializes as 0 per ES Number::toString.
       return Object.is(value, -0) ? '0' : String(value);
     case 'string':
       return JSON.stringify(value);
     case 'undefined':
-      if (topLevel) throw new TypeError('JCS: undefined is not serialisable');
+      if (topLevel) throw new TypeError('JCS: undefined is not serializable');
       return 'null';
     case 'bigint':
     case 'function':

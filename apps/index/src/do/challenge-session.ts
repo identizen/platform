@@ -255,7 +255,7 @@ export class ChallengeSession extends DurableObject<Env> {
     if (s.clientId !== input.clientId) {
       return fail('invalid_grant', 'code was issued to another client');
     }
-    // Defence in depth: the redirect must still be one the site registered, and the one the
+    // Defense in depth: the redirect must still be one the site registered, and the one the
     // authorization request used.
     if (
       s.oidc.redirect_uri !== undefined &&

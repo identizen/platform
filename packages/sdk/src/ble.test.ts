@@ -25,7 +25,7 @@ function fakeBluetooth(
   const device = opts.noGatt ? {} : { gatt };
   const bluetooth = {
     requestDevice: vi.fn(async (options: RequestDeviceOptions) => {
-      if (opts.rejectChooser) throw new DOMException('User cancelled', 'NotFoundError');
+      if (opts.rejectChooser) throw new DOMException('User canceled', 'NotFoundError');
       expect((options as { filters?: { services?: string[] }[] }).filters?.[0]?.services).toEqual([
         BLE_SERVICE_UUID,
       ]);

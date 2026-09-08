@@ -4,8 +4,8 @@ description: Build on @identizen/index instead of forking it. Per-request bindin
 ---
 
 The hosted index and a self-hosted one are the same Worker: `createApp()` with no options. A host
-that needs more, an organisation running several tenants or a product that adds its own policy,
-embeds the index as a library and keeps every route, check and protocol behaviour it ships with.
+that needs more, an organization running several tenants or a product that adds its own policy,
+embeds the index as a library and keeps every route, check and protocol behavior it ships with.
 
 ```bash
 npm install @identizen/index @identizen/db hono
@@ -60,13 +60,13 @@ database, the index keys, the push sender). Throwing an `ApiError` refuses that 
 error's status and code, which is how a policy says no; the refusal is audited like any other
 denial.
 
-| Hook               | Runs                                                        | Typical use                                   |
-| ------------------ | ----------------------------------------------------------- | --------------------------------------------- |
-| `onChallengeStart` | before a challenge is created, with the site and the target | workforce-only sites, login windows           |
-| `onAssert`         | after the assertion verified, before approval               | attestation or device-policy checks           |
-| `onEnroll`         | before a device (and possibly its identity) is written      | closed enrolment, org-issued enrolment tokens |
-| `onSessionCreate`  | before the OIDC session row at code exchange                | session limits per site or org                |
-| `onTokenClaims`    | for the id_token and `/userinfo`                            | `idz_role` and other org claims               |
+| Hook               | Runs                                                        | Typical use                                     |
+| ------------------ | ----------------------------------------------------------- | ----------------------------------------------- |
+| `onChallengeStart` | before a challenge is created, with the site and the target | workforce-only sites, login windows             |
+| `onAssert`         | after the assertion verified, before approval               | attestation or device-policy checks             |
+| `onEnroll`         | before a device (and possibly its identity) is written      | closed enrollment, org-issued enrollment tokens |
+| `onSessionCreate`  | before the OIDC session row at code exchange                | session limits per site or org                  |
+| `onTokenClaims`    | for the id_token and `/userinfo`                            | `idz_role` and other org claims                 |
 
 Extra claims from `onTokenClaims` never override the standard ones: `sub`, `sid`, `amr`, `acr`,
 `auth_time`, `idz_device`, `idz_handle`, `idz_org` and `at_hash` are always the index's.

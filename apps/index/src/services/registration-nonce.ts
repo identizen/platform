@@ -3,12 +3,12 @@
  * that the phone binds into its identity proof, so a proof only works on this index and only for
  * two minutes. The token is stateless: an HMAC under a key derived from the index signing key.
  * Nothing needs to remember it, because a device key is enrolled at most once: a replayed proof
- * finds its key already known and cannot create a second enrolment.
+ * finds its key already known and cannot create a second enrollment.
  */
 import { fromBase64Url, randomBytes, sha256, toBase64Url, utf8Encode } from '@identizen/protocol';
 import type { Services } from '../lib/services';
 
-/** A nonce must be used within two minutes of issue: enrolment takes seconds. */
+/** A nonce must be used within two minutes of issue: enrollment takes seconds. */
 export const REGISTRATION_NONCE_TTL_MS = 2 * 60_000;
 const EXP_BYTES = 8;
 const RANDOM_BYTES = 16;

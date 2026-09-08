@@ -160,7 +160,7 @@ describe('enrollment deep links', () => {
     expect(parseEnrollmentLink(`https://acme.test/other?index=${ORG}&token=${TOKEN}`)).toBeNull();
   });
 
-  it('normalises the issuer and tolerates odd query strings', () => {
+  it('normalizes the issuer and tolerates odd query strings', () => {
     expect(normalizeIndexUrl(' HTTPS://Acme.Index.Test/// ')).toBe('https://acme.index.test');
     expect(normalizeIndexUrl('http://localhost:8787/')).toBe('http://localhost:8787');
     expect(normalizeIndexUrl('http://127.0.0.1:8787')).toBe('http://127.0.0.1:8787');
@@ -472,7 +472,7 @@ describe('enrollment state machine', () => {
     expect((await readEnrollment()).pending).toEqual(pending);
 
     const controller = new AbortController();
-    const cancelled = pollEnrollment(pending, {
+    const canceled = pollEnrollment(pending, {
       intervalMs: 5000,
       sleep: () => {
         controller.abort();
@@ -480,7 +480,7 @@ describe('enrollment state machine', () => {
       },
       signal: controller.signal,
     });
-    expect(await cancelled).toBe('cancelled');
+    expect(await canceled).toBe('canceled');
 
     arrange({ status: [{ status: 200, body: { status: 'denied', approval_required: true } }] });
     expect(await checkPendingEnrollment(pending)).toBe('denied');

@@ -51,7 +51,7 @@ function isLocalAddress(hostname: string): boolean {
     if (v6 === '::' || v6 === '::1') return true;
     if (/^fc|^fd/.test(v6)) return true; // fc00::/7 unique local
     if (/^fe[89ab]/.test(v6)) return true; // fe80::/10 link local
-    // IPv4-mapped: URL parsing normalises ::ffff:10.0.0.1 to ::ffff:a00:1.
+    // IPv4-mapped: URL parsing normalizes ::ffff:10.0.0.1 to ::ffff:a00:1.
     const dotted = /^::ffff:(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})$/.exec(v6);
     if (dotted?.[1]) return isLocalAddress(dotted[1]);
     const hex = /^::ffff:([0-9a-f]{1,4}):([0-9a-f]{1,4})$/.exec(v6);

@@ -1,5 +1,5 @@
 /**
- * Receive -> verify -> approve/deny. The phone only honours challenges signed by the index whose
+ * Receive -> verify -> approve/deny. The phone only honors challenges signed by the index whose
  * public key it pinned at registration (PROTOCOL.md section 3).
  *
  * Which index a challenge belongs to: the `index` field of the signed payload is the authority.

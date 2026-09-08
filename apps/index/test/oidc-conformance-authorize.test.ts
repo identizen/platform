@@ -235,7 +235,7 @@ describe('OpenID Connect Core 1.0 §3.1.2 authorization endpoint', () => {
     expect(decodeJwt(tokens.id_token).acr).toBe('idz:login');
   });
 
-  it('Core §3.1.2.1: an unknown prompt value is carried through without error (index behaviour; the spec defines no error for it)', async () => {
+  it('Core §3.1.2.1: an unknown prompt value is carried through without error (index behavior; the spec defines no error for it)', async () => {
     const site = await registerSite();
     const res = await authorize(authorizeParams(site.client_id, { prompt: 'unknown_value' }));
     expect(res.status).toBe(200);
@@ -295,7 +295,7 @@ describe('OpenID Connect Core 1.0 §3.1.2 authorization endpoint', () => {
     expect(decodeJwt(voluntary.tokens.id_token).acr).toBe('idz:login');
   });
 
-  it('Core §3.1.2.1: login_hint with a bound sub is honoured; an unbound sub yields login_required (Identizen reads login_hint as the per-site sub)', async () => {
+  it('Core §3.1.2.1: login_hint with a bound sub is honored; an unbound sub yields login_required (Identizen reads login_hint as the per-site sub)', async () => {
     const site = await registerSite();
     const phone = await registerPhone();
     const unbound = await expectErrorRedirect(
@@ -303,7 +303,7 @@ describe('OpenID Connect Core 1.0 §3.1.2 authorization endpoint', () => {
       'login_required',
     );
     expect(unbound.get('state')).toBe('lh');
-    // Enrol (prompt=enroll binds sub to the phone), then a login_hint login is pushed.
+    // Enroll (prompt=enroll binds sub to the phone), then a login_hint login is pushed.
     const enrolled = await authorizeAndApprove(site, phone, { prompt: 'enroll' });
     expect((await exchange(site, enrolled.code)).status).toBe(200);
     const hinted = await authorizeAndApprove(site, phone, { login_hint: enrolled.sub });

@@ -20,7 +20,7 @@ const enterprise = [
   'Login policy: managed devices only, biometric class, login windows, session age',
   'SSO apps, a SAML 2.0 identity provider, SCIM 2.0 from Okta or Entra',
   'Audit export, signed SIEM webhooks, retention, status page and quotas',
-  'On-prem edition: signed containers, compose bundle, Helm chart, licence',
+  'On-prem edition: signed containers, compose bundle, Helm chart, license',
 ];
 
 /** What each edition includes. Both columns are what ships today, per the docs. */
@@ -48,9 +48,9 @@ const editions: { item: string; cloud: string; onprem: string }[] = [
     onprem: 'Wherever you run it',
   },
   {
-    item: 'Licence',
+    item: 'License',
     cloud: 'None; a subscription',
-    onprem: 'A signed licence with seat count and 14-day grace',
+    onprem: 'A signed license with seat count and 14-day grace',
   },
   {
     item: 'Packaging',
@@ -88,15 +88,15 @@ const plans: { name: string; text: string; quotas: [string, string][] }[] = [
 const faq = [
   [
     'Is Identizen open source?',
-    'Identizen is open core. The protocol, the index and every route it serves, the database schema and migrations, the SDKs, the CLI and fake phone, the design system, the personal dashboard and the mobile app are Apache-2.0 and stay that way. What is proprietary is the layer that runs the open index for an organisation.',
+    'Identizen is open core. The protocol, the index and every route it serves, the database schema and migrations, the SDKs, the CLI and fake phone, the design system, the personal dashboard and the mobile app are Apache-2.0 and stay that way. What is proprietary is the layer that runs the open index for an organization.',
   ],
   [
     'What exactly is proprietary?',
-    'The multi-tenant control plane (tenant provisioning, sealed secrets, hostnames), the admin portal and org app, the enterprise extensions to the index (the org API, enrollment, fleet and MDM, login policy, the SAML identity provider, SCIM, audit export, SIEM webhooks, retention and status) and the on-prem packaging with its licence. Nothing in it changes what the open index promises, and nothing in it holds a private key.',
+    'The multi-tenant control plane (tenant provisioning, sealed secrets, hostnames), the admin portal and org app, the enterprise extensions to the index (the org API, enrollment, fleet and MDM, login policy, the SAML identity provider, SCIM, audit export, SIEM webhooks, retention and status) and the on-prem packaging with its license. Nothing in it changes what the open index promises, and nothing in it holds a private key.',
   ],
   [
     'Can I self-host?',
-    'Yes. The open index runs on your own Cloudflare account or in a container, for free, with no licence and no seat count; the self-hosting guide covers it. The on-prem enterprise edition, which adds the portal, policy, SSO, SCIM and audit export inside your boundary, needs a licence.',
+    'Yes. The open index runs on your own Cloudflare account or in a container, for free, with no license and no seat count; the self-hosting guide covers it. The on-prem enterprise edition, which adds the portal, policy, SSO, SCIM and audit export inside your boundary, needs a license.',
   ],
   [
     'What counts as an active device?',
@@ -104,7 +104,7 @@ const faq = [
   ],
   [
     'Can we leave?',
-    'Yes. The portal exports the audit log and the organisation data as CSV or JSON, the protocol and the index are open, and every site integrates over standard OpenID Connect, so nothing at the integration boundary is ours. Phones register with one index at a time, so moving to another index means re-enrolling them.',
+    'Yes. The portal exports the audit log and the organization data as CSV or JSON, the protocol and the index are open, and every site integrates over standard OpenID Connect, so nothing at the integration boundary is ours. Phones register with one index at a time, so moving to another index means re-enrolling them.',
   ],
   [
     'Do you ever hold a private key?',
@@ -120,7 +120,7 @@ const faq = [
   <PageHeader
     eyebrow="Pricing"
     title="Free to run. Paid to not have to."
-    lede="The open index is free to run. Enterprise is the layer that runs it for your organisation: a tenant index, a portal, policy, SSO and audit, in our cloud or in your boundary."
+    lede="The open index is free to run. Enterprise is the layer that runs it for your organization: a tenant index, a portal, policy, SSO and audit, in our cloud or in your boundary."
   />
 
   <section class="container-site pb-16">
@@ -155,7 +155,7 @@ const faq = [
         <p class="eyebrow">Identizen Cloud · On-prem</p>
         <h2 id="ent" class="mt-2 text-2xl font-semibold tracking-tight">Enterprise</h2>
         <p class="mt-1 text-sm text-fg-muted">
-          Available today. Your own index, run for your organisation, in our cloud or in yours.
+          Available today. Your own index, run for your organization, in our cloud or in yours.
         </p>
         <p class="headline mt-6 text-3xl sm:text-4xl">
           Per active device<span class="text-base font-normal text-fg-muted"> / month</span>
@@ -206,7 +206,7 @@ const faq = [
         <p class="eyebrow">Cloud or on-prem</p>
         <h2 id="editions" class="headline mt-3 text-3xl">Same code, two places to run it</h2>
         <p class="mt-4 text-lg text-fg-muted">
-          Identizen Cloud is a dedicated tenant index per organisation, provisioned by us on
+          Identizen Cloud is a dedicated tenant index per organization, provisioned by us on
           request. On-prem is the same edition packaged for your own boundary.
         </p>
       </div>
@@ -255,7 +255,7 @@ const faq = [
         </p>
         <p class="mt-4 leading-relaxed text-fg-muted">
           Both plans include every capability above; they differ in isolation and quotas. Identizen
-          can raise any quota for a tenant. The on-prem licence is priced on the same metric and
+          can raise any quota for a tenant. The on-prem license is priced on the same metric and
           carries a seat count sized to your fleet.
         </p>
       </div>

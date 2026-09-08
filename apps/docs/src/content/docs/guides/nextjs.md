@@ -1,6 +1,6 @@
 ---
 title: Next.js
-description: What `identizen init` scaffolds in a Next.js app router project, and how to customise it.
+description: What `identizen init` scaffolds in a Next.js app router project, and how to customize it.
 ---
 
 Run `npx identizen init` in a Next.js (app router) project. It detects `next` in `package.json`, registers the site, writes `.env.local`, adds `@identizen/sdk`, `@identizen/react`, and `jose` to your dependencies, and writes these files (existing files are kept unless you pass `--force`):

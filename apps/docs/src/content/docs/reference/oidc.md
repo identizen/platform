@@ -94,7 +94,7 @@ A decoded id_token after a login from the demo bank looks like this (values shor
 | `at_hash`    | left-most 128 bits of SHA-256 of the access token, base64url                                                                                                                                                                                   |
 | `idz_device` | per-site device id (`dev_…`) for your own session/device UI; derived per site like `sub`, so another site sees a different value for the same phone                                                                                            |
 | `idz_handle` | the user's handle — only with the `handle` scope and only if the user set one                                                                                                                                                                  |
-| `idz_org`    | organisation id for org identities (absent for personal)                                                                                                                                                                                       |
+| `idz_org`    | organization id for org identities (absent for personal)                                                                                                                                                                                       |
 
 Verify with the JWKS at `/.well-known/jwks.json`; two ES256 keys are published so rotation never breaks verification.
 

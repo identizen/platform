@@ -192,7 +192,7 @@ export const OPENAPI_DOCUMENT: Record<string, unknown> = {
         ],
         "operationId": "getWellKnownIdentizen",
         "summary": "Pinned index key and app URL",
-        "description": "Public index metadata. Phones pin `index_pubkey` at registration and only honour\nchallenges and pairings signed by it.\n",
+        "description": "Public index metadata. Phones pin `index_pubkey` at registration and only honor\nchallenges and pairings signed by it.\n",
         "responses": {
           "200": {
             "description": "Index metadata.",
@@ -715,7 +715,7 @@ export const OPENAPI_DOCUMENT: Record<string, unknown> = {
         ],
         "operationId": "registerDevice",
         "summary": "Register an install (and, on first sight of the master key, its identity)",
-        "description": "The one unsigned phone request (PROTOCOL.md §8.1). `master_sig` is an Ed25519\nsignature of type `identity` by `master_pubkey` over `{ device_pubkey, index, nonce }`,\nwhere `nonce` came from `POST /devices/nonce` moments earlier (valid two minutes) and `index` is this index's URL; the legacy proof over `{ device_pubkey }`\nalone is still accepted for app builds that predate nonces. A device key is enrolled at\nmost once: registering an active key again returns its existing enrolment (`200`), and a\nrevoked key is refused (`403 device_revoked`). The identity id `idz` is derived from\nthe master public key, so a restored phone re-registers against the same identity.\n`handle` and `kind` only apply when the identity is created. Rate limited per source IP.\n",
+        "description": "The one unsigned phone request (PROTOCOL.md §8.1). `master_sig` is an Ed25519\nsignature of type `identity` by `master_pubkey` over `{ device_pubkey, index, nonce }`,\nwhere `nonce` came from `POST /devices/nonce` moments earlier (valid two minutes) and `index` is this index's URL; the legacy proof over `{ device_pubkey }`\nalone is still accepted for app builds that predate nonces. A device key is enrolled at\nmost once: registering an active key again returns its existing enrollment (`200`), and a\nrevoked key is refused (`403 device_revoked`). The identity id `idz` is derived from\nthe master public key, so a restored phone re-registers against the same identity.\n`handle` and `kind` only apply when the identity is created. Rate limited per source IP.\n",
         "requestBody": {
           "required": true,
           "content": {
@@ -728,7 +728,7 @@ export const OPENAPI_DOCUMENT: Record<string, unknown> = {
         },
         "responses": {
           "200": {
-            "description": "This device key is already enrolled and active; its existing enrolment (same shape as `201`).",
+            "description": "This device key is already enrolled and active; its existing enrollment (same shape as `201`).",
             "content": {
               "application/json": {
                 "schema": {
@@ -823,7 +823,7 @@ export const OPENAPI_DOCUMENT: Record<string, unknown> = {
             }
           },
           "403": {
-            "description": "`device_revoked` — this device key was revoked or disabled; enrol with a fresh key.",
+            "description": "`device_revoked` — this device key was revoked or disabled; enroll with a fresh key.",
             "content": {
               "application/json": {
                 "schema": {
@@ -2326,7 +2326,7 @@ export const OPENAPI_DOCUMENT: Record<string, unknown> = {
         ],
         "operationId": "registerSite",
         "summary": "Register a site (relying party)",
-        "description": "Open when the index runs with `OPEN_SITE_REGISTRATION=true` (dev / self-host);\notherwise `Authorization: Bearer <SITE_REGISTRATION_TOKEN>` is required\n(`403 registration_closed`). The `client_id` is `idz_<environment>_<ULID>`.\nConfidential sites receive `client_secret` once; sites with a `webhook_url` receive\n`webhook_secret` once. `rp_id` is normalised; a host may be registered more than once, and each live registration must prove the domain before it can start logins (`verification` in the response, PROTOCOL.md §8.2).\n",
+        "description": "Open when the index runs with `OPEN_SITE_REGISTRATION=true` (dev / self-host);\notherwise `Authorization: Bearer <SITE_REGISTRATION_TOKEN>` is required\n(`403 registration_closed`). The `client_id` is `idz_<environment>_<ULID>`.\nConfidential sites receive `client_secret` once; sites with a `webhook_url` receive\n`webhook_secret` once. `rp_id` is normalized; a host may be registered more than once, and each live registration must prove the domain before it can start logins (`verification` in the response, PROTOCOL.md §8.2).\n",
         "security": [
           {},
           {
@@ -3161,7 +3161,7 @@ export const OPENAPI_DOCUMENT: Record<string, unknown> = {
                 },
                 "idz_org": {
                   "type": "string",
-                  "description": "Organisation id for org identities; absent for personal identities."
+                  "description": "Organization id for org identities; absent for personal identities."
                 }
               }
             }
@@ -4139,7 +4139,7 @@ export const OPENAPI_DOCUMENT: Record<string, unknown> = {
             "type": "string",
             "minLength": 1,
             "maxLength": 253,
-            "description": "The site host; normalised before storage."
+            "description": "The site host; normalized before storage."
           },
           "redirect_uris": {
             "type": "array",

@@ -1,9 +1,9 @@
 ---
-title: Organisation API
-description: The organisation profile, verified domains, members and invitations, the audit log and the admin-actions log on a tenant index — every route with its role, body and response.
+title: Organization API
+description: The organization profile, verified domains, members and invitations, the audit log and the admin-actions log on a tenant index — every route with its role, body and response.
 ---
 
-The routes the portal's **Organisation**, **Domains**, **Users** and **Audit** pages use, plus the public and session routes a UI needs before and after sign-in. Authentication, roles and the error shape are on the [overview](/enterprise/api/); the administrator's view is [Administering your organisation](/enterprise/portal/).
+The routes the portal's **Organization**, **Domains**, **Users** and **Audit** pages use, plus the public and session routes a UI needs before and after sign-in. Authentication, roles and the error shape are on the [overview](/enterprise/api/); the administrator's view is [Administering your organization](/enterprise/portal/).
 
 ## Objects
 
@@ -41,7 +41,7 @@ interface OrgDomain {
   verified_at: string | null;
   checked_at: string | null; // last check, on demand or scheduled, whatever the outcome
   stale_at: string | null; // when a re-check first failed; null while healthy
-  auto_join: boolean; // stored; self-enrolment by domain is not built yet
+  auto_join: boolean; // stored; self-enrollment by domain is not built yet
   created_at: string;
 }
 
@@ -93,18 +93,18 @@ interface MemberDetail {
 }
 ```
 
-`source` is `manual` for members invited from the portal, `scim` for members created through `/scim/v2/Users`, `mdm` for members created by `POST /enroll/mdm/issue`, and `domain` is reserved for self-enrolment by verified domain, which is not built.
+`source` is `manual` for members invited from the portal, `scim` for members created through `/scim/v2/Users`, `mdm` for members created by `POST /enroll/mdm/issue`, and `domain` is reserved for self-enrollment by verified domain, which is not built.
 
 ## Public and session routes
 
 | Method | Path                   | Auth   | Body → Response                                                                                                                                                                                                                     |
 | ------ | ---------------------- | ------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `GET`  | `/orgs/public`         | none   | `{ org: { id, slug, display_name, branding }, portal_client_id, app_client_id, licence }`: what a UI needs before sign-in. `licence` is `null` on Identizen Cloud; on-prem it carries `{ status: 'ok' \| 'grace' \| 'expired', … }` |
-| `GET`  | `/orgs/me`             | bearer | `{ org, member: Member \| null, managed_devices: number }`: the caller's own membership and how many active or disabled managed devices its identity has in this organisation                                                       |
+| `GET`  | `/orgs/public`         | none   | `{ org: { id, slug, display_name, branding }, portal_client_id, app_client_id, license }`: what a UI needs before sign-in. `license` is `null` on Identizen Cloud; on-prem it carries `{ status: 'ok' \| 'grace' \| 'expired', … }` |
+| `GET`  | `/orgs/me`             | bearer | `{ org, member: Member \| null, managed_devices: number }`: the caller's own membership and how many active or disabled managed devices its identity has in this organization                                                       |
 | `POST` | `/orgs/bootstrap`      | bearer | `{ invite_token }` → `{ member }` (`201`). Verifies the owner invitation with the control plane and creates the first `owner` linked to the caller. `409 already_bootstrapped` if an owner exists, `400 invalid_invite`             |
 | `POST` | `/orgs/invites/accept` | bearer | `{ invite_token }` → `{ member }`. Links the caller's identity to the invited member, status → `active`. `400 invalid_invite`, `410 invite_expired`, `409 identity_already_member`                                                  |
 
-## Organisation
+## Organization
 
 | Method  | Path    | Role                        | Body → Response                                                      |
 | ------- | ------- | --------------------------- | -------------------------------------------------------------------- |
@@ -142,7 +142,7 @@ The scheduled `domains` job ([scheduled jobs](/enterprise/api/operations/#schedu
 
 ### Invitations
 
-`POST /orgs/members` and `reinvite` return `invite_url`: `https://{tenant}.app.identizen.com/invite?token=<token>` for `member`, `https://{tenant}.portal.identizen.com/invite?token=<token>` for an administrator role. Tokens are 32 random bytes (base64url), stored hashed, valid 7 days. The invited person enrols a phone on the tenant index, opens the link, signs in and the page posts the token to `POST /orgs/invites/accept`. The first owner's invitation is created by Identizen at provisioning and lands on the portal's `/invite` page, which posts to `POST /orgs/bootstrap` instead.
+`POST /orgs/members` and `reinvite` return `invite_url`: `https://{tenant}.app.identizen.com/invite?token=<token>` for `member`, `https://{tenant}.portal.identizen.com/invite?token=<token>` for an administrator role. Tokens are 32 random bytes (base64url), stored hashed, valid 7 days. The invited person enrolls a phone on the tenant index, opens the link, signs in and the page posts the token to `POST /orgs/invites/accept`. The first owner's invitation is created by Identizen at provisioning and lands on the portal's `/invite` page, which posts to `POST /orgs/bootstrap` instead.
 
 ## Audit
 

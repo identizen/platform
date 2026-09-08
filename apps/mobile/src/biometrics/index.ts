@@ -51,7 +51,7 @@ function biometricAmr(types: LocalAuthentication.AuthenticationType[]): Amr[] {
   return named.length === 1 ? named : ['user'];
 }
 
-const CANCELLED = new Set(['user_cancel', 'app_cancel', 'system_cancel']);
+const CANCELED = new Set(['user_cancel', 'app_cancel', 'system_cancel']);
 
 /**
  * Prompt Face ID / Touch ID / fingerprint, falling back to the device passcode only when the
@@ -89,7 +89,7 @@ export async function authenticate(
     // A biometric is enrolled. Biometrics only first, so a success is exactly that.
     const first = await prompt(true);
     if (first.success) return { ok: true, amr: biometricAmr(types) };
-    if (CANCELLED.has(first.error)) return { ok: false, amr: [], reason: first.error };
+    if (CANCELED.has(first.error)) return { ok: false, amr: [], reason: first.error };
     // Lockout or the sensor is unavailable: allow the passcode, and report no more than that.
     const second = await prompt(false);
     return second.success

@@ -99,7 +99,7 @@ export async function createIdentity(settings: Settings = DEFAULT_SETTINGS): Pro
 
 /**
  * Restore on a new phone: validates the 24 words (checksum) and stores the same seed, pointed at
- * `settings.activeIndexUrl` (the public index by default). Organisation indexes are added again
+ * `settings.activeIndexUrl` (the public index by default). Organization indexes are added again
  * by enrolling, or from Settings.
  */
 export async function restoreIdentity(
@@ -200,7 +200,7 @@ export async function register(
   if (!seedHex || Object.keys(devices).length === 0)
     throw new Error('create or restore an identity first');
   const indexUrl = opts.indexUrl ?? (await readSettings()).activeIndexUrl;
-  // A fresh record stores the normalised URL: that is what the proof binds and requests use.
+  // A fresh record stores the normalized URL: that is what the proof binds and requests use.
   const device = devices[indexKey(indexUrl)] ?? freshDevice(indexKey(indexUrl));
   const makeActive = opts.makeActive ?? true;
   if (device.deviceId && device.idz && device.indexPubkey) {
@@ -235,7 +235,7 @@ export async function register(
       label: 'Identizen app',
     }),
   });
-  // 201 enrols; 200 is the same install registering again (reinstall, retry).
+  // 201 enrolls; 200 is the same install registering again (reinstall, retry).
   if (res.status !== 201 && res.status !== 200)
     throw new Error(`registration failed: ${res.status} ${await res.text()}`);
   const body = (await res.json()) as {

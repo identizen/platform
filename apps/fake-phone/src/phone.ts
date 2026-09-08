@@ -380,7 +380,7 @@ export class FakePhone {
   }
 
   /**
-   * Revoke this device the way a user would from another phone: enrol a second device on the
+   * Revoke this device the way a user would from another phone: enroll a second device on the
    * same seed and revoke the first. Returns the new device's phone.
    */
   async revokeSelfFromNewDevice(): Promise<FakePhone> {

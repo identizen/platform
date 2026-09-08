@@ -3,7 +3,7 @@ import { visit } from 'unist-util-visit';
 const METHODS = new Set(['GET', 'POST', 'PATCH', 'PUT', 'DELETE']);
 
 /**
- * Turns inline code containing only an HTTP method (`POST`) into a coloured method chip, and
+ * Turns inline code containing only an HTTP method (`POST`) into a colored method chip, and
  * inline code that is just an auth scheme (`Idz-Signature`, `Bearer`, `Basic`) into an auth chip.
  * Purely presentational: the markdown stays plain and the extractor is unaffected.
  */

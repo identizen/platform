@@ -331,7 +331,7 @@ describe('S13: code redemption is atomic', () => {
   });
 });
 
-describe('S03: an enrolment proof cannot re-enrol a key the index knows', () => {
+describe('S03: an enrollment proof cannot re-enroll a key the index knows', () => {
   async function proofFor(phone: Phone, nonce?: string) {
     const devicePub = toBase64Url(phone.device.publicKey);
     return {
@@ -360,7 +360,7 @@ describe('S03: an enrolment proof cannot re-enrol a key the index knows', () => 
     expect(await json(fresh)).toMatchObject({ error: 'device_revoked' });
   });
 
-  it('an active key registering again gets its existing enrolment, not a second one', async () => {
+  it('an active key registering again gets its existing enrollment, not a second one', async () => {
     const phone = await registerPhone();
     const again = await post('/devices', await proofFor(phone, await registrationNonce()));
     expect(again.status).toBe(200);
@@ -371,7 +371,7 @@ describe('S03: an enrolment proof cannot re-enrol a key the index knows', () => 
     expect(me.devices).toHaveLength(1);
   });
 
-  it('a nonce binds the proof to this index, and a replayed proof cannot enrol a second time', async () => {
+  it('a nonce binds the proof to this index, and a replayed proof cannot enroll a second time', async () => {
     const seed = generateSeed();
     const master = deriveMasterKey(seed);
     const device = generateKeyPair();
@@ -392,7 +392,7 @@ describe('S03: an enrolment proof cannot re-enrol a key the index knows', () => 
     const ok = await post('/devices', body(nonce));
     expect(ok.status).toBe(201);
     const first = await json<{ device_id: string }>(ok);
-    // The same proof again (captured and replayed) yields the existing enrolment, never a new one.
+    // The same proof again (captured and replayed) yields the existing enrollment, never a new one.
     const replayed = await post('/devices', body(nonce));
     expect(replayed.status).toBe(200);
     expect(await json(replayed)).toMatchObject({ device_id: first.device_id });

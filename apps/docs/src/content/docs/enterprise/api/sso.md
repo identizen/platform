@@ -3,11 +3,11 @@ title: SSO API
 description: OIDC apps, SAML apps and the SAML identity-provider endpoints on a tenant index — every route with its role, body and response.
 ---
 
-The routes behind the portal's **SSO** page and the SAML endpoints a service provider talks to. The tenant index is already an OpenID Connect provider; these routes let an administrator register the organisation's own applications on it and let SAML-only applications sign in through the same phone approval. Authentication and roles are on the [overview](/enterprise/api/); the guide is [SSO into your apps](/enterprise/sso/).
+The routes behind the portal's **SSO** page and the SAML endpoints a service provider talks to. The tenant index is already an OpenID Connect provider; these routes let an administrator register the organization's own applications on it and let SAML-only applications sign in through the same phone approval. Authentication and roles are on the [overview](/enterprise/api/); the guide is [SSO into your apps](/enterprise/sso/).
 
 ## OIDC apps
 
-An OIDC app is a site on the tenant index created by an administrator. The open index's registration logic is reused (the index registers the site with the tenant's registration token) and the app is then tracked in the organisation's SSO list.
+An OIDC app is a site on the tenant index created by an administrator. The open index's registration logic is reused (the index registers the site with the tenant's registration token) and the app is then tracked in the organization's SSO list.
 
 ```ts
 interface OidcApp {
@@ -35,7 +35,7 @@ interface OidcApp {
 | `PATCH`  | `/orgs/sso/apps/:id` | admin+ (`org.write`)        | OIDC: `{ name?, status?: 'active' \| 'disabled', release_profile?, workforce_only? }`; SAML: `{ name?, status?, acs_url?, entity_id?, name_id_format?, attributes?, sign_assertion?, slo_url?: string \| null, sp_certificate_pem?: string \| null, allow_unsigned_logout?: boolean }` (`null` clears `slo_url` / `sp_certificate_pem`; the certificate must parse, `400` otherwise) → `{ app }` |
 | `DELETE` | `/orgs/sso/apps/:id` | admin+ (`org.write`)        | → `204`. OIDC: the site stays registered but disabled, logins refused with `app_disabled`; SAML: the app is removed                                                                                                                                                                                                                                                                              |
 
-A disabled OIDC app refuses logins at challenge start with `403 app_disabled`. **Profile release**: when `release_profile` is true and the signed-in identity is an active member, the id_token and `/userinfo` carry `email` (the member's email as recorded by the organisation), `name` (the display name when set) and `idz_role`. Nothing is released for non-members; the open index's claims never include an email otherwise.
+A disabled OIDC app refuses logins at challenge start with `403 app_disabled`. **Profile release**: when `release_profile` is true and the signed-in identity is an active member, the id_token and `/userinfo` carry `email` (the member's email as recorded by the organization), `name` (the display name when set) and `idz_role`. Nothing is released for non-members; the open index's claims never include an email otherwise.
 
 ## SAML identity provider
 

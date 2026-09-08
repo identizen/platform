@@ -3,17 +3,17 @@ title: SSO into your apps
 description: The tenant index as the identity provider for your SaaS and internal apps — OIDC apps registered from the portal with profile claims released to them, and a SAML 2.0 identity provider for apps that only speak SAML.
 ---
 
-Every Identizen Cloud tenant index is already an OpenID Connect provider. **SSO** in the portal is where an administrator registers the organisation's applications on it, and where the index doubles as a SAML 2.0 identity provider for the SaaS apps that only speak SAML. Either way the login is the tenant's normal phone approval, every [login policy](/enterprise/policy/) applies, and the app never sees a password because there is none.
+Every Identizen Cloud tenant index is already an OpenID Connect provider. **SSO** in the portal is where an administrator registers the organization's applications on it, and where the index doubles as a SAML 2.0 identity provider for the SaaS apps that only speak SAML. Either way the login is the tenant's normal phone approval, every [login policy](/enterprise/policy/) applies, and the app never sees a password because there is none.
 
 This page is what ships today. SCIM groups and IdP-initiated SAML logout are [on the roadmap](/enterprise/#on-the-roadmap).
 
 ## OIDC apps
 
-An OIDC app is a site on the tenant index, exactly like one registered with the registration token, except that an administrator creates it from the portal and the organisation can release profile claims to it.
+An OIDC app is a site on the tenant index, exactly like one registered with the registration token, except that an administrator creates it from the portal and the organization can release profile claims to it.
 
 **Creating one** (owner or admin): **SSO → New OIDC app**, with a name, the `rp_id` (the app's public hostname), one or more `https://` redirect URIs, whether the client is **public** (PKCE only, no secret; single-page and native apps) or **confidential** (a client secret, shown once, for server-side apps), an optional back-channel logout URI, and two switches:
 
-- **Release profile** (default on): active members signing in to this app get `email` (the address the organisation holds for them), `name` (their display name, when set) and `idz_role` in the id_token and `/userinfo`. The open index never releases an email or a name; the organisation's own record is the only source, and nothing is released for identities that are not active members.
+- **Release profile** (default on): active members signing in to this app get `email` (the address the organization holds for them), `name` (their display name, when set) and `idz_role` in the id_token and `/userinfo`. The open index never releases an email or a name; the organization's own record is the only source, and nothing is released for identities that are not active members.
 - **Workforce only** (default from the policy's `workforce_only_default`): refuses anyone who is not an active member, with `workforce_only`.
 
 The app then appears under **SSO** and under **Sites**, with the same [domain verification](/enterprise/policy/#sites-and-workforce-only) rules as any site: the `rp_id` must be proven by DNS TXT or the well-known file before logins start. The discovery document is `https://{tenant}.index.identizen.com/.well-known/openid-configuration`; point any OIDC library at it with the client id.
@@ -53,7 +53,7 @@ What the Response carries: a signed assertion valid for 5 minutes, `InResponseTo
 
 ### Configuring the app
 
-In the app's SAML settings, paste the entity id as the IdP issuer, the SSO URL as the sign-in URL (POST or Redirect binding, whichever the app offers), and the certificate. Set the NameID or "user identifier" to email unless the app wants a stable opaque id, in which case create the app with the `persistent` format. Map the app's required attributes from the attribute map you configured (most apps want `email`; some want a display name or a role for authorisation). For single logout, paste the SLO URL as the app's sign-out or logout URL, turn on request signing in the app and put the app's signing certificate into the SAML app's settings on the portal. Then use the test login URL: it runs a full IdP-initiated login and lands you in the app.
+In the app's SAML settings, paste the entity id as the IdP issuer, the SSO URL as the sign-in URL (POST or Redirect binding, whichever the app offers), and the certificate. Set the NameID or "user identifier" to email unless the app wants a stable opaque id, in which case create the app with the `persistent` format. Map the app's required attributes from the attribute map you configured (most apps want `email`; some want a display name or a role for authorization). For single logout, paste the SLO URL as the app's sign-out or logout URL, turn on request signing in the app and put the app's signing certificate into the SAML app's settings on the portal. Then use the test login URL: it runs a full IdP-initiated login and lands you in the app.
 
 ## Over the API
 

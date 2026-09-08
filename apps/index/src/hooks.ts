@@ -34,7 +34,7 @@ export interface EnrollContext {
   services: Services;
   idz: string;
   kind: 'personal' | 'org';
-  /** The identity when this is another device for a known identity; null for a first enrolment. */
+  /** The identity when this is another device for a known identity; null for a first enrollment. */
   identity: Identity | null;
   attestation: unknown;
 }
@@ -111,7 +111,7 @@ export interface AppOptions {
    * Replace the in-flight state stores (challenge sessions and request guards). Called once per
    * request with the resolved bindings; the default is the two Durable Objects. A host running
    * without Durable Objects supplies stores over its own database and the `CHALLENGE_SESSION`
-   * and `REQUEST_GUARD` bindings are never read. See `Stores` for the semantics to honour.
+   * and `REQUEST_GUARD` bindings are never read. See `Stores` for the semantics to honor.
    */
   stores?: (env: Env, db: Db) => Stores;
 }

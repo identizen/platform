@@ -78,7 +78,7 @@ Responses carry `content-type: application/scim+json`. Every call, including one
 | `GET`    | `/scim/v2/Schemas`               | Static document: the core User schema                                                                                                                                                                                                                                                            |
 | `GET`    | `/scim/v2/Users`                 | query `filter` (`userName eq "…"` or `externalId eq "…"`), `startIndex` (1-based), `count` → `ScimListResponse`                                                                                                                                                                                  |
 | `POST`   | `/scim/v2/Users`                 | `ScimUser` (without `id`, `meta`) → `201 ScimUser`. Creates a member with `source: 'scim'`, role `member`, status `invited`, and emails the invitation when mail is configured. `409 uniqueness` when the email exists; `409 quota_exceeded` / `seats_exceeded` in `scimType`                    |
-| `GET`    | `/scim/v2/Users/:id`             | → `ScimUser`. `404` when the id is not a member of this organisation                                                                                                                                                                                                                             |
+| `GET`    | `/scim/v2/Users/:id`             | → `ScimUser`. `404` when the id is not a member of this organization                                                                                                                                                                                                                             |
 | `PUT`    | `/scim/v2/Users/:id`             | Replace: `active`, `name`, `emails`, `externalId`, `displayName` → `ScimUser`                                                                                                                                                                                                                    |
 | `PATCH`  | `/scim/v2/Users/:id`             | `{ Operations: [{ op: 'replace' \| 'add' \| 'remove', path?, value }] }` → `ScimUser`. Paths: `active`, `name.givenName`, `name.familyName`, `displayName`, `emails[type eq "work"].value`, `externalId`; both the Okta shape (a `value` object without `path`) and the Entra shape are accepted |
 | `DELETE` | `/scim/v2/Users/:id`             | Deprovisions the member: devices and sessions revoked, back-channel logout → `204`                                                                                                                                                                                                               |
@@ -103,9 +103,9 @@ What `active` does: `active: false` suspends the member (every live session revo
 | `400`  | `invalidValue`                     | The body or an `Operations` entry failed validation                 |
 | `401`  |                                    | Missing, unknown or revoked token                                   |
 | `403`  | `scim_protected_role`              | `active: false` or `DELETE` on an owner or admin                    |
-| `404`  |                                    | No member with this id in the organisation                          |
+| `404`  |                                    | No member with this id in the organization                          |
 | `409`  | `uniqueness`                       | `POST` with an email that already belongs to a member               |
-| `409`  | `quota_exceeded`, `seats_exceeded` | The plan's member quota, or the on-prem licence's seats, is used up |
+| `409`  | `quota_exceeded`, `seats_exceeded` | The plan's member quota, or the on-prem license's seats, is used up |
 
 ## Audit
 
@@ -146,4 +146,4 @@ curl -sS -X POST https://acme.index.identizen.com/scim/v2/Users \
 }
 ```
 
-The member is `invited` until the person enrols a phone and accepts the emailed invitation; `active` is `true` throughout because SCIM's `active` tracks suspension, not acceptance.
+The member is `invited` until the person enrolls a phone and accepts the emailed invitation; `active` is `true` throughout because SCIM's `active` tracks suspension, not acceptance.

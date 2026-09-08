@@ -146,7 +146,7 @@ describe('createApp(options)', () => {
       appFetcher({
         hooks: {
           onEnroll: () => {
-            throw forbidden('enrollment_closed', 'enrol through your organisation');
+            throw forbidden('enrollment_closed', 'enroll through your organization');
           },
         },
       }),

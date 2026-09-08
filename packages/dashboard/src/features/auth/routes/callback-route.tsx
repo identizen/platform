@@ -13,16 +13,16 @@ export function CallbackRoute() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    let cancelled = false;
+    let canceled = false;
     completeSignInOnce(new URLSearchParams(location.search))
       .then(() => {
-        if (!cancelled) void navigate({ to: '/', replace: true });
+        if (!canceled) void navigate({ to: '/', replace: true });
       })
       .catch((err: unknown) => {
-        if (!cancelled) setError(err instanceof Error ? err.message : String(err));
+        if (!canceled) setError(err instanceof Error ? err.message : String(err));
       });
     return () => {
-      cancelled = true;
+      canceled = true;
     };
   }, [navigate]);
 

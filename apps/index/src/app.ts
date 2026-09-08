@@ -28,7 +28,7 @@ export interface AppEnv {
 /**
  * Build the index. Without options this is the hosted single-tenant index. A host that embeds
  * the index (docs: "Embedding the index") passes `resolveEnv` to pick per-request bindings,
- * `hooks` to take part in enrolment, logins and token issuance, `extend` to mount routes, and
+ * `hooks` to take part in enrollment, logins and token issuance, `extend` to mount routes, and
  * `stores` to keep in-flight sessions and guards somewhere other than Durable Objects.
  */
 export function createApp(options: AppOptions = {}): Hono<AppEnv> {

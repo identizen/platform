@@ -90,7 +90,7 @@ describe('canonicalize (RFC 8785)', () => {
     expect(canonicalize(input)).toBe(expected);
   });
 
-  it('serialises primitives', () => {
+  it('serializes primitives', () => {
     expect(canonicalize(null)).toBe('null');
     expect(canonicalize(true)).toBe('true');
     expect(canonicalize(false)).toBe('false');

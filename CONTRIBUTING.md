@@ -33,10 +33,10 @@ Node 22 and npm 10 are what CI uses. The mobile app needs Expo tooling; see `app
 ## What the reviewer checks
 
 - The change does what the title says and nothing else.
-- Tests cover the new behaviour and the gate is green.
+- Tests cover the new behavior and the gate is green.
 - Nothing secret is persisted or logged: the index stores no private keys, seeds, or plaintext tokens, ever.
 - Frontend rules hold: feature folders, no default exports, no `any`, components under 250 lines, cross-feature imports only through a feature's `index.ts`.
-- Docs and copy match the code. If you change behaviour that a docs page describes, change the page.
+- Docs and copy match the code. If you change behavior that a docs page describes, change the page.
 
 ## Repository map
 
@@ -61,6 +61,6 @@ Node 22 and npm 10 are what CI uses. The mobile app needs Expo tooling; see `app
 
 Participation is governed by the [code of conduct](CODE_OF_CONDUCT.md).
 
-## Licence
+## License
 
 By contributing you agree that your contribution is licensed under the [Apache License 2.0](LICENSE), the same as the project.

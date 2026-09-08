@@ -18,7 +18,7 @@ export type EnrollPhase =
 
 export interface EnrollScreenProps {
   phase: EnrollPhase;
-  onEnrol: () => void;
+  onEnroll: () => void;
   onCheckLater: () => void;
   onRetry: () => void;
   onDone: () => void;
@@ -71,18 +71,18 @@ function Centered({ children, testID }: { children: React.ReactNode; testID: str
 
 export function EnrollScreen({
   phase,
-  onEnrol,
+  onEnroll,
   onCheckLater,
   onRetry,
   onDone,
   onBack,
 }: EnrollScreenProps) {
-  const title = 'Join an organisation';
+  const title = 'Join an organization';
   if (phase.kind === 'loading') {
     return (
       <Screen scroll={false} testID="enroll-loading" title={title} onBack={onBack}>
         <Centered testID="enroll-loading-body">
-          <Muted>Checking the enrolment link…</Muted>
+          <Muted>Checking the enrollment link…</Muted>
         </Centered>
       </Screen>
     );
@@ -91,7 +91,7 @@ export function EnrollScreen({
     return (
       <Screen scroll={false} testID="enroll-invalid" title={title} onBack={onBack}>
         <Centered testID="enroll-invalid-body">
-          <ErrorText>That is not an Identizen enrolment link.</ErrorText>
+          <ErrorText>That is not an Identizen enrollment link.</ErrorText>
         </Centered>
         <Button label="Done" onPress={onDone} testID="enroll-done" />
       </Screen>
@@ -101,7 +101,7 @@ export function EnrollScreen({
     return (
       <Screen scroll={false} testID={`enroll-error-${phase.code}`} title={title} onBack={onBack}>
         <Centered testID="enroll-error-body">
-          <Heading>Cannot enrol</Heading>
+          <Heading>Cannot enroll</Heading>
           <Body center>{phase.message}</Body>
         </Centered>
         <View className="gap-2">
@@ -139,7 +139,7 @@ export function EnrollScreen({
           ) : null}
         </View>
         <View className="gap-2">
-          <Button label="Enrol" onPress={onEnrol} busy={busy} testID="enroll-submit" />
+          <Button label="Enroll" onPress={onEnroll} busy={busy} testID="enroll-submit" />
           <Button
             label="Not now"
             variant="secondary"
@@ -175,8 +175,8 @@ export function EnrollScreen({
     phase.kind === 'approved'
       ? 'You are enrolled'
       : phase.kind === 'denied'
-        ? 'Enrolment declined'
-        : 'Enrolment expired';
+        ? 'Enrollment declined'
+        : 'Enrollment expired';
   const detail =
     phase.kind === 'approved'
       ? `This phone is now managed by ${phase.org}.`

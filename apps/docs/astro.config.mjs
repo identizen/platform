@@ -78,8 +78,8 @@ export default defineConfig({
           items: [
             { label: 'Overview', link: '/enterprise/' },
             { label: 'Setting up Identizen Cloud', link: '/enterprise/cloud-setup/' },
-            { label: 'Administering your organisation', link: '/enterprise/portal/' },
-            { label: 'The organisation app', link: '/enterprise/org-app/' },
+            { label: 'Administering your organization', link: '/enterprise/portal/' },
+            { label: 'The organization app', link: '/enterprise/org-app/' },
             { label: 'Enrolling phones and the fleet', link: '/enterprise/enrollment/' },
             { label: 'Login policy', link: '/enterprise/policy/' },
             { label: 'MDM integration', link: '/enterprise/mdm/' },
@@ -93,7 +93,7 @@ export default defineConfig({
               label: 'API reference',
               items: [
                 { label: 'Overview', link: '/enterprise/api/' },
-                { label: 'Organisation', link: '/enterprise/api/orgs/' },
+                { label: 'Organization', link: '/enterprise/api/orgs/' },
                 { label: 'Fleet', link: '/enterprise/api/fleet/' },
                 { label: 'Policy, sites, sessions', link: '/enterprise/api/policy/' },
                 { label: 'SSO', link: '/enterprise/api/sso/' },

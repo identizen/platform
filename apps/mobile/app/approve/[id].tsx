@@ -46,7 +46,7 @@ export default function Approve() {
       `Approve sign-in to ${challenge.rp_name}`,
       settings.biometricRequired,
     );
-    if (!gate.ok) return 'cancelled';
+    if (!gate.ok) return 'canceled';
     // Signed with the device this phone holds on the challenge's own index.
     const result = await approveChallenge(challenge, gate.amr);
     // The waiting browser receives the OIDC redirect itself (WebSocket or poll). Opening it here

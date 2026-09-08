@@ -6,7 +6,7 @@ test('signed out: landing shows sign-in and protected routes redirect home', asy
   await waitForApp(page);
   await expect(page).toHaveURL('/');
   await expect(page.getByTestId('sign-in')).toBeVisible();
-  await expect(page.getByRole('navigation', { name: 'Primary' })).toHaveCount(0);
+  await expect(page.getByRole('navigation', { name: 'Main' })).toHaveCount(0);
 });
 
 test('sign-in builds an /authorize URL with PKCE for the public client', async ({ page }) => {

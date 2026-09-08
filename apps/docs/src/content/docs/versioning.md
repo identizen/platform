@@ -33,7 +33,7 @@ The spec and the [threat model](/protocol/threat-model/) mark these as planned o
 
 - **Planned, not in v1.** The passkey provider (section 6.5), the desktop companion (section 6.6), Secure Enclave / StrongBox wrapping of the phone's keys (section 1), and identities registered with more than one index at a time.
 - **`hwk` in `amr`.** Reserved for hardware-isolated key storage, which has not shipped; no Identizen client asserts it today, and `amr` always describes what actually verified the person (`face`, `fingerprint`, `iris`, `pin`, `user`, or `swk`). The array shape does not change when `hwk` starts to appear.
-- **`ttl` on `POST /v1/verify`.** Accepted and reserved. v1 always uses the 60-second challenge lifetime. A later release may honour it.
+- **`ttl` on `POST /v1/verify`.** Accepted and reserved. v1 always uses the 60-second challenge lifetime. A later release may honor it.
 - **`idz_org`.** The claim is in the id_token and `/userinfo` for identities with an `org_id`, and nothing assigns an `org_id` yet. Org enrollment, the fleet console, policy, SSO bridging, and SCIM are on the [enterprise roadmap](/enterprise/), not built. Treat `idz_org` as optional and absent.
 - **Attestation.** `POST /devices` stores an `attestation` object and nothing enforces it. Enforcement will add a policy surface.
 - **Index key rotation.** Phones pin the index signing key at registration and there is no re-pin flow. Threat model open item 1 says a rotation needs a signed cross-certification of the new key; that adds a message type when it lands. See [Running an index in production](/self-hosting-production/).

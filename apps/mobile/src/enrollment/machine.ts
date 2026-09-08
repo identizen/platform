@@ -4,7 +4,7 @@
  * with copy the screen can show as is.
  *
  * Index model: the store holds one device record per index (`readDevices`), and the phone can be
- * registered on several at once. Enrolling registers the identity on the organisation's index if
+ * registered on several at once. Enrolling registers the identity on the organization's index if
  * it is not there yet, next to the personal one, and makes it the active index; nothing already
  * registered is touched. The claim and status calls are signed with that index's device key.
  */
@@ -43,17 +43,17 @@ export type EnrollmentErrorCode =
   | 'unknown';
 
 export const ENROLLMENT_MESSAGES: Record<EnrollmentErrorCode, string> = {
-  invalid_enrollment: 'This enrolment link is not valid. Ask your administrator for a new one.',
-  enrollment_expired: 'This enrolment link has expired. Ask your administrator for a new one.',
-  enrollment_used: 'This enrolment link has already been used by another phone.',
+  invalid_enrollment: 'This enrollment link is not valid. Ask your administrator for a new one.',
+  enrollment_expired: 'This enrollment link has expired. Ask your administrator for a new one.',
+  enrollment_used: 'This enrollment link has already been used by another phone.',
   attestation_required:
-    'This organisation only enrols verified devices. This build of Identizen cannot prove the phone is genuine yet, so it cannot enrol here.',
+    'This organization only enrolls verified devices. This build of Identizen cannot prove the phone is genuine yet, so it cannot enroll here.',
   attestation_failed:
-    'The organisation could not verify this phone. Try again, or ask your administrator.',
-  device_already_enrolled: 'This phone is already enrolled with someone else in this organisation.',
+    'The organization could not verify this phone. Try again, or ask your administrator.',
+  device_already_enrolled: 'This phone is already enrolled with someone else in this organization.',
   no_identity: 'Create or restore an identity before enrolling.',
-  network: 'Could not reach the organisation. Check your connection and try again.',
-  unknown: 'Enrolment failed. Try again, or ask your administrator.',
+  network: 'Could not reach the organization. Check your connection and try again.',
+  unknown: 'Enrollment failed. Try again, or ask your administrator.',
 };
 
 export class EnrollmentError extends Error {
@@ -75,7 +75,7 @@ const KNOWN: ReadonlySet<string> = new Set<EnrollmentErrorCode>([
   'device_already_enrolled',
 ]);
 
-/** Anything thrown by a step, normalised to a code and user-facing copy. */
+/** Anything thrown by a step, normalized to a code and user-facing copy. */
 export function toEnrollmentError(err: unknown): EnrollmentError {
   if (err instanceof EnrollmentError) return err;
   if (err instanceof IndexError) {
@@ -105,7 +105,7 @@ export async function ensureRegisteredOn(indexUrl: string): Promise<void> {
 
 export type ClaimOutcome = { kind: 'approved'; org: string } | { kind: 'waiting'; org: string };
 
-/** The "Enrol" tap: register if needed, attest if possible, claim, remember the result. */
+/** The "Enroll" tap: register if needed, attest if possible, claim, remember the result. */
 export async function claimEnrollment(
   link: EnrollmentLink,
   info: EnrollmentInfo,
@@ -146,7 +146,7 @@ export async function claimEnrollment(
   }
 }
 
-export type PollResult = 'approved' | 'denied' | 'expired' | 'timeout' | 'cancelled';
+export type PollResult = 'approved' | 'denied' | 'expired' | 'timeout' | 'canceled';
 
 export interface PollOptions {
   intervalMs?: number;
@@ -207,7 +207,7 @@ export async function pollEnrollment(
   const sleep = opts.sleep ?? defaultSleep;
   const deadline = now() + timeout;
   for (;;) {
-    if (opts.signal?.aborted) return 'cancelled';
+    if (opts.signal?.aborted) return 'canceled';
     const result = await checkPendingEnrollment(pending);
     if (result !== 'waiting') return result;
     if (now() + interval > deadline) return 'timeout';

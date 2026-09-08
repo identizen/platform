@@ -1,22 +1,22 @@
 ---
 title: Enterprise API reference
-description: The organisation API on a tenant index — how to authenticate (portal session bearer, SCIM and MDM tokens, device signatures), the roles and grants, the error shape and codes, pagination, and how every change is audited.
+description: The organization API on a tenant index — how to authenticate (portal session bearer, SCIM and MDM tokens, device signatures), the roles and grants, the error shape and codes, pagination, and how every change is audited.
 ---
 
-Every Identizen Cloud tenant, and every on-prem install, runs one tenant index at `https://{tenant}.index.identizen.com`. It serves everything the open index serves ([Index API](/reference/index-api/), [OIDC](/reference/oidc/), [Verification API](/reference/verification-api/)) plus the organisation surface on these pages. The portal, the org app, an MDM, an IdP's SCIM client, a SAML service provider and the phone all talk to it over these routes; the guides under Enterprise describe the same features from the administrator's side.
+Every Identizen Cloud tenant, and every on-prem install, runs one tenant index at `https://{tenant}.index.identizen.com`. It serves everything the open index serves ([Index API](/reference/index-api/), [OIDC](/reference/oidc/), [Verification API](/reference/verification-api/)) plus the organization surface on these pages. The portal, the org app, an MDM, an IdP's SCIM client, a SAML service provider and the phone all talk to it over these routes; the guides under Enterprise describe the same features from the administrator's side.
 
 | Page                                      | Surface                                                                                   |
 | ----------------------------------------- | ----------------------------------------------------------------------------------------- |
-| [Organisation](/enterprise/api/orgs/)     | Profile, domains, members and invitations, the audit log and the admin-actions log        |
+| [Organization](/enterprise/api/orgs/)     | Profile, domains, members and invitations, the audit log and the admin-actions log        |
 | [Fleet](/enterprise/api/fleet/)           | Enrollments, managed devices, approvals, MDM tokens and profile, the phone's `/enroll/*`  |
 | [Policy](/enterprise/api/policy/)         | The policy document, sites and workforce-only, live sessions                              |
 | [SSO](/enterprise/api/sso/)               | OIDC apps, SAML apps and the SAML identity-provider endpoints                             |
 | [SCIM](/enterprise/api/scim/)             | SCIM tokens, the SCIM log, `/scim/v2/*`                                                   |
-| [Operations](/enterprise/api/operations/) | Exports, webhooks and signature verification, retention, status, quotas, billing, licence |
+| [Operations](/enterprise/api/operations/) | Exports, webhooks and signature verification, retention, status, quotas, billing, license |
 
 ## Conventions
 
-One tenant hosts one organisation, whose id equals the tenant id. Request and response bodies are JSON (`content-type: application/json`), timestamps are ISO 8601 strings in UTC, and ids are ULIDs with a type prefix (`m_` member, `d_` domain, `e_` enrollment, `mdm_` MDM token, `app_` SSO app, `exp_` export, `wh_` webhook, `dl_` delivery); audit events and admin actions have integer ids. Every page shows each resource as a TypeScript shape and each route as `Body → Response`; a status other than `200` is given in brackets.
+One tenant hosts one organization, whose id equals the tenant id. Request and response bodies are JSON (`content-type: application/json`), timestamps are ISO 8601 strings in UTC, and ids are ULIDs with a type prefix (`m_` member, `d_` domain, `e_` enrollment, `mdm_` MDM token, `app_` SSO app, `exp_` export, `wh_` webhook, `dl_` delivery); audit events and admin actions have integer ids. Every page shows each resource as a TypeScript shape and each route as `Body → Response`; a status other than `200` is given in brackets.
 
 ## Authentication
 
@@ -64,7 +64,7 @@ Every member has one role. Routes are gated by grants, and the grant table is th
 | `members.read`                  | List members and open a member's page                                                                                   |   yes   |   yes   |    yes     |    yes    |
 | `members.write`                 | Invite, change role, deprovision; approve or deny an enrollment; revoke a device                                        |   yes   |   yes   |     no     |    no     |
 | `members.support`               | Suspend, reinstate, reinvite; issue enrollments; list and disable devices; list sites and sessions; sign one member out |   yes   |   yes   |    yes     |    no     |
-| `audit.read`                    | The organisation-wide event log, the admin-actions log, the SCIM log                                                    |   yes   |   yes   |     no     |    yes    |
+| `audit.read`                    | The organization-wide event log, the admin-actions log, the SCIM log                                                    |   yes   |   yes   |     no     |    yes    |
 | `audit.read_member`             | One member's events at a time                                                                                           |   yes   |   yes   |    yes     |    yes    |
 | `exports.read`, `exports.write` | List, create and download exports                                                                                       |   yes   |   yes   |     no     |    yes    |
 | `webhooks.manage`               | Everything under `/orgs/webhooks`                                                                                       |   yes   |   yes   |     no     |    no     |
@@ -82,7 +82,7 @@ Every member has one role. Routes are gated by grants, and the grant table is th
 | `any admin role` | `owner`, `admin`, `helpdesk`, `auditor`             |
 | `bearer`         | Any signed-in identity on the tenant, member or not |
 
-Two rules sit on top of the table: only an `owner` may grant or remove `owner` (an admin can assign every other role), and the organisation must keep at least one active owner (`409 last_owner`).
+Two rules sit on top of the table: only an `owner` may grant or remove `owner` (an admin can assign every other role), and the organization must keep at least one active owner (`409 last_owner`).
 
 ## Errors
 
@@ -92,15 +92,15 @@ Every error is JSON with the status in the tables:
 { "error": "domain_taken", "error_description": "example.com is already claimed" }
 ```
 
-Some errors add a `detail` object (`verification_failed` carries `{ checked: [...] }`, `quota_exceeded` carries `{ quota, used, limit }`). Validation failures are `400`. A route that names a resource answers `404 <resource>_not_found` (`member_not_found`, `domain_not_found`, `enrollment_not_found`, `device_not_found`, `site_not_found`, `webhook_not_found`, `export_not_found`, `app_not_found`) when the id is not in this organisation. `/scim/v2/*` uses the SCIM error envelope instead ([SCIM](/enterprise/api/scim/#errors)). The codes each surface can return are listed on its page; the ones common to several are:
+Some errors add a `detail` object (`verification_failed` carries `{ checked: [...] }`, `quota_exceeded` carries `{ quota, used, limit }`). Validation failures are `400`. A route that names a resource answers `404 <resource>_not_found` (`member_not_found`, `domain_not_found`, `enrollment_not_found`, `device_not_found`, `site_not_found`, `webhook_not_found`, `export_not_found`, `app_not_found`) when the id is not in this organization. `/scim/v2/*` uses the SCIM error envelope instead ([SCIM](/enterprise/api/scim/#errors)). The codes each surface can return are listed on its page; the ones common to several are:
 
 | Status | Code                                                                | Meaning                                                                                                                                       |
 | ------ | ------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
 | `401`  | `unauthorized`                                                      | No, expired or foreign bearer                                                                                                                 |
 | `403`  | `not_a_member`, `member_inactive`, `not_admin`, `insufficient_role` | See [authentication](#portal-session-bearer)                                                                                                  |
 | `409`  | `quota_exceeded`                                                    | The plan's quota for members, devices, SSO apps, SCIM tokens or webhooks is used up ([quotas](/enterprise/api/operations/#status-and-quotas)) |
-| `409`  | `seats_exceeded`                                                    | On-prem: the licence's seats are used up                                                                                                      |
-| `503`  | `licence_expired`                                                   | On-prem: the licence is past its grace period; logins are refused, admin routes keep working                                                  |
+| `409`  | `seats_exceeded`                                                    | On-prem: the license's seats are used up                                                                                                      |
+| `503`  | `license_expired`                                                   | On-prem: the license is past its grace period; logins are refused, admin routes keep working                                                  |
 
 The login policy refuses sign-ins with `403` at phone approval or code exchange, audited as `login.denied`: `member_suspended`, `member_deprovisioned`, `workforce_only`, `managed_device_required`, `amr_not_allowed`, `outside_login_window`, `app_disabled`. These reach the person signing in and the audit log, not the administrator's API call ([where each rule runs](/enterprise/api/policy/#how-the-policy-acts-on-the-login-path)).
 

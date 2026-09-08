@@ -55,7 +55,7 @@ Reading the policy is gated on `org.read`, so helpdesk can read it over the API 
 | ------------------------------------------------------------------------------------------- | ------------------------ | ---------------------------------------------------------------------------- |
 | Member suspended or deprovisioned                                                           | assertion, code exchange | `member_suspended`, `member_deprovisioned`                                   |
 | `workforce_only` site: the identity must be an active member                                | assertion                | `workforce_only`                                                             |
-| `require_managed_device`: the approving phone must be a managed device of this organisation | assertion (members only) | `managed_device_required`                                                    |
+| `require_managed_device`: the approving phone must be a managed device of this organization | assertion (members only) | `managed_device_required`                                                    |
 | `allowed_amr`: the assertion's `amr` must share a value with the list                       | assertion (members only) | `amr_not_allowed`                                                            |
 | `login_windows`: now must fall inside a window                                              | assertion (members only) | `outside_login_window`                                                       |
 | `session_max_age_hours`                                                                     | code exchange            | The session's `expires_at` is shortened; never longer than the index default |

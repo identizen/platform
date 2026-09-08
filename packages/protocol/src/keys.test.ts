@@ -26,7 +26,7 @@ describe('seed and BIP39', () => {
     expect(mnemonicToSeed(words)).toEqual(seed);
   });
 
-  it('normalises whitespace and case on decode', () => {
+  it('normalizes whitespace and case on decode', () => {
     const seed = generateSeed();
     const words = seedToMnemonic(seed);
     expect(mnemonicToSeed('  ' + words.toUpperCase().replace(/ /g, '\n  ') + ' ')).toEqual(seed);

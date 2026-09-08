@@ -2,7 +2,7 @@
   "name": "@identizen/dashboard",
   "version": "0.1.0",
   "private": false,
-  "description": "Identizen dashboard features (sign-in, devices, paired browsers, sessions, activity, handle, deep link) as TypeScript source, composed by app.identizen.com and by organisation apps.",
+  "description": "Identizen dashboard features (sign-in, devices, paired browsers, sessions, activity, handle, deep link) as TypeScript source, composed by app.identizen.com and by organization apps.",
   "license": "Apache-2.0",
   "repository": {
     "type": "git",

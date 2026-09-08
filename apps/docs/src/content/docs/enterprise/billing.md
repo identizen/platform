@@ -3,7 +3,7 @@ title: Billing
 description: What Identizen Cloud bills (active devices per month, on the period's peak), the exact active-device definition, the two billing modes (by card through Stripe, or by invoice under an enterprise agreement), standard versus dedicated, the Billing page, who sees what, and why on-prem is licensed rather than metered.
 ---
 
-Identizen Cloud is billed monthly per **active device**, by card through Stripe or by invoice. An active device is a phone (or other device key) on your tenant index that was used in the last 30 days. There is no per-seat or per-login charge, and no charge for members who have not enrolled a phone. On-prem installs are not metered at all; they run under a [licence](/enterprise/on-prem/) with a seat count.
+Identizen Cloud is billed monthly per **active device**, by card through Stripe or by invoice. An active device is a phone (or other device key) on your tenant index that was used in the last 30 days. There is no per-seat or per-login charge, and no charge for members who have not enrolled a phone. On-prem installs are not metered at all; they run under a [license](/enterprise/on-prem/) with a seat count.
 
 ## What counts as an active device
 
@@ -17,7 +17,7 @@ Disabled and revoked devices never count, whatever their timestamps. Every devic
 
 ## How a period is billed
 
-Once a day the index counts the tenant's active devices and reports the figure for that day to Identizen, which keeps one figure per tenant and day. Reporting the same day twice is a no-op and a corrected count replaces that day's figure. A period is billed on the **peak** of its daily counts, so a burst of enrolments is paid for once, not on every day it lasts, and devices that go quiet stop counting 30 days after their last use.
+Once a day the index counts the tenant's active devices and reports the figure for that day to Identizen, which keeps one figure per tenant and day. Reporting the same day twice is a no-op and a corrected count replaces that day's figure. A period is billed on the **peak** of its daily counts, so a burst of enrollments is paid for once, not on every day it lasts, and devices that go quiet stop counting 30 days after their last use.
 
 The plan sets the device quota the peak is measured against:
 
@@ -34,7 +34,7 @@ Identizen chooses the mode for your account when billing is set up; the Billing 
 
 | Mode      | Who                              | How it works                                                                                                                                                                                                                                                                                                             |
 | --------- | -------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `stripe`  | Medium and smaller organisations | A card on file with Stripe and a metered monthly subscription. Each day's count is set on the subscription; the period is the subscription's and is billed on its peak. Invoices come from Stripe, with a link to the hosted invoice page (PDF and receipt), and owners change the card on Stripe's hosted page.         |
+| `stripe`  | Medium and smaller organizations | A card on file with Stripe and a metered monthly subscription. Each day's count is set on the subscription; the period is the subscription's and is billed on its peak. Invoices come from Stripe, with a link to the hosted invoice page (PDF and receipt), and owners change the card on Stripe's hosted page.         |
 | `invoice` | Enterprise agreements            | A billing contact instead of a card. At month end Identizen raises an invoice from the calendar month's peak and records it in its own ledger, numbered `IDZ-<YYYY>-<NNNN>`, with status `issued`, `paid` or `void` and a **View** link when a document is attached. There is no payment method to manage on the portal. |
 
 Both modes show the same invoice list on the Billing page: number, period, the active-device peak the amount was computed from, amount and currency, status, issue and due dates, when it was paid, and a link where there is a document. Stripe's `draft` and `open` invoices appear as `issued`.

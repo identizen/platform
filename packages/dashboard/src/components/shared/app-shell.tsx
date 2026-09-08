@@ -1,98 +1,144 @@
-import type { ReactNode } from 'react';
-import { Link } from '@tanstack/react-router';
-import { IdentizenLogo, ThemeToggle, cn } from '@identizen/ui';
-import { Activity, LaptopMinimal, Settings, Smartphone, Shield } from 'lucide-react';
+import { useCallback, useEffect, useState, type ReactNode } from 'react';
+import { Link, useNavigate, useRouterState } from '@tanstack/react-router';
+import { Button, IdentizenLogo, ThemeToggle } from '@identizen/ui';
+import { Menu } from 'lucide-react';
+import { clearSession } from '../../features/auth';
+import { NAV, type NavItem } from './app-shell-nav';
+import { Drawer, SidebarPanel } from './app-shell-panel';
 
-export interface NavItem {
-  to: '/' | '/devices' | '/pairings' | '/sessions' | '/activity' | '/settings';
-  label: string;
-  icon: typeof Smartphone;
-}
-
-export const NAV: NavItem[] = [
-  { to: '/devices', label: 'Devices', icon: Smartphone },
-  { to: '/pairings', label: 'Browsers', icon: LaptopMinimal },
-  { to: '/sessions', label: 'Sessions', icon: Shield },
-  { to: '/activity', label: 'Activity', icon: Activity },
-  { to: '/settings', label: 'Settings', icon: Settings },
-];
+export { NAV, type NavItem } from './app-shell-nav';
 
 export interface AppShellProps {
   signedIn: boolean;
   handle: string | null;
+  /**
+   * Navigation items a composing app adds after the built-in ones (an org app's "Enroll").
+   * Give them a `group` to render them under their own heading.
+   */
+  extraNav?: NavItem[];
+  /** Rendered full-width above the page content: "managed by", license notices. */
+  banner?: ReactNode;
+  /** Sign-out handler. The default clears the dashboard session and returns to `/`. */
+  onSignOut?: () => void;
   children: ReactNode;
 }
 
-/** Presentational layout: header, nav, theme toggle, content. */
-export function AppShell({ signedIn, handle, children }: AppShellProps) {
-  return (
-    <div className="flex min-h-screen flex-col">
-      <a
-        href="#main"
-        className="sr-only focus:not-sr-only focus:absolute focus:left-2 focus:top-2 focus:rounded-md focus:bg-surface-0 focus:px-3 focus:py-2"
-      >
-        Skip to content
-      </a>
-      <header className="border-b bg-surface-0/80 backdrop-blur">
-        <div className="mx-auto flex h-14 max-w-5xl items-center justify-between gap-4 px-4">
-          <Link to="/" className="inline-flex items-center text-fg" aria-label="Identizen home">
-            <IdentizenLogo height={22} title={null} />
-          </Link>
-          {signedIn ? (
-            <nav aria-label="Primary" className="hidden md:block">
-              <ul className="flex items-center gap-1">
-                {NAV.map((item) => (
-                  <li key={item.to}>
-                    <Link
-                      to={item.to}
-                      className={cn(
-                        'inline-flex h-9 items-center gap-2 rounded-md px-3 text-sm text-fg-muted hover:bg-surface-2 hover:text-fg',
-                        '[&.active]:bg-surface-2 [&.active]:text-fg',
-                      )}
-                      activeProps={{ className: 'active', 'aria-current': 'page' }}
-                    >
-                      <item.icon aria-hidden="true" className="size-4" />
-                      {item.label}
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            </nav>
-          ) : null}
-          <div className="flex items-center gap-2">
-            {handle ? (
-              <span className="hidden text-sm text-fg-muted sm:inline" data-testid="handle-chip">
-                @{handle}
-              </span>
-            ) : null}
+const DRAWER_ID = 'app-drawer';
+
+/**
+ * Presentational layout. Signed in: a fixed 240px sidebar from `lg` up (brand, handle,
+ * navigation, sign-out, theme) with independently scrolling content; below `lg`, a slim top bar
+ * whose "Menu" button opens the same panel as a drawer. Signed out: brand and theme toggle only.
+ */
+export function AppShell({
+  signedIn,
+  handle,
+  extraNav,
+  banner,
+  onSignOut,
+  children,
+}: AppShellProps) {
+  const navigate = useNavigate();
+  const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const [open, setOpen] = useState(false);
+  const close = useCallback(() => setOpen(false), []);
+
+  // Close the drawer on navigation (including back/forward), not only on link clicks.
+  useEffect(() => {
+    setOpen(false);
+  }, [pathname]);
+
+  const signOut = () => {
+    setOpen(false);
+    if (onSignOut) return onSignOut();
+    clearSession();
+    void navigate({ to: '/', replace: true });
+  };
+
+  const items = extraNav?.length ? [...NAV, ...extraNav] : NAV;
+
+  if (!signedIn) {
+    return (
+      <div className="flex min-h-screen flex-col">
+        <SkipLink />
+        <header className="border-b bg-surface-0/80 backdrop-blur">
+          <div className="mx-auto flex h-14 max-w-5xl items-center justify-between gap-4 px-4">
+            <BrandLink />
             <ThemeToggle />
           </div>
+        </header>
+        {banner}
+        <main id="main" className="mx-auto w-full max-w-5xl flex-1 px-4 py-8">
+          {children}
+        </main>
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex min-h-screen flex-col lg:pl-60">
+      <SkipLink />
+      <aside
+        className="fixed inset-y-0 left-0 z-30 hidden w-60 border-r bg-surface-1 lg:block"
+        aria-label="Sidebar"
+      >
+        <SidebarPanel handle={handle} items={items} onSignOut={signOut} />
+      </aside>
+      <header className="sticky top-0 z-30 border-b bg-surface-0/80 backdrop-blur lg:hidden">
+        <div className="flex h-14 items-center justify-between gap-4 px-4">
+          <BrandLink />
+          <Button
+            variant="outline"
+            size="sm"
+            aria-expanded={open}
+            aria-controls={DRAWER_ID}
+            onClick={() => setOpen(true)}
+          >
+            <Menu aria-hidden="true" />
+            Menu
+          </Button>
         </div>
       </header>
-      <main id="main" className="mx-auto w-full max-w-5xl flex-1 px-4 py-8">
+      {open ? (
+        <Drawer id={DRAWER_ID} onClose={close}>
+          {(closeButton) => (
+            <SidebarPanel
+              handle={handle}
+              items={items}
+              onSignOut={signOut}
+              onNavigate={close}
+              topAction={closeButton}
+            />
+          )}
+        </Drawer>
+      ) : null}
+      {banner}
+      <main id="main" className="mx-auto w-full max-w-5xl flex-1 px-4 py-8 lg:px-8">
         {children}
       </main>
-      {signedIn ? (
-        <nav
-          aria-label="Primary (mobile)"
-          className="sticky bottom-0 border-t bg-surface-0 md:hidden"
-        >
-          <ul className="grid grid-cols-5">
-            {NAV.map((item) => (
-              <li key={item.to}>
-                <Link
-                  to={item.to}
-                  className="flex flex-col items-center gap-1 py-2 text-2xs text-fg-muted [&.active]:text-accent"
-                  activeProps={{ className: 'active', 'aria-current': 'page' }}
-                >
-                  <item.icon aria-hidden="true" className="size-5" />
-                  {item.label}
-                </Link>
-              </li>
-            ))}
-          </ul>
-        </nav>
-      ) : null}
     </div>
+  );
+}
+
+function SkipLink() {
+  return (
+    <a
+      href="#main"
+      className="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:z-50 focus:rounded-md focus:bg-surface-0 focus:px-3 focus:py-2"
+    >
+      Skip to content
+    </a>
+  );
+}
+
+function BrandLink() {
+  return (
+    <Link
+      to="/"
+      className="inline-flex items-center rounded-sm text-fg"
+      aria-label="Identizen home"
+    >
+      <IdentizenLogo height={22} title={null} />
+    </Link>
   );
 }

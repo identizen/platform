@@ -28,7 +28,7 @@ const info: EnrollmentInfo = {
 };
 
 const handlers = () => ({
-  onEnrol: jest.fn(),
+  onEnroll: jest.fn(),
   onCheckLater: jest.fn(),
   onRetry: jest.fn(),
   onDone: jest.fn(),
@@ -42,7 +42,7 @@ const renderPhase = async (phase: EnrollPhase) => {
 };
 
 describe('EnrollScreen', () => {
-  it('shows the org sheet: name, masked email, what management means, and Enrol', async () => {
+  it('shows the org sheet: name, masked email, what management means, and Enroll', async () => {
     const h = await renderPhase({ kind: 'ready', info, busy: false });
     expect(screen.getByTestId('enroll-org')).toHaveTextContent('Acme');
     expect(screen.getByTestId('enroll-email')).toHaveTextContent('g***@acme.example');
@@ -53,7 +53,7 @@ describe('EnrollScreen', () => {
       /registered on acme\.index\.test, next to the indexes already on this phone/,
     );
     await fireEvent.press(screen.getByTestId('enroll-submit'));
-    expect(h.onEnrol).toHaveBeenCalledTimes(1);
+    expect(h.onEnroll).toHaveBeenCalledTimes(1);
     await fireEvent.press(screen.getByTestId('enroll-cancel'));
     expect(h.onBack).toHaveBeenCalledTimes(1);
   });
@@ -91,7 +91,7 @@ describe('EnrollScreen', () => {
     await h.r.unmount();
 
     const d = await renderPhase({ kind: 'denied', org: 'Acme' });
-    expect(screen.getByText('Enrolment declined')).toBeOnTheScreen();
+    expect(screen.getByText('Enrollment declined')).toBeOnTheScreen();
     await d.r.unmount();
 
     const e = await renderPhase({
@@ -101,7 +101,7 @@ describe('EnrollScreen', () => {
       retryable: false,
     });
     expect(screen.getByTestId('enroll-error-attestation_required')).toBeOnTheScreen();
-    expect(screen.getByText(/only enrols verified devices/)).toBeOnTheScreen();
+    expect(screen.getByText(/only enrolls verified devices/)).toBeOnTheScreen();
     expect(screen.queryByTestId('enroll-retry')).toBeNull();
     await e.r.unmount();
 
@@ -116,7 +116,7 @@ describe('EnrollScreen', () => {
     await n.r.unmount();
 
     await renderPhase({ kind: 'invalid' });
-    expect(screen.getByText('That is not an Identizen enrolment link.')).toBeOnTheScreen();
+    expect(screen.getByText('That is not an Identizen enrollment link.')).toBeOnTheScreen();
   });
 });
 

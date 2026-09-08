@@ -1,18 +1,18 @@
 ---
 title: Compliance and operations
-description: Audit export, SIEM webhooks signed with the tenant's key, retention, the organisation status page with plan quotas, and how the tenant index's scheduled jobs run.
+description: Audit export, SIEM webhooks signed with the tenant's key, retention, the organization status page with plan quotas, and how the tenant index's scheduled jobs run.
 ---
 
-**Compliance** in the portal is where an organisation gets its data out and keeps it under control: exports of the audit log and of the organisation itself, webhooks that stream every audit event to a SIEM, retention periods, and a status page with the tenant's quotas and jobs. Everything on this page runs on the tenant index; nothing leaves the tenant's database except what an administrator exports or points a webhook at.
+**Compliance** in the portal is where an organization gets its data out and keeps it under control: exports of the audit log and of the organization itself, webhooks that stream every audit event to a SIEM, retention periods, and a status page with the tenant's quotas and jobs. Everything on this page runs on the tenant index; nothing leaves the tenant's database except what an administrator exports or points a webhook at.
 
 ## Exports
 
 An export is a job that writes a file to the tenant's object store and lets an administrator download it for 7 days.
 
 - **Audit log**, as CSV or JSON, optionally limited to a date range. The columns are `id, at, kind, idz, device_id, client_id, session_id, detail` (`detail` is the event's JSON). JSON exports are the same objects the portal's audit page shows.
-- **Organisation data**, JSON only: members, domains, policies, SSO apps, SCIM tokens (ids and names, never secrets), devices with their fleet fields, sessions and admin actions.
+- **Organization data**, JSON only: members, domains, policies, SSO apps, SCIM tokens (ids and names, never secrets), devices with their fleet fields, sessions and admin actions.
 
-Owners, admins and auditors can start and download exports; owners and admins can delete one early. At most three jobs run at once per organisation. Each export is an admin action and an audit event (`export.created`, `export.completed`, `export.failed`), and the file disappears when it expires.
+Owners, admins and auditors can start and download exports; owners and admins can delete one early. At most three jobs run at once per organization. Each export is an admin action and an audit event (`export.created`, `export.completed`, `export.failed`), and the file disappears when it expires.
 
 ## SIEM webhooks
 

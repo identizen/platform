@@ -14,18 +14,18 @@ export function CallbackRoute() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    let cancelled = false;
+    let canceled = false;
     completeSignInOnce(new URLSearchParams(location.search))
       .then((session) => {
-        if (cancelled) return;
+        if (canceled) return;
         const known = findCustomer(session.claims.sub) !== null;
         void navigate({ to: known ? '/app' : '/signup', replace: true });
       })
       .catch((err: unknown) => {
-        if (!cancelled) setError(err instanceof Error ? err.message : String(err));
+        if (!canceled) setError(err instanceof Error ? err.message : String(err));
       });
     return () => {
-      cancelled = true;
+      canceled = true;
     };
   }, [navigate]);
 

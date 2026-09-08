@@ -1,13 +1,13 @@
 ---
 title: Operations API
-description: Audit and data exports, SIEM webhooks and how to verify their signatures, retention, the status and quota report, the public status route, and the on-prem licence on a tenant index — every route with its role, body and response.
+description: Audit and data exports, SIEM webhooks and how to verify their signatures, retention, the status and quota report, the public status route, and the on-prem license on a tenant index — every route with its role, body and response.
 ---
 
-The routes behind the portal's **Compliance** and **Status** pages. Nothing here stores a secret in the tenant database: webhook deliveries are signed with the tenant's Ed25519 index key, exports live in object storage under a random key, and licences are verified with a public key. Authentication and roles are on the [overview](/enterprise/api/); the guide is [Compliance and operations](/enterprise/compliance/).
+The routes behind the portal's **Compliance** and **Status** pages. Nothing here stores a secret in the tenant database: webhook deliveries are signed with the tenant's Ed25519 index key, exports live in object storage under a random key, and licenses are verified with a public key. Authentication and roles are on the [overview](/enterprise/api/); the guide is [Compliance and operations](/enterprise/compliance/).
 
 ## Audit export
 
-Exports are asynchronous jobs written to the tenant's object store and downloaded through the index. A job covers the audit log (`kind: 'audit'`, CSV or JSON, optional date range) or the organisation's data (`kind: 'data'`, JSON only: members, domains, policies, SSO apps, SCIM tokens as ids and names only, devices with fleet fields, sessions, admin actions).
+Exports are asynchronous jobs written to the tenant's object store and downloaded through the index. A job covers the audit log (`kind: 'audit'`, CSV or JSON, optional date range) or the organization's data (`kind: 'data'`, JSON only: members, domains, policies, SSO apps, SCIM tokens as ids and names only, devices with fleet fields, sessions, admin actions).
 
 ```ts
 interface ExportJob {
@@ -30,12 +30,12 @@ interface ExportJob {
 | Method   | Path                         | Role                       | Body → Response                                                                                                                                                                                                      |
 | -------- | ---------------------------- | -------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `GET`    | `/orgs/exports`              | auditor+ (`exports.read`)  | `{ exports: ExportJob[] }`, newest first, 50                                                                                                                                                                         |
-| `POST`   | `/orgs/exports`              | auditor+ (`exports.write`) | `{ kind: 'audit', format: 'csv' \| 'json', from?, to? }` or `{ kind: 'data' }` → `{ export: ExportJob }` (`202`). The job runs after the response; at most 3 pending or running per organisation (`429 export_busy`) |
+| `POST`   | `/orgs/exports`              | auditor+ (`exports.write`) | `{ kind: 'audit', format: 'csv' \| 'json', from?, to? }` or `{ kind: 'data' }` → `{ export: ExportJob }` (`202`). The job runs after the response; at most 3 pending or running per organization (`429 export_busy`) |
 | `GET`    | `/orgs/exports/:id`          | auditor+ (`exports.read`)  | `{ export }`: poll `status`                                                                                                                                                                                          |
 | `GET`    | `/orgs/exports/:id/download` | auditor+ (`exports.read`)  | The file (`content-disposition: attachment`). `404 export_not_ready` until `done`, `410 export_expired` after `expires_at`                                                                                           |
 | `DELETE` | `/orgs/exports/:id`          | admin+ (`org.write`)       | → `204`, deletes the object                                                                                                                                                                                          |
 
-CSV columns for an audit export: `id, at, kind, idz, device_id, client_id, session_id, detail` (`detail` JSON-encoded). JSON is an array of the same objects `GET /orgs/audit` returns, plus `session_id`, which is `detail.sid` or `detail.session_id` when the event carries one, else `null`. An audit export covers every row in the tenant database: the organisation's own events and the open index's login, session and device events, which carry no `org_id`. The file is assembled in memory in pages of 500 rows and stored with one write, so an export is bounded by Worker memory, not streamed; streaming for very large logs is on the [roadmap](/enterprise/#on-the-roadmap).
+CSV columns for an audit export: `id, at, kind, idz, device_id, client_id, session_id, detail` (`detail` JSON-encoded). JSON is an array of the same objects `GET /orgs/audit` returns, plus `session_id`, which is `detail.sid` or `detail.session_id` when the event carries one, else `null`. An audit export covers every row in the tenant database: the organization's own events and the open index's login, session and device events, which carry no `org_id`. The file is assembled in memory in pages of 500 rows and stored with one write, so an export is bounded by Worker memory, not streamed; streaming for very large logs is on the [roadmap](/enterprise/#on-the-roadmap).
 
 ## SIEM webhooks
 
@@ -128,7 +128,7 @@ export async function handleWebhook(request: Request): Promise<Response> {
 }
 ```
 
-How events reach the queue: every audit write in the organisation routes, SCIM, SAML and enrollment records the event and delivers in the request's background. The open index writes `login.*`, `session.*` and `device.*` events itself, so each webhook also keeps a cursor into the audit table and the scheduled job sweeps everything settled past it (at least 5 seconds old) into the queue. A new webhook's cursor starts at the current last event, so history is never replayed; a `(webhook, event)` pair is queued at most once. The destination is checked at registration against the egress policy whatever the index's own setting, since an administrator-supplied URL is the SSRF vector.
+How events reach the queue: every audit write in the organization routes, SCIM, SAML and enrollment records the event and delivers in the request's background. The open index writes `login.*`, `session.*` and `device.*` events itself, so each webhook also keeps a cursor into the audit table and the scheduled job sweeps everything settled past it (at least 5 seconds old) into the queue. A new webhook's cursor starts at the current last event, so history is never replayed; a `(webhook, event)` pair is queued at most once. The destination is checked at registration against the egress policy whatever the index's own setting, since an administrator-supplied URL is the SSRF vector.
 
 ## Retention
 
@@ -147,7 +147,7 @@ The retention keys sit in the same table as the [policy document](/enterprise/ap
 | `GET`  | `/orgs/retention` | any admin role (`org.read`) | `{ retention }`                                                                                                             |
 | `PUT`  | `/orgs/retention` | admin+ (`org.write`)        | Any subset of the keys → `{ retention }`. `400` outside the limits; admin action `retention.update`, audit `policy.updated` |
 
-Once a day the scheduled job deletes rows past retention (the tenant's whole audit table, which holds one organisation; admin actions; the SCIM log; delivered and failed webhook deliveries; job runs older than 30 days) and writes `retention.run` to the audit log with the counts and the policy applied.
+Once a day the scheduled job deletes rows past retention (the tenant's whole audit table, which holds one organization; admin actions; the SCIM log; delivered and failed webhook deliveries; job runs older than 30 days) and writes `retention.run` to the audit log with the counts and the policy applied.
 
 ## Scheduled jobs
 
@@ -203,7 +203,7 @@ Exceeding one refuses the create with `409 quota_exceeded` and `{ quota, used, l
 
 ## Billing
 
-Every Identizen Cloud tenant is metered on **active devices** and billed in one of two modes, chosen per account by Identizen at setup: **`stripe`** (medium and smaller organisations pay by card: a Stripe customer with a metered subscription, invoices from Stripe) or **`invoice`** (enterprise agreements: Identizen raises invoices at month end from the period's peak and records them in its own ledger). The routes and the portal page are the same for both.
+Every Identizen Cloud tenant is metered on **active devices** and billed in one of two modes, chosen per account by Identizen at setup: **`stripe`** (medium and smaller organizations pay by card: a Stripe customer with a metered subscription, invoices from Stripe) or **`invoice`** (enterprise agreements: Identizen raises invoices at month end from the period's peak and records them in its own ledger). The routes and the portal page are the same for both.
 
 An active device is a device row with status `active` that was used in the last 30 days: `last_seen_at` inside the window, or a session created for the device inside the window, or the device itself registered inside the window. Disabled and revoked devices never count, whatever their timestamps; every device in the tenant database counts, managed or not. Once a day the `usage` job counts them and reports `{ tenant_id, day, active_devices }` to the control plane, which keeps one figure per tenant and day for both modes; in `stripe` mode it also sets the quantity on the tenant's metered subscription item, so repeating a day is a no-op and a corrected count replaces the day's figure. A period is billed on its peak: Stripe's metered price aggregates by `max`, and an invoice-mode invoice takes the maximum daily count over its period when it is raised. The invoice-mode period is the calendar month; the stripe-mode period is the subscription's. On-prem installs have no control plane and are licensed, not metered: the job still counts and records `skipped: no_control_plane`.
 
@@ -243,12 +243,12 @@ interface OrgBilling {
 
 The control plane never holds card data, only Stripe ids and the invoice ledger; in `stripe` mode the payment method is entered and changed on Stripe's hosted page, and in `invoice` mode there is no payment method to manage. Admin action: `billing.portal_link`. The administrator's view is [Billing](/enterprise/billing/).
 
-## Licence (on-prem)
+## License (on-prem)
 
 An on-prem install runs in single-tenant mode: the tenant record and secrets come from environment variables, and `LICENSE` is an Ed25519-signed JSON document issued by Identizen, verified at boot against Identizen's public key baked into the image.
 
 ```ts
-interface Licence {
+interface License {
   v: 1;
   id: string;
   subject: string;
@@ -259,11 +259,11 @@ interface Licence {
 }
 ```
 
-An expired licence enters a 14-day grace period, reported as `licence.status: 'grace'` in `GET /orgs/public` and `GET /status` and shown as a banner in the portal and org app; after grace, logins are refused with `503 licence_expired` while the admin routes keep working. Seats are active members: exceeding them refuses invitations and SCIM creates with `409 seats_exceeded`. Identizen Cloud tenants report `licence: null`. Installation is on [On-prem installation](/enterprise/on-prem/).
+An expired license enters a 14-day grace period, reported as `license.status: 'grace'` in `GET /orgs/public` and `GET /status` and shown as a banner in the portal and org app; after grace, logins are refused with `503 license_expired` while the admin routes keep working. Seats are active members: exceeding them refuses invitations and SCIM creates with `409 seats_exceeded`. Identizen Cloud tenants report `license: null`. Installation is on [On-prem installation](/enterprise/on-prem/).
 
 ## Audit and admin actions
 
-Audit kinds: `export.created`, `export.completed`, `export.failed`, `webhook.created`, `webhook.updated`, `webhook.removed`, `webhook.test`, `webhook.failing`, `retention.run`, `licence.grace`, `licence.expired`; a retention change is `policy.updated`; the domain re-check writes `domain.stale`, `domain.reverified`, `domain.unverified` (detail `{ domain_id, domain, method, reason }`, no actor). Admin actions: `export.create`, `export.remove`, `webhook.create`, `webhook.update`, `webhook.remove`, `webhook.test`, `webhook.retry`, `retention.update`, `billing.portal_link`.
+Audit kinds: `export.created`, `export.completed`, `export.failed`, `webhook.created`, `webhook.updated`, `webhook.removed`, `webhook.test`, `webhook.failing`, `retention.run`, `license.grace`, `license.expired`; a retention change is `policy.updated`; the domain re-check writes `domain.stale`, `domain.reverified`, `domain.unverified` (detail `{ domain_id, domain, method, reason }`, no actor). Admin actions: `export.create`, `export.remove`, `webhook.create`, `webhook.update`, `webhook.remove`, `webhook.test`, `webhook.retry`, `retention.update`, `billing.portal_link`.
 
 ## Example: stream every login and membership event to a SIEM
 

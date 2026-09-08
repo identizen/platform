@@ -43,7 +43,7 @@ describe('authenticate', () => {
     expect((await authenticate('x')).amr).toEqual(['user']);
   });
 
-  it('a cancelled biometric prompt fails without a passcode fallback', async () => {
+  it('a canceled biometric prompt fails without a passcode fallback', async () => {
     arrange(BIOMETRIC_STRONG, [FACIAL_RECOGNITION], { success: false, error: 'user_cancel' });
     const r = await authenticate('x');
     expect(r.ok).toBe(false);

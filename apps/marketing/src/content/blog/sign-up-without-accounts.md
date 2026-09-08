@@ -38,7 +38,7 @@ if (user) return signIn(user);
 return redirect('/signup');
 ```
 
-A known `sub` is a returning customer. The redirect is the sign-up: an unknown `sub` is a new person, and you ask them for whatever your product needs: a name for the statement, an email for notices, an address for shipping. Store it under the `sub`. From then on the phone recognises them and so do you.
+A known `sub` is a returning customer. The redirect is the sign-up: an unknown `sub` is a new person, and you ask them for whatever your product needs: a name for the statement, an email for notices, an address for shipping. Store it under the `sub`. From then on the phone recognizes them and so do you.
 
 Notice what is not on the form. No password to choose. No password strength meter. No "confirm your email to activate your account", because there is no account to activate and the email is not a credential. You can still verify the email address if you want notices to arrive, but a typo in it does not lock anyone out.
 

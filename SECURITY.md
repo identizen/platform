@@ -13,7 +13,7 @@ Include what you found, how to reproduce it, and which component it affects (pro
 
 ## What to expect
 
-- Acknowledgement within 2 business days.
+- Acknowledgment within 2 business days.
 - An assessment and a fix plan within 10 business days for anything that affects the hosted index, the apps, or the protocol.
 - Credit in the release notes if you want it. We do not currently run a paid bounty.
 

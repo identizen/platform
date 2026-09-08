@@ -98,12 +98,12 @@ export interface LoginSession {
   readonly state: LoginState;
   /** Subscribe to state changes; returns an unsubscribe. The callback fires immediately with the current state. */
   subscribe(cb: (state: LoginState) => void): () => void;
-  /** Resolves with the terminal state (approved / denied / expired / error / cancelled). */
+  /** Resolves with the terminal state (approved / denied / expired / error / canceled). */
   readonly done: Promise<LoginState>;
   /**
    * Find the phone over Web Bluetooth (Chromium). Must be called from a user gesture while the
    * QR is showing; opens the browser's device chooser. Resolves true when the index pushed the
-   * challenge to the chosen phone, false when unavailable, cancelled, or not found.
+   * challenge to the chosen phone, false when unavailable, canceled, or not found.
    */
   useBluetooth(): Promise<boolean>;
   cancel(): void;

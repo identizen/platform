@@ -80,7 +80,7 @@ export function RestoreScreen({ onRestore, onBack }: RestoreScreenProps) {
       {error ? <ErrorText>{error}</ErrorText> : null}
       <Muted>
         The phrase never leaves this phone. Your identity will be identical to the one on your old
-        phone. Organisation indexes are added again by enrolling, or from Settings.
+        phone. Organization indexes are added again by enrolling, or from Settings.
       </Muted>
       <AdvancedIndexField
         value={indexUrl}

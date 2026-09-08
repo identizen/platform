@@ -17,7 +17,7 @@ const pillars: { icon: IconName; title: string; text: string; href: string }[] =
   {
     icon: 'shield',
     title: 'Control who signs in',
-    text: 'Invite by email and role. Enrol phones by link, QR or MDM and approve them by policy or by hand. Require managed devices, a biometric class, login windows and a session age. Suspend or deprovision a member and every session ends everywhere, with back-channel logout.',
+    text: 'Invite by email and role. Enroll phones by link, QR or MDM and approve them by policy or by hand. Require managed devices, a biometric class, login windows and a session age. Suspend or deprovision a member and every session ends everywhere, with back-channel logout.',
     href: `${docs}/policy/`,
   },
   {
@@ -38,7 +38,7 @@ const editions: { name: string; eyebrow: string; text: string; items: string[]; 
   {
     name: 'Identizen Cloud',
     eyebrow: 'Provisioned by us',
-    text: 'A tenant index per organisation, operated by Identizen on the same code as the public index.',
+    text: 'A tenant index per organization, operated by Identizen on the same code as the public index.',
     items: [
       'Issuer, JWKS and challenge key of your own, sealed at provisioning',
       'Dedicated Postgres in the US or the EU, never moved',
@@ -55,7 +55,7 @@ const editions: { name: string; eyebrow: string; text: string; items: string[]; 
     items: [
       'Images signed keyless with Sigstore, with an SPDX SBOM attestation',
       'A compose bundle for pilots; a Helm chart with a migration Job for production',
-      'One Postgres, two keys you generate, one signed licence with seat count and 14-day grace',
+      'One Postgres, two keys you generate, one signed license with seat count and 14-day grace',
       'Nothing phones home; air-gapped installs pull from your registry',
       'Backup, restore and upgrade runbooks in the release bundle',
     ],
@@ -70,11 +70,11 @@ const steps = [
   },
   {
     title: 'You invite your first owner',
-    text: 'The owner enrols a phone on your index, opens the invitation and accepts. From the portal they invite administrators, helpdesk, auditors and members by email and role, and verify your domains.',
+    text: 'The owner enrolls a phone on your index, opens the invitation and accepts. From the portal they invite administrators, helpdesk, auditors and members by email and role, and verify your domains.',
   },
   {
-    title: 'Enrol phones',
-    text: 'Each person gets a one-time enrollment link or QR code, issued from the portal, from the org app, or by your MDM. The phone shows the organisation, registers on your index and is approved by policy or in the Approvals queue.',
+    title: 'Enroll phones',
+    text: 'Each person gets a one-time enrollment link or QR code, issued from the portal, from the org app, or by your MDM. The phone shows the organization, registers on your index and is approved by policy or in the Approvals queue.',
   },
   {
     title: 'Connect apps',
@@ -85,12 +85,12 @@ const steps = [
 
 <Base
   title="Enterprise"
-  description="Identizen Enterprise: organisation-controlled identities on the phone, no passwords, and your own index. Identizen Cloud or on-prem, with an admin portal, enrollment and fleet, login policy, SSO with a SAML IdP and SCIM, and audit export. Available today."
+  description="Identizen Enterprise: organization-controlled identities on the phone, no passwords, and your own index. Identizen Cloud or on-prem, with an admin portal, enrollment and fleet, login policy, SSO with a SAML IdP and SCIM, and audit export. Available today."
 >
   <PageHeader
     eyebrow="Enterprise"
-    title="Organisation-controlled identity, on the phone."
-    lede="No passwords, no accounts at a broker, and your own index: a dedicated OpenID Provider for your organisation, run by us in our cloud or by you inside your boundary. Available today."
+    title="Organization-controlled identity, on the phone."
+    lede="No passwords, no accounts at a broker, and your own index: a dedicated OpenID Provider for your organization, run by us in our cloud or by you inside your boundary. Available today."
   >
     <div class="mt-8 flex flex-wrap gap-3">
       <a href="/contact" class="btn btn-primary">
@@ -166,7 +166,7 @@ const steps = [
       </div>
       <p class="mt-6 text-sm text-fg-muted">
         Need the index inside your boundary without the enterprise layer? Self-hosting the open
-        index is supported today, free, with no licence. See the
+        index is supported today, free, with no license. See the
         <a href={`${SITE.docs}/self-hosting/`} class="link" rel="noopener">self-hosting guide</a>
         and <a href="/pricing" class="link">pricing</a>.
       </p>
@@ -179,7 +179,7 @@ const steps = [
         <p class="eyebrow">How an install goes</p>
         <h2 id="install" class="headline mt-3 text-3xl sm:text-4xl">White-glove, four steps</h2>
         <p class="mt-4 text-lg text-fg-muted">
-          There is no self-serve sign-up. We provision, you invite, phones enrol, apps connect.
+          There is no self-serve sign-up. We provision, you invite, phones enroll, apps connect.
         </p>
       </div>
       <ol class="mt-12 grid gap-8 md:grid-cols-2 lg:grid-cols-4 lg:gap-6">
@@ -206,8 +206,8 @@ const steps = [
         The index holds public keys, push tokens, revocation state and audit events, and nothing
         that could sign for a person; that is true of the public index, of a tenant index and of an
         on-prem install. Private keys are generated on the phone and never leave it. The
-        organisation can enrol, disable and revoke devices, and policy can refuse a login; neither
-        can approve one, and neither the organisation nor Identizen can log in as a user. On-prem
+        organization can enroll, disable and revoke devices, and policy can refuse a login; neither
+        can approve one, and neither the organization nor Identizen can log in as a user. On-prem
         images are signed with Sigstore and ship with SBOMs, and nothing phones home. The rest of
         the design, and the risks we still accept, are on the
         <a href="/security" class="link">security page</a>.

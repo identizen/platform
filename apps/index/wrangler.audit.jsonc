@@ -1,0 +1,112 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "identizen-index",
+  "main": "src/index.ts",
+  "compatibility_date": "2025-08-01",
+  "compatibility_flags": ["nodejs_compat"],
+  "observability": {
+    "enabled": true,
+  },
+  "vars": {
+    "INDEX_URL": "https://index.identizen.com",
+    "APP_URL": "https://app.identizen.com",
+    "PUSH_PROVIDER": "web",
+    "OPEN_SITE_REGISTRATION": "true",
+    "SITE_VERIFICATION": "required",
+    "DASHBOARD_CLIENT_IDS": "idz_live_01M1HQ9AR0Q1R196G54T9YZ5MY,idz_live_01M1HB3MD5N3QGNN3S4S7AFK18",
+  },
+  "hyperdrive": [
+    {
+      "binding": "HYPERDRIVE",
+      "id": "4a75446a9cd747ec9f5292aebebba432",
+      "localConnectionString": "postgres://identizen:identizen@localhost:5433/identizen_security_review_20260906",
+    },
+  ],
+  "durable_objects": {
+    "bindings": [
+      {
+        "name": "CHALLENGE_SESSION",
+        "class_name": "ChallengeSession",
+      },
+      {
+        "name": "REQUEST_GUARD",
+        "class_name": "RequestGuard",
+      },
+    ],
+  },
+  "migrations": [
+    {
+      "tag": "v1",
+      "new_sqlite_classes": ["ChallengeSession", "RequestGuard"],
+    },
+  ],
+  "env": {
+    "dev": {
+      "vars": {
+        "INDEX_URL": "http://localhost:8787",
+        "APP_URL": "http://localhost:4300",
+        "PUSH_PROVIDER": "web",
+        "OUTBOUND_ALLOW_LOCAL": "true",
+        "SITE_VERIFICATION": "off",
+        "OPEN_SITE_REGISTRATION": "true",
+        "DASHBOARD_CLIENT_IDS": "*",
+      },
+      "hyperdrive": [
+        {
+          "binding": "HYPERDRIVE",
+          "id": "00000000000000000000000000000000",
+          "localConnectionString": "postgres://identizen:identizen@localhost:5433/identizen_security_review_20260906",
+        },
+      ],
+      "durable_objects": {
+        "bindings": [
+          {
+            "name": "CHALLENGE_SESSION",
+            "class_name": "ChallengeSession",
+          },
+          {
+            "name": "REQUEST_GUARD",
+            "class_name": "RequestGuard",
+          },
+        ],
+      },
+    },
+    "e2e": {
+      "vars": {
+        "INDEX_URL": "http://localhost:8787",
+        "APP_URL": "http://localhost:8787",
+        "PUSH_PROVIDER": "web",
+        "OUTBOUND_ALLOW_LOCAL": "true",
+        "SITE_VERIFICATION": "off",
+        "OPEN_SITE_REGISTRATION": "true",
+        "DASHBOARD_CLIENT_IDS": "*",
+      },
+      "hyperdrive": [
+        {
+          "binding": "HYPERDRIVE",
+          "id": "00000000000000000000000000000000",
+          "localConnectionString": "postgres://identizen:identizen@localhost:5433/identizen_security_review_20260906",
+        },
+      ],
+      "durable_objects": {
+        "bindings": [
+          {
+            "name": "CHALLENGE_SESSION",
+            "class_name": "ChallengeSession",
+          },
+          {
+            "name": "REQUEST_GUARD",
+            "class_name": "RequestGuard",
+          },
+        ],
+      },
+    },
+  },
+  "routes": [
+    {
+      "pattern": "index.identizen.com",
+      "custom_domain": true,
+    },
+  ],
+}
+

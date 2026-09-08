@@ -20,7 +20,7 @@ export interface IdentizenButtonProps {
 /**
  * Presentational-plus-hook composite: idle button -> waiting panel (match code, QR or
  * "check your phone") -> approved / denied / expired / error. Accessible: live region for
- * status, labelled QR, keyboard-reachable retry.
+ * status, labeled QR, keyboard-reachable retry.
  */
 export function IdentizenButton({
   onSuccess,
@@ -115,6 +115,6 @@ function statusText(s: LoginState): string {
     case 'error':
       return s.error ? `${s.error.message} (${s.error.code})` : 'Something went wrong.';
     case 'cancelled':
-      return 'Cancelled.';
+      return 'Canceled.';
   }
 }

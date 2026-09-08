@@ -75,7 +75,7 @@ export class Identizen {
     const done = new Promise<LoginState>((r) => (resolveDone = r));
     let ws: WebSocket | null = null;
     let pollTimer: ReturnType<typeof setTimeout> | null = null;
-    let cancelled = false;
+    let canceled = false;
 
     const state: LoginState = {
       status: 'starting',
@@ -140,7 +140,7 @@ export class Identizen {
         return ok;
       },
       cancel: () => {
-        cancelled = true;
+        canceled = true;
         finish('cancelled');
       },
     };
@@ -153,7 +153,7 @@ export class Identizen {
       fail,
       (socket) => (ws = socket),
       (timer) => (pollTimer = timer),
-      () => cancelled,
+      () => canceled,
     );
     return session;
   }
@@ -181,7 +181,7 @@ export class Identizen {
     fail: (err: unknown) => void,
     setWs: (ws: WebSocket) => void,
     setTimer: (t: ReturnType<typeof setTimeout>) => void,
-    isCancelled: () => boolean,
+    isCanceled: () => boolean,
   ): Promise<void> {
     try {
       const discovery: DiscoveryOptions = {
@@ -215,7 +215,7 @@ export class Identizen {
       });
       if (!res.ok) throw await errorFromResponse(res, 'challenge_failed');
       const started = (await res.json()) as StartResponse;
-      if (isCancelled()) return;
+      if (isCanceled()) return;
 
       Object.assign(state, {
         status: 'discovering',
@@ -229,7 +229,7 @@ export class Identizen {
       emit();
 
       // Listen first so an early approval is never missed.
-      this.listen(started, state, emit, finish, fail, setWs, setTimer, isCancelled);
+      this.listen(started, state, emit, finish, fail, setWs, setTimer, isCanceled);
 
       if (!started.pushed) {
         if (pairing && (await this.tryPaired(started.challenge_id, pairing))) {
@@ -243,7 +243,7 @@ export class Identizen {
           state.bluetoothAvailable = discovery.bluetooth && this.t.bluetooth !== null;
         }
       }
-      if (isCancelled()) return;
+      if (isCanceled()) return;
       state.status = 'waiting';
       emit();
     } catch (err) {
@@ -259,7 +259,7 @@ export class Identizen {
     fail: (err: unknown) => void,
     setWs: (ws: WebSocket) => void,
     setTimer: (t: ReturnType<typeof setTimeout>) => void,
-    isCancelled: () => boolean,
+    isCanceled: () => boolean,
   ): void {
     const onEvent = (ev: WsEvent) => {
       if (ev.type === 'approved') {
@@ -270,7 +270,7 @@ export class Identizen {
       else if (ev.type === 'expired') finish('expired');
     };
     const poll = async () => {
-      if (isCancelled() || isTerminal(state.status)) return;
+      if (isCanceled() || isTerminal(state.status)) return;
       try {
         const res = await this.t.fetch(`${this.indexUrl}/challenge/${started.challenge_id}/state`, {
           cache: 'no-store',

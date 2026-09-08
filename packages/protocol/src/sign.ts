@@ -330,7 +330,7 @@ export function verifyRequestSignature(
 // Identity registration proof (PROTOCOL.md §8.1): the master key signs the device public key,
 // bound to the index it is meant for and a nonce that index issued, so a captured proof cannot
 // be replayed later or elsewhere. The unbound form is the legacy shape from before nonces;
-// indexes may accept it for existing app builds but it cannot re-enrol a key they already know.
+// indexes may accept it for existing app builds but it cannot re-enroll a key they already know.
 
 export interface IdentityProofBinding {
   /** The index URL the proof is for (its `INDEX_URL`). */

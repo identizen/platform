@@ -18,6 +18,6 @@ Identizen is a small open-source project about trust. We expect the same of the 
 
 ## Enforcement
 
-Report a problem to the maintainers through the [contact form](https://identizen.com/contact/) and say it concerns conduct. Reports are read by the maintainers only and handled privately. Outcomes range from a conversation to removal from the project's spaces, at the maintainers' judgement.
+Report a problem to the maintainers through the [contact form](https://identizen.com/contact/) and say it concerns conduct. Reports are read by the maintainers only and handled privately. Outcomes range from a conversation to removal from the project's spaces, at the maintainers' judgment.
 
 This applies to every space the project runs: the repository, issues, pull requests, discussions, and any chat or event held under the project's name.

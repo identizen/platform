@@ -74,7 +74,7 @@ export const THEME_INIT_SCRIPT =
   THEME_STORAGE_KEY +
   "');if(t==='light'||t==='dark'){document.documentElement.setAttribute('data-theme',t);}}catch(e){}})();";
 
-/** Initialise from storage on page load; returns the preference. */
+/** Initialize from storage on page load; returns the preference. */
 export function initTheme(
   doc: Document | null = typeof document === 'undefined' ? null : document,
 ): ThemePreference {

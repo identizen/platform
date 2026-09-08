@@ -215,7 +215,7 @@ export function SettingsScreen(p: SettingsScreenProps) {
         <Text className="font-medium text-base text-danger dark:text-danger-dark">Danger zone</Text>
         <Muted>
           Forgetting removes the identity from this phone, on every index. You can restore it from
-          the 24 words; organisation indexes come back by enrolling again. Revoke the device from
+          the 24 words; organization indexes come back by enrolling again. Revoke the device from
           another phone or the dashboard so it can no longer sign.
         </Muted>
         {confirmForget ? (

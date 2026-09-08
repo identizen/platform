@@ -7,7 +7,7 @@ Your SaaS keeps its password, magic-link or SSO login. Identizen adds two things
 
 You store one thing per user: the per-site `sub` that enrollment returns. No secrets, no phone numbers, no TOTP seeds.
 
-## 1. Enrol: bind the phone to an existing account
+## 1. Enroll: bind the phone to an existing account
 
 The user is signed in by your own means; that session is the proof of who they are. Send them through an Identizen login with `prompt=enroll` and save the returned `sub` on the user record.
 
@@ -124,7 +124,7 @@ What each check means:
 | ----------- | ----------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `sub`       | equals the `sub` stored on the user | `login_hint` targets that phone, but your own session is what says which account is acting; the two must agree.                                                                                                                                                                                                                                                                  |
 | `acr`       | `'idz:mfa'`                         | The index sets `idz:mfa` only when the phone approved with a user-verifying method. An approval that did not verify the person (`amr: ["swk"]`, a development phone that skipped its prompt) is refused with 403 `insufficient_amr` and never reaches your callback as `idz:mfa`.                                                                                                |
-| `amr`       | informational                       | `["face"]`, `["fingerprint"]`, `["pin"]`, … : which method verified the person. Log it; do not build policy on a specific value unless you need to. On a tenant index the organisation can set that floor once for all of its members with the `allowed_amr` [login policy](/enterprise/policy/#biometrics-only), which refuses the approval on the phone before a token exists. |
+| `amr`       | informational                       | `["face"]`, `["fingerprint"]`, `["pin"]`, … : which method verified the person. Log it; do not build policy on a specific value unless you need to. On a tenant index the organization can set that floor once for all of its members with the `allowed_amr` [login policy](/enterprise/policy/#biometrics-only), which refuses the approval on the phone before a token exists. |
 | `auth_time` | recent                              | When the person approved on the phone, in unix seconds. Every `/authorize` round trip is a fresh approval, so the token is never older than the approval it records; the check guards against a stale token being replayed into your callback.                                                                                                                                   |
 
 If the `sub` is not bound to an active device (the user revoked the phone, or never enrolled), `/authorize` redirects back with `error=login_required`; send the user through enrollment again. The full claim list and the error table are in the [OIDC reference](/reference/oidc/) and [errors](/errors/#insufficient_amr).
@@ -166,17 +166,17 @@ Statuses are `pending`, `approved`, `denied` and `timeout` (the challenge lives 
 ## What to store, and what not to
 
 - Store the per-site `sub` on the user. That is all Identizen needs to target the phone.
-- Log `acr`, `amr`, `auth_time` and `idz_device` with the action they authorised; they are the evidence of what verified the person.
+- Log `acr`, `amr`, `auth_time` and `idz_device` with the action they authorized; they are the evidence of what verified the person.
 - Do not store anything from Identizen as a secret; there are none. The client secret is your site's, for `/token` and the Verification API.
 - Keep your own account recovery (email, recovery codes) for users who lose the phone. In Path B Identizen owns the factor, not the account.
 
-## Organisation-wide rules and the `idz_role` claim
+## Organization-wide rules and the `idz_role` claim
 
-Two things a tenant index adds on top of this recipe, both decided by the organisation in the portal rather than by your site:
+Two things a tenant index adds on top of this recipe, both decided by the organization in the portal rather than by your site:
 
 - **`allowed_amr` applies to every member login.** With `allowed_amr: ["face", "fingerprint", "iris"]` in the [login policy](/enterprise/policy/), a member's approval with the passcode is refused on the phone with `amr_not_allowed`, at the enrollment login as much as at step-up. Your `acr` check above stays the per-request guarantee; the policy is the org-wide floor. Managed-phone-only, login windows and a session maximum age work the same way and are on the same page.
-- **`idz_role` is in the id_token and `/userinfo` for active members.** Its value is the member's role in the organisation (`owner`, `admin`, `helpdesk`, `auditor`, `member`). It is absent for identities that are not members and for suspended members (who cannot sign in anyway). The SDK does not type it; read it as an extra claim and only from tokens your tenant issuer signed.
+- **`idz_role` is in the id_token and `/userinfo` for active members.** Its value is the member's role in the organization (`owner`, `admin`, `helpdesk`, `auditor`, `member`). It is absent for identities that are not members and for suspended members (who cannot sign in anyway). The SDK does not type it; read it as an extra claim and only from tokens your tenant issuer signed.
 
 ## `idz_org`
 
-The id_token and `/userinfo` carry `idz_org` for identities with an `org_id`, and the SDK types it as `idz_org?: string`. Nothing assigns an `org_id` today: membership lives in the organisation's member list and does not set it. Treat `idz_org` as optional and absent, and use `idz_role` or your own user record to decide who may act.
+The id_token and `/userinfo` carry `idz_org` for identities with an `org_id`, and the SDK types it as `idz_org?: string`. Nothing assigns an `org_id` today: membership lives in the organization's member list and does not set it. Treat `idz_org` as optional and absent, and use `idz_role` or your own user record to decide who may act.

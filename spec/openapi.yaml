@@ -142,7 +142,7 @@ paths:
       operationId: getWellKnownIdentizen
       summary: Pinned index key and app URL
       description: |
-        Public index metadata. Phones pin `index_pubkey` at registration and only honour
+        Public index metadata. Phones pin `index_pubkey` at registration and only honor
         challenges and pairings signed by it.
       responses:
         '200':
@@ -506,7 +506,7 @@ paths:
         signature of type `identity` by `master_pubkey` over `{ device_pubkey, index, nonce }`,
         where `nonce` came from `POST /devices/nonce` moments earlier (valid two minutes) and `index` is this index's URL; the legacy proof over `{ device_pubkey }`
         alone is still accepted for app builds that predate nonces. A device key is enrolled at
-        most once: registering an active key again returns its existing enrolment (`200`), and a
+        most once: registering an active key again returns its existing enrollment (`200`), and a
         revoked key is refused (`403 device_revoked`). The identity id `idz` is derived from
         the master public key, so a restored phone re-registers against the same identity.
         `handle` and `kind` only apply when the identity is created. Rate limited per source IP.
@@ -540,7 +540,7 @@ paths:
                     $ref: '#/components/schemas/PublicKey'
                     description: The index's Ed25519 public key. Pin it.
         '200':
-          description: This device key is already enrolled and active; its existing enrolment (same shape as `201`).
+          description: This device key is already enrolled and active; its existing enrollment (same shape as `201`).
           content:
             application/json:
               schema:
@@ -567,7 +567,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
         '403':
-          description: '`device_revoked` — this device key was revoked or disabled; enrol with a fresh key.'
+          description: '`device_revoked` — this device key was revoked or disabled; enroll with a fresh key.'
           content:
             application/json:
               schema:
@@ -1465,7 +1465,7 @@ paths:
         otherwise `Authorization: Bearer <SITE_REGISTRATION_TOKEN>` is required
         (`403 registration_closed`). The `client_id` is `idz_<environment>_<ULID>`.
         Confidential sites receive `client_secret` once; sites with a `webhook_url` receive
-        `webhook_secret` once. `rp_id` is normalised; a host may be registered more than once, and each live registration must prove the domain before it can start logins (`verification` in the response, PROTOCOL.md §8.2).
+        `webhook_secret` once. `rp_id` is normalized; a host may be registered more than once, and each live registration must prove the domain before it can start logins (`verification` in the response, PROTOCOL.md §8.2).
       security:
         - {}
         - siteRegistrationToken: []
@@ -1986,7 +1986,7 @@ components:
                 description: Only with the `handle` scope and only when the user has set one.
               idz_org:
                 type: string
-                description: Organisation id for org identities; absent for personal identities.
+                description: Organization id for org identities; absent for personal identities.
     HandleUpdated:
       description: The identity's current handle.
       content:
@@ -2579,7 +2579,7 @@ components:
           type: string
           minLength: 1
           maxLength: 253
-          description: The site host; normalised before storage.
+          description: The site host; normalized before storage.
         redirect_uris:
           type: array
           minItems: 1

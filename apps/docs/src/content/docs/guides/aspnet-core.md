@@ -6,7 +6,7 @@ description: Configure Identizen as a standard OpenID Connect provider with Micr
 Identizen is a standard OpenID Connect provider (Authorization Code + PKCE), so the built-in `OpenIdConnect` handler works without an Identizen-specific package.
 
 :::caution[Unverified sample]
-This page is a standard-OIDC configuration written from the provider's behaviour. It has not yet been run against ASP.NET Core in CI. If something differs, please open an issue.
+This page is a standard-OIDC configuration written from the provider's behavior. It has not yet been run against ASP.NET Core in CI. If something differs, please open an issue.
 :::
 
 ## Register the site

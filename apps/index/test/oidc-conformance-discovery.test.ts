@@ -1,7 +1,7 @@
 /**
  * Specification-derived conformance checks for the index as an OpenID Provider, part 1:
  * OpenID Connect Discovery 1.0 (with RFC 8414), RFC 7517 JWKS, the RFC 6749 error format,
- * and cross-cutting behaviour. See docs: reference/oidc-conformance.
+ * and cross-cutting behavior. See docs: reference/oidc-conformance.
  */
 import { SELF, fetchMock } from 'cloudflare:test';
 import { afterEach, beforeAll, beforeEach, describe, expect, it } from 'vitest';
@@ -111,7 +111,7 @@ describe('OpenID Connect Discovery 1.0 §3, §4 and RFC 8414', () => {
     expect(Array.isArray((await json<{ keys: unknown[] }>(keys)).keys)).toBe(true);
   });
 
-  it('Discovery §3: response_types_supported is honoured and unadvertised response types are rejected', async () => {
+  it('Discovery §3: response_types_supported is honored and unadvertised response types are rejected', async () => {
     const site = await registerSite();
     const phone = await registerPhone();
     const ok = await authorize(authorizeParams(site.client_id));
@@ -126,7 +126,7 @@ describe('OpenID Connect Discovery 1.0 §3, §4 and RFC 8414', () => {
     expect((await exchange(site, code)).status).toBe(200);
   });
 
-  it('Discovery §3: grant_types_supported is honoured and unadvertised grants are rejected with unsupported_grant_type', async () => {
+  it('Discovery §3: grant_types_supported is honored and unadvertised grants are rejected with unsupported_grant_type', async () => {
     const site = await registerSite();
     const phone = await registerPhone();
     const { code } = await authorizeAndApprove(site, phone);
@@ -145,7 +145,7 @@ describe('OpenID Connect Discovery 1.0 §3, §4 and RFC 8414', () => {
     expect((await exchange(site, code)).status).toBe(200);
   });
 
-  it('Discovery §3: code_challenge_methods_supported is honoured (S256) and plain or missing methods are rejected', async () => {
+  it('Discovery §3: code_challenge_methods_supported is honored (S256) and plain or missing methods are rejected', async () => {
     const site = await registerSite();
     const d = await discovery();
     expect(d.code_challenge_methods_supported).toEqual(['S256']);
@@ -222,7 +222,7 @@ describe('OpenID Connect Discovery 1.0 §3, §4 and RFC 8414', () => {
     expect(la.login.sub).not.toBe(lb.login.sub);
   });
 
-  it('Discovery §3 / RFC 6749 §3.3: every advertised scope is honoured; unadvertised scopes are ignored and absent from the granted scope', async () => {
+  it('Discovery §3 / RFC 6749 §3.3: every advertised scope is honored; unadvertised scopes are ignored and absent from the granted scope', async () => {
     const site = await registerSite();
     const phone = await registerPhone({ handle: 'george' });
     const d = await discovery();
@@ -376,7 +376,7 @@ describe('RFC 6749 §5.2 error format', () => {
 });
 
 describe('Cross-cutting', () => {
-  it('CORS: /token and /userinfo reflect the request Origin (index behaviour, not a spec requirement)', async () => {
+  it('CORS: /token and /userinfo reflect the request Origin (index behavior, not a spec requirement)', async () => {
     const site = await registerSite();
     const phone = await registerPhone();
     const { login } = await loginAndExchange(site, phone);

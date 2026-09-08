@@ -87,12 +87,12 @@ export function devicesRoutes(): Hono<AppEnv> {
       if (known.status !== 'active') {
         throw forbidden(
           'device_revoked',
-          'this device key was revoked; enrol with a fresh device key',
+          'this device key was revoked; enroll with a fresh device key',
         );
       }
       if (known.idz !== idz)
         throw conflict('identity_mismatch', 'this device key belongs to another identity');
-      // Same install registering again (reinstall, retry): the enrolment it already has.
+      // Same install registering again (reinstall, retry): the enrollment it already has.
       const owner = await getIdentity(db, idz);
       return c.json(
         {

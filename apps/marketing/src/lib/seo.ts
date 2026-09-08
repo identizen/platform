@@ -1,7 +1,7 @@
 /**
  * Structured data (schema.org JSON-LD) and the site-wide graph nodes. Search engines read these
  * for rich results; answer engines and LLM crawlers read them as the canonical description of
- * what Identizen is. Every builder returns a plain object; `jsonLd` serialises it safely for an
+ * what Identizen is. Every builder returns a plain object; `jsonLd` serializes it safely for an
  * inline <script>.
  */
 import { SITE } from './site';
@@ -159,7 +159,7 @@ export function graph(nodes: readonly JsonLd[]): JsonLd {
   return { '@context': 'https://schema.org', '@graph': [organization(), website(), ...nodes] };
 }
 
-/** Serialise for an inline <script type="application/ld+json">; `</script>` cannot break out. */
+/** Serialize for an inline <script type="application/ld+json">; `</script>` cannot break out. */
 export function jsonLd(data: JsonLd): string {
   return JSON.stringify(data).replaceAll('<', '\\u003c').replaceAll('>', '\\u003e');
 }

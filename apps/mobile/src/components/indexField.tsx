@@ -12,7 +12,7 @@ import { ErrorText, Muted } from './ui';
 
 export { DEFAULT_INDEX_URL, INDEX_URL_HINT };
 
-/** The normalised URL, or null (with the hint to show) when the input is not an index address. */
+/** The normalized URL, or null (with the hint to show) when the input is not an index address. */
 export function validateIndexInput(raw: string): { url: string } | { error: string } {
   const url = normalizeIndexUrl(raw);
   return url ? { url } : { error: INDEX_URL_HINT };
@@ -62,7 +62,7 @@ export function AdvancedIndexField({
           {error ? <ErrorText>{error}</ErrorText> : null}
           <Muted>
             Where this identity registers first. Leave the public index unless you run your own; an
-            organisation&apos;s index is added later by enrolling.
+            organization&apos;s index is added later by enrolling.
           </Muted>
         </View>
       ) : null}

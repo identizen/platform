@@ -617,7 +617,7 @@ describe('OpenID Connect Back-Channel Logout 1.0', () => {
     expect(form.get('logout_token')?.split('.')).toHaveLength(3);
   });
 
-  it('Back-Channel §2 / Discovery: backchannel_logout_supported and backchannel_logout_session_supported are advertised and honoured', async () => {
+  it('Back-Channel §2 / Discovery: backchannel_logout_supported and backchannel_logout_session_supported are advertised and honored', async () => {
     const d = await discovery();
     expect(d.backchannel_logout_supported).toBe(true);
     // session_supported means the logout token carries sid, which §2.4 above verifies.

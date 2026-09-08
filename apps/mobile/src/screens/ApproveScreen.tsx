@@ -4,7 +4,7 @@ import type { Challenge } from '@identizen/protocol';
 import { MatchCode, ReasonBox } from '../components/challenge';
 import { Button, ErrorText, Heading, Muted, Screen } from '../components/ui';
 
-export type ApproveOutcome = 'approved' | 'denied' | 'cancelled' | 'failed';
+export type ApproveOutcome = 'approved' | 'denied' | 'canceled' | 'failed';
 
 export interface ApproveScreenProps {
   challenge: Challenge;
