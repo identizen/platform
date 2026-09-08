@@ -1,12 +1,13 @@
 import { useRef, useState } from 'react';
 import { View } from 'react-native';
 import { CameraView, useCameraPermissions } from 'expo-camera';
-import { parseChallengeId } from '../challenges/receive';
+import { parseChallengeLink } from '../challenges/receive';
 import { Button, ErrorText, Muted, Screen } from '../components/ui';
 import { parseEnrollmentLink, type EnrollmentLink } from '../enrollment/links';
 
 export interface ScanScreenProps {
-  onScanned: (challengeId: string) => Promise<void>;
+  /** `indexUrl` is present when the code names its index (`?index=`); else the app finds it. */
+  onScanned: (challengeId: string, indexUrl?: string) => Promise<void>;
   /** An org enrollment QR (the same `identizen://enroll?…` link the portal shows). */
   onEnrollmentLink?: ((link: EnrollmentLink) => void) | undefined;
   onBack: () => void;
@@ -26,13 +27,14 @@ export function ScanScreen({ onScanned, onEnrollmentLink, onBack }: ScanScreenPr
       onEnrollmentLink(enrollment);
       return;
     }
-    const id = parseChallengeId(data);
-    if (!id) {
+    const link = parseChallengeLink(data);
+    if (!link) {
       setError('That is not an Identizen sign-in code.');
       return;
     }
     handled.current = true;
-    void onScanned(id).catch((err: unknown) => {
+    const scanned = link.index ? onScanned(link.id, link.index) : onScanned(link.id);
+    void scanned.catch((err: unknown) => {
       handled.current = false;
       setError(String(err));
     });

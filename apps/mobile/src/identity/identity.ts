@@ -1,6 +1,9 @@
 /**
- * Identity lifecycle: create / restore the seed, register the install with the index, forget.
+ * Identity lifecycle: create / restore the seed, register the install with an index, forget.
  * Mirrors apps/fake-phone/src/phone.ts; everything cryptographic comes from @identizen/protocol.
+ *
+ * One seed serves every index: the master key (hence the identity id) is the same everywhere,
+ * and each index gets its own device key pair at registration (`DeviceRecord` per index).
  */
 import {
   deriveMasterKey,
@@ -17,9 +20,13 @@ import {
 } from '@identizen/protocol';
 import {
   DEFAULT_SETTINGS,
+  indexKey,
   readDevice,
+  readDevices,
   readSeedHex,
   readSettings,
+  sameIndex,
+  setActiveIndexUrl,
   wipeAll,
   writeDevice,
   writeSeedHex,
@@ -35,12 +42,31 @@ export interface RegistrationResult {
   handle: string | null;
 }
 
+/** One registered (or about to be registered) index. */
+export interface IndexSummary {
+  indexUrl: string;
+  idz: string | null;
+  deviceId: string | null;
+  handle: string | null;
+  registered: boolean;
+  active: boolean;
+}
+
+/** The active index, plus every index the phone holds. */
 export interface IdentitySummary {
   idz: string | null;
   deviceId: string | null;
   handle: string | null;
   indexUrl: string;
   registered: boolean;
+  indexes: IndexSummary[];
+}
+
+export interface RegisterOptions {
+  /** Which index to register on; the active one when omitted. */
+  indexUrl?: string | undefined;
+  /** Make it the active index afterwards (default true). */
+  makeActive?: boolean | undefined;
 }
 
 let fetchImpl: typeof fetch = (input, init) => fetch(input, init);
@@ -67,11 +93,15 @@ export async function createIdentity(settings: Settings = DEFAULT_SETTINGS): Pro
   const seed = generateSeed();
   await writeSeedHex(toHex(seed), settings.biometricRequired);
   await writeSettings(settings);
-  await writeDevice(freshDevice(settings.indexUrl));
+  await writeDevice(freshDevice(indexKey(settings.activeIndexUrl)));
   return seedToMnemonic(seed);
 }
 
-/** Restore on a new phone: validates the 24 words (checksum) and stores the same seed. */
+/**
+ * Restore on a new phone: validates the 24 words (checksum) and stores the same seed, pointed at
+ * `settings.activeIndexUrl` (the public index by default). Organisation indexes are added again
+ * by enrolling, or from Settings.
+ */
 export async function restoreIdentity(
   mnemonic: string,
   settings: Settings = DEFAULT_SETTINGS,
@@ -79,22 +109,42 @@ export async function restoreIdentity(
   const seed = mnemonicToSeed(mnemonic); // throws on invalid phrase
   await writeSeedHex(toHex(seed), settings.biometricRequired);
   await writeSettings(settings);
-  await writeDevice(freshDevice(settings.indexUrl));
+  await writeDevice(freshDevice(indexKey(settings.activeIndexUrl)));
 }
 
-/** The device record is written with the seed and wiped with it, and reading it never prompts. */
+/** Device records are written with the seed and wiped with it, and reading them never prompts. */
 export async function hasIdentity(): Promise<boolean> {
-  return (await readDevice()) !== null;
+  return Object.keys(await readDevices()).length > 0;
+}
+
+const summarize = (d: DeviceRecord, active: boolean): IndexSummary => ({
+  indexUrl: d.indexUrl,
+  idz: d.idz,
+  deviceId: d.deviceId,
+  handle: d.handle,
+  registered: d.deviceId !== null,
+  active,
+});
+
+/** Every index, the active one first, then the rest in the order they were added. */
+export async function listIndexes(): Promise<IndexSummary[]> {
+  const [devices, settings] = await Promise.all([readDevices(), readSettings()]);
+  const all = Object.values(devices).map((d) =>
+    summarize(d, sameIndex(d.indexUrl, settings.activeIndexUrl)),
+  );
+  return [...all.filter((i) => i.active), ...all.filter((i) => !i.active)];
 }
 
 export async function getSummary(): Promise<IdentitySummary> {
-  const [device, settings] = await Promise.all([readDevice(), readSettings()]);
+  const [indexes, settings] = await Promise.all([listIndexes(), readSettings()]);
+  const active = indexes.find((i) => i.active);
   return {
-    idz: device?.idz ?? null,
-    deviceId: device?.deviceId ?? null,
-    handle: device?.handle ?? null,
-    indexUrl: device?.indexUrl ?? settings.indexUrl,
-    registered: device?.deviceId !== null && device?.deviceId !== undefined,
+    idz: active?.idz ?? null,
+    deviceId: active?.deviceId ?? null,
+    handle: active?.handle ?? null,
+    indexUrl: active?.indexUrl ?? settings.activeIndexUrl,
+    registered: active?.registered ?? false,
+    indexes,
   };
 }
 
@@ -104,31 +154,57 @@ export async function getMnemonic(): Promise<string | null> {
   return hex ? seedToMnemonic(fromHex(hex)) : null;
 }
 
-export async function getDeviceKey(): Promise<KeyPair> {
-  const device = await readDevice();
+export async function getDeviceKey(indexUrl?: string): Promise<KeyPair> {
+  const device = await readDevice(indexUrl);
   if (!device) throw new Error('no device record');
   return keyPairFromPrivateKey(fromHex(device.devicePrivHex));
 }
 
-export async function requireDevice(): Promise<
-  DeviceRecord & { deviceId: string; indexPubkey: string }
-> {
-  const device = await readDevice();
-  if (!device?.deviceId || !device.indexPubkey) throw new Error('device is not registered');
+export type RegisteredDevice = DeviceRecord & { deviceId: string; indexPubkey: string };
+
+/** The registered record for `indexUrl` (active index by default), or a clear refusal. */
+export async function requireDevice(indexUrl?: string): Promise<RegisteredDevice> {
+  const device = await readDevice(indexUrl);
+  if (!device?.deviceId || !device.indexPubkey)
+    throw new Error(
+      indexUrl
+        ? `this phone is not registered on ${indexKey(indexUrl)}`
+        : 'device is not registered',
+    );
   return { ...device, deviceId: device.deviceId, indexPubkey: device.indexPubkey };
 }
 
+/** Every record that finished registering, active index first. */
+export async function registeredDevices(): Promise<RegisteredDevice[]> {
+  const [devices, settings] = await Promise.all([readDevices(), readSettings()]);
+  const done = Object.values(devices).filter(
+    (d): d is RegisteredDevice => d.deviceId !== null && d.indexPubkey !== null,
+  );
+  return [
+    ...done.filter((d) => sameIndex(d.indexUrl, settings.activeIndexUrl)),
+    ...done.filter((d) => !sameIndex(d.indexUrl, settings.activeIndexUrl)),
+  ];
+}
+
 /**
- * `POST /devices`: registers the install and (on first sight) the identity. Idempotent per install.
- * `push` is what this install can receive: an APNs/FCM token, `'poll'` for inbox polling, or null.
+ * `POST /devices`: registers the install on one index and (on first sight there) the identity.
+ * Idempotent per index. `push` is what this install can receive: an APNs/FCM token, `'poll'` for
+ * inbox polling, or null. The index becomes the active one unless `makeActive` is false.
  */
 export async function register(
   push: { platform: 'apns' | 'fcm' | 'web'; token: string } | null,
+  opts: RegisterOptions = {},
 ): Promise<RegistrationResult> {
   const seedHex = await readSeedHex();
-  const device = await readDevice();
-  if (!seedHex || !device) throw new Error('create or restore an identity first');
+  const devices = await readDevices();
+  if (!seedHex || Object.keys(devices).length === 0)
+    throw new Error('create or restore an identity first');
+  const indexUrl = opts.indexUrl ?? (await readSettings()).activeIndexUrl;
+  // A fresh record stores the normalised URL: that is what the proof binds and requests use.
+  const device = devices[indexKey(indexUrl)] ?? freshDevice(indexKey(indexUrl));
+  const makeActive = opts.makeActive ?? true;
   if (device.deviceId && device.idz && device.indexPubkey) {
+    if (makeActive) await setActiveIndexUrl(device.indexUrl);
     return {
       deviceId: device.deviceId,
       idz: device.idz,
@@ -176,6 +252,7 @@ export async function register(
     handle: body.handle,
     pushMode: push ? (push.platform === 'web' ? 'poll' : push.platform) : null,
   });
+  if (makeActive) await setActiveIndexUrl(device.indexUrl);
   return {
     deviceId: body.device_id,
     idz: body.idz,
@@ -184,12 +261,16 @@ export async function register(
   };
 }
 
-export async function updateLocalHandle(handle: string | null): Promise<void> {
-  const device = await readDevice();
+/** Handles are per index; this updates the record for `indexUrl` (active by default). */
+export async function updateLocalHandle(handle: string | null, indexUrl?: string): Promise<void> {
+  const device = await readDevice(indexUrl);
   if (device) await writeDevice({ ...device, handle });
 }
 
-/** Forget this identity on this phone. The index keeps the device until it is revoked elsewhere. */
+/**
+ * Forget this identity on this phone: every index and the seed. Each index keeps its device until
+ * it is revoked elsewhere. To drop a single index keep the identity and use `forgetIndex`.
+ */
 export async function forgetIdentity(): Promise<void> {
   await wipeAll();
 }

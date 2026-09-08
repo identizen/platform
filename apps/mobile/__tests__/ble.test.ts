@@ -190,7 +190,11 @@ describe('controller', () => {
     const native = fakeNative();
     setBlePeripheralForTests(native);
 
-    await writeSettings({ ...DEFAULT_SETTINGS, bluetoothEnabled: true });
+    await writeSettings({
+      ...DEFAULT_SETTINGS,
+      activeIndexUrl: 'http://index.test',
+      bluetoothEnabled: true,
+    });
     await syncBleAdvertising(); // no device yet
     expect(native.calls).toEqual([]);
 
@@ -203,7 +207,11 @@ describe('controller', () => {
     native.fire('onRead', { central: 'X', at: 42 });
     expect(reads).toEqual([42]);
 
-    await writeSettings({ ...DEFAULT_SETTINGS, bluetoothEnabled: false });
+    await writeSettings({
+      ...DEFAULT_SETTINGS,
+      activeIndexUrl: 'http://index.test',
+      bluetoothEnabled: false,
+    });
     await syncBleAdvertising();
     expect(native.calls.at(-1)).toBe('stop');
   });

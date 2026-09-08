@@ -11,6 +11,8 @@ export type GuardFor = (deviceId: string) => GuardStore;
 /** The only payload that transits APNs / FCM / Web Push (PROTOCOL.md section 7). */
 export interface PushPayload {
   challenge_id: string;
+  /** The issuing index, so a phone registered on several indexes knows where to fetch. */
+  index?: string;
 }
 
 export type PushTarget = Pick<Device, 'id' | 'pushToken' | 'pushPlatform'>;

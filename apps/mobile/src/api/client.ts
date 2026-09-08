@@ -1,5 +1,7 @@
 /**
- * Signed requests to the index (PROTOCOL.md section 8) and the account endpoints the app uses.
+ * Signed requests to an index (PROTOCOL.md section 8) and the account endpoints the app uses.
+ * Every call takes an optional `indexUrl`; without one it goes to the active index. Anything that
+ * acts on a specific challenge passes that challenge's index (see challenges/receive.ts).
  */
 import { signRequest } from '@identizen/protocol';
 import { getDeviceKey, requireDevice } from '../identity/identity';
@@ -35,10 +37,15 @@ export async function throwIfNotOk(res: Response): Promise<void> {
   throw new IndexError(res.status, code, message);
 }
 
-/** Idz-Signature request as this device. */
-export async function signedFetch(method: string, path: string, body?: unknown): Promise<Response> {
-  const device = await requireDevice();
-  const key = await getDeviceKey();
+/** Idz-Signature request as this phone's device on `indexUrl` (active index by default). */
+export async function signedFetch(
+  method: string,
+  path: string,
+  body?: unknown,
+  indexUrl?: string,
+): Promise<Response> {
+  const device = await requireDevice(indexUrl);
+  const key = await getDeviceKey(device.indexUrl);
   const raw = body === undefined ? '' : JSON.stringify(body);
   const header = signRequest(
     { method, path, body: raw, timestamp: Math.floor(Date.now() / 1000) },
@@ -52,15 +59,24 @@ export async function signedFetch(method: string, path: string, body?: unknown):
   });
 }
 
-export async function signedJson<T>(method: string, path: string, body?: unknown): Promise<T> {
-  const res = await signedFetch(method, path, body);
+export async function signedJson<T>(
+  method: string,
+  path: string,
+  body?: unknown,
+  indexUrl?: string,
+): Promise<T> {
+  const res = await signedFetch(method, path, body, indexUrl);
   await throwIfNotOk(res);
   return (await res.json()) as T;
 }
 
-/** Public (unsigned) fetch against the index. */
-export async function indexFetch(path: string, init?: RequestInit): Promise<Response> {
-  const device = await requireDevice();
+/** Public (unsigned) fetch against a registered index (active by default). */
+export async function indexFetch(
+  path: string,
+  init?: RequestInit,
+  indexUrl?: string,
+): Promise<Response> {
+  const device = await requireDevice(indexUrl);
   return fetchImpl(`${device.indexUrl}${path}`, init);
 }
 
@@ -100,36 +116,54 @@ export interface SessionRow {
 }
 
 export const api = {
-  me: () =>
+  me: (indexUrl?: string) =>
     signedJson<{
       idz: string;
       handle: string | null;
       device: { id: string; status: string } | null;
-    }>('GET', '/me'),
-  devices: () => signedJson<{ devices: DeviceRow[] }>('GET', '/me/devices').then((r) => r.devices),
-  pairings: () =>
-    signedJson<{ pairings: PairingRow[] }>('GET', '/me/pairings').then((r) => r.pairings),
-  sessions: () =>
-    signedJson<{ sessions: SessionRow[] }>('GET', '/me/sessions').then((r) => r.sessions),
-  revokeDevice: (id: string) =>
-    signedJson<{ device_id: string; status: string }>('POST', `/me/devices/${id}/revoke`, {}),
-  revokePairing: (id: string) =>
-    signedJson<{ id: string; status: string }>('POST', `/me/pairings/${id}/revoke`, {}),
-  revokeSession: (sid: string) =>
-    signedJson<{ sid: string }>('POST', `/me/sessions/${sid}/revoke`, {}),
-  setHandle: (handle: string | null) =>
-    signedJson<{ idz: string; handle: string | null }>('POST', '/me/handle', { handle }),
+    }>('GET', '/me', undefined, indexUrl),
+  devices: (indexUrl?: string) =>
+    signedJson<{ devices: DeviceRow[] }>('GET', '/me/devices', undefined, indexUrl).then(
+      (r) => r.devices,
+    ),
+  pairings: (indexUrl?: string) =>
+    signedJson<{ pairings: PairingRow[] }>('GET', '/me/pairings', undefined, indexUrl).then(
+      (r) => r.pairings,
+    ),
+  sessions: (indexUrl?: string) =>
+    signedJson<{ sessions: SessionRow[] }>('GET', '/me/sessions', undefined, indexUrl).then(
+      (r) => r.sessions,
+    ),
+  revokeDevice: (id: string, indexUrl?: string) =>
+    signedJson<{ device_id: string; status: string }>(
+      'POST',
+      `/me/devices/${id}/revoke`,
+      {},
+      indexUrl,
+    ),
+  revokePairing: (id: string, indexUrl?: string) =>
+    signedJson<{ id: string; status: string }>('POST', `/me/pairings/${id}/revoke`, {}, indexUrl),
+  revokeSession: (sid: string, indexUrl?: string) =>
+    signedJson<{ sid: string }>('POST', `/me/sessions/${sid}/revoke`, {}, indexUrl),
+  setHandle: (handle: string | null, indexUrl?: string) =>
+    signedJson<{ idz: string; handle: string | null }>('POST', '/me/handle', { handle }, indexUrl),
   updatePushToken: (
     deviceId: string,
     token: string | null,
     platform: 'apns' | 'fcm' | 'web' | null,
+    indexUrl?: string,
   ) =>
-    signedJson<{ device_id: string }>('POST', `/devices/${deviceId}/push-token`, {
-      push_token: token,
-      push_platform: platform,
-    }),
-  inbox: (deviceId: string) =>
-    signedJson<{ challenge_ids: string[] }>('GET', `/devices/${deviceId}/inbox`).then(
-      (r) => r.challenge_ids,
+    signedJson<{ device_id: string }>(
+      'POST',
+      `/devices/${deviceId}/push-token`,
+      { push_token: token, push_platform: platform },
+      indexUrl,
     ),
+  inbox: (deviceId: string, indexUrl?: string) =>
+    signedJson<{ challenge_ids: string[] }>(
+      'GET',
+      `/devices/${deviceId}/inbox`,
+      undefined,
+      indexUrl,
+    ).then((r) => r.challenge_ids),
 };

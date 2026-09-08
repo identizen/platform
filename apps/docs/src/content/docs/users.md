@@ -54,6 +54,7 @@ Keep your current login. Let each signed-in user bind a phone with `prompt=enrol
 
 - **New phone, same identity.** The person restores from the 24 words on the new phone and revokes the old one from the dashboard or another device. Their `sub` is unchanged and your records do not move.
 - **Second phone.** Restoring the same words on two phones gives two devices with one identity. Both produce the same `sub`; the person can revoke either.
+- **Several indexes.** One phone can hold the same identity on the public index and on an organisation's index at once (from the next app build); `sub` is the same everywhere because it never depends on the index. Restoring from the 24 words brings back the personal identity on the public index; organisation indexes are added again by enrolling again.
 - **Lost the phone and the words.** The identity is unrecoverable and a new one has a new `sub`. This is the same situation as a customer who lost every credential. Verify who they are through your own process, then bind the new `sub` to the existing record with enrollment, exactly as for an existing user. Identizen cannot do this step for you, by design: nothing at the index can vouch for a person.
 
 ## What to store, and what never arrives

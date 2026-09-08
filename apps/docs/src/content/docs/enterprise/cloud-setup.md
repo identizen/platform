@@ -104,7 +104,7 @@ Until then logins fail with [`site_unverified`](/errors/#site_unverified). The i
 
 ## Point everything at your issuer
 
-Every SDK, guide and framework recipe in these docs works unchanged with `indexUrl` set to your issuer. `createIdentizenServer({ indexUrl: 'https://acme.index.identizen.com', … })` fetches your discovery document and JWKS, and `verifyIdToken` pins `iss` to it. Phones register with one index at a time: in the Identizen app, set the index URL in Settings to your issuer before enrolling; for development, `npx identizen dev --index https://acme.index.identizen.com` runs the fake phone against it.
+Every SDK, guide and framework recipe in these docs works unchanged with `indexUrl` set to your issuer. `createIdentizenServer({ indexUrl: 'https://acme.index.identizen.com', … })` fetches your discovery document and JWKS, and `verifyIdToken` pins `iss` to it. A phone holds the same identity on several indexes at once: in the Identizen app, add your issuer under **Settings → Indexes**, or let an enrolment link add it (from the next app build; the build in the stores today registers with one index at a time, set in Settings before registering); for development, `npx identizen dev --index https://acme.index.identizen.com` runs the fake phone against it.
 
 ## What is different from the public index
 

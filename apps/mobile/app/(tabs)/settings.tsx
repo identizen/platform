@@ -10,11 +10,10 @@ import {
   updateLocalHandle,
   type IdentitySummary,
 } from '../../src/identity/identity';
+import { addIndex, forgetIndex, setActiveIndex } from '../../src/identity/indexes';
 import {
-  readDevice,
   readEnrollment,
   readSettings,
-  writeDevice,
   writeSettings,
   type ManagedBy,
   type Settings,
@@ -32,28 +31,39 @@ export default function SettingsRoute() {
   const [managedBy, setManagedBy] = useState<ManagedBy | null>(null);
   const ble = useBleStatus();
 
-  // Reload every time the tab gains focus: the handle and registration can change on Home.
+  const reload = useCallback(async () => {
+    setSummary(await getSummary());
+    setSettings(await readSettings());
+    setManagedBy((await readEnrollment()).managedBy);
+  }, []);
+
+  // Reload every time the tab gains focus: the handle, registration and active index can change
+  // on Home.
   useFocusEffect(
     useCallback(() => {
-      void getSummary().then(setSummary);
-      void readSettings().then(setSettings);
-      void readEnrollment().then((e) => setManagedBy(e.managedBy));
-    }, []),
+      void reload();
+    }, [reload]),
   );
-  // The form copies handle and index into its own state on mount, so it must not mount before
-  // both have loaded, and it remounts when either changes underneath it.
+  // The form copies the handle into its own state on mount, so it must not mount before the
+  // summary has loaded, and it remounts when the active index or the handle changes underneath.
   if (!settings || !summary) return null;
+
+  // Adding, switching or forgetting an index changes what Bluetooth advertises.
+  const afterIndexChange = async () => {
+    await syncBleAdvertising();
+    await reload();
+  };
 
   return (
     <SettingsScreen
-      key={`${summary.handle ?? ''}|${summary.indexUrl}|${summary.registered ? 1 : 0}`}
+      key={`${summary.handle ?? ''}|${summary.indexUrl}|${summary.registered ? 1 : 0}|${summary.indexes.length}`}
       about={{
         version: Application.nativeApplicationVersion,
         build: Application.nativeBuildVersion,
         builtAt: BUILD_INFO.builtAt,
         commit: BUILD_INFO.commit,
       }}
-      indexUrl={summary.indexUrl}
+      indexes={summary.indexes}
       handle={summary.handle}
       registered={summary.registered}
       managedBy={managedBy}
@@ -72,13 +82,18 @@ export default function SettingsRoute() {
         await updateLocalHandle(r.handle);
         setSummary(await getSummary());
       }}
-      onSaveIndexUrl={async (url) => {
-        const next = { ...settings, indexUrl: url.replace(/\/+$/, '') };
-        await writeSettings(next);
-        const device = await readDevice();
-        if (device && !device.deviceId) await writeDevice({ ...device, indexUrl: next.indexUrl });
-        setSettings(next);
-        setSummary(await getSummary());
+      onMakeActive={async (indexUrl) => {
+        await setActiveIndex(indexUrl);
+        await afterIndexChange();
+      }}
+      onForgetIndex={async (indexUrl) => {
+        await forgetIndex(indexUrl);
+        await afterIndexChange();
+      }}
+      onAddIndex={async (url) => {
+        // Registration reads the seed from the keychain, which is where biometrics are asked.
+        await addIndex(url);
+        await afterIndexChange();
       }}
       onTheme={(t) => void theme.setPreference(t)}
       onBiometricRequired={async (v) => {

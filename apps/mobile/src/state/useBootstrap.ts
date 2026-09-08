@@ -34,17 +34,18 @@ export function useBootstrap(): { ready: boolean; identity: boolean | null } {
   }, []);
 
   useEffect(() => {
-    const open = (id: string, via: PendingChallenge['via']) => {
+    // `indexUrl` is the index the id came from (push payload, inbox); null means "find it".
+    const open = (id: string, via: PendingChallenge['via'], indexUrl: string | null) => {
       // A challenge that lands right after a computer read our id came in over Bluetooth.
       const tagged = via !== 'push' && recentlyReadOverBluetooth() ? 'bluetooth' : via;
-      void handleIncomingChallenge(id, tagged).then(() => {
+      void handleIncomingChallenge(id, tagged, indexUrl).then(() => {
         if (challengeStore.find(id))
           routerRef.current.push({ pathname: '/approve/[id]', params: { id } });
       });
     };
-    const stopPush = listenForPushes((id) => open(id, 'push'));
-    const stopPoll = startInboxPolling((id) => open(id, 'poll'));
-    setBleReadHandler(() => void drainInboxOnce((id) => open(id, 'bluetooth')));
+    const stopPush = listenForPushes((id, indexUrl) => open(id, 'push', indexUrl));
+    const stopPoll = startInboxPolling((id, indexUrl) => open(id, 'poll', indexUrl));
+    setBleReadHandler(() => void drainInboxOnce((id, indexUrl) => open(id, 'bluetooth', indexUrl)));
     void syncBleAdvertising();
     return () => {
       stopPush();

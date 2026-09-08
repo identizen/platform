@@ -149,7 +149,10 @@ export async function pushChallenge(
     throw new ApiError(429, 'push_rate_limited', 'too many pushes to this device');
   }
   await guard.enqueue(challengeId);
-  const result = await services.push.send(device, { challenge_id: challengeId });
+  const result = await services.push.send(device, {
+    challenge_id: challengeId,
+    index: services.indexUrl,
+  });
   if (!result.ok)
     console.warn(`push to ${device.id} via ${result.provider} failed: ${result.detail ?? ''}`);
   return true;

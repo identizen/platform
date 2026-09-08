@@ -34,6 +34,10 @@ export function parseQuery(query: string): Map<string, string> {
   return out;
 }
 
+/** What to tell a person whose typed index address `normalizeIndexUrl` refused. */
+export const INDEX_URL_HINT =
+  'Enter the index address as https://host (plain http is accepted for localhost only).';
+
 /** An index issuer the phone will talk to: https, or plain http on a loopback host for dev. */
 export function normalizeIndexUrl(raw: string): string | null {
   const trimmed = raw.trim().replace(/\/+$/, '');

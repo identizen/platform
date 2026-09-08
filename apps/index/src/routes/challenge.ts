@@ -99,7 +99,7 @@ export function challengeRoutes(): Hono<AppEnv> {
         exp: result.signed.payload.exp,
         acr: result.signed.payload.acr,
         rp_name: result.site.name,
-        deep_link: `${services.appUrl}/l/${id}`,
+        deep_link: `${services.appUrl}/l/${id}?index=${encodeURIComponent(services.indexUrl)}`,
         ws_url: wsUrl.toString(),
         pushed: result.pushedTo !== null,
       },

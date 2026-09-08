@@ -27,10 +27,12 @@ import {
 import { createIdentity, register, setFetch } from '../src/identity/identity';
 import {
   readDevice,
+  readDevices,
   readEnrollment,
   readSettings,
   wipeAll,
   writeEnrollment,
+  writeSettings,
 } from '../src/identity/store';
 
 // src/deeplinks imports expo-linking, which has no native module under Jest.
@@ -244,7 +246,11 @@ describe('enrollment state machine', () => {
 
   it('an unregistered phone is pointed at the org index, registered, and claims signed; auto-approval remembers the org', async () => {
     const index = arrange();
-    await createIdentity({ indexUrl: OPEN, biometricRequired: false, bluetoothEnabled: false });
+    await createIdentity({
+      activeIndexUrl: OPEN,
+      biometricRequired: false,
+      bluetoothEnabled: false,
+    });
     const info = await beginEnrollment(link);
     expect(await claimEnrollment(link, info, 'ios')).toEqual({ kind: 'approved', org: 'Acme' });
 
@@ -260,27 +266,53 @@ describe('enrollment state machine', () => {
     const sig = parseIdzSignature(claim?.headers['Idz-Signature']);
     expect(sig?.device_id).toBe('dev_01K3ZB2N9G0000000000000001');
     expect((await readDevice())?.indexUrl).toBe(ORG);
-    expect((await readSettings()).indexUrl).toBe(ORG);
+    expect((await readSettings()).activeIndexUrl).toBe(ORG);
     expect(await readEnrollment()).toEqual({
       pending: null,
       managedBy: { org: 'Acme', index: ORG },
     });
   });
 
-  it('a phone registered on another index is refused without touching the network', async () => {
+  it('a phone registered on the public index registers on the org index too, keeping both', async () => {
     const index = arrange();
-    await createIdentity({ indexUrl: OPEN, biometricRequired: false, bluetoothEnabled: false });
+    await createIdentity({
+      activeIndexUrl: OPEN,
+      biometricRequired: false,
+      bluetoothEnabled: false,
+    });
     await register(null);
     const info = await beginEnrollment(link);
     const before = index.calls.length;
-    await expect(claimEnrollment(link, info)).rejects.toMatchObject({ code: 'index_mismatch' });
-    expect(index.calls.length).toBe(before);
-    expect((await readDevice())?.indexUrl).toBe(OPEN);
+    expect(await claimEnrollment(link, info)).toEqual({ kind: 'approved', org: 'Acme' });
+    expect(index.calls.slice(before).map((c) => `${c.method} ${c.url}`)).toEqual([
+      `POST ${ORG}/devices/nonce`,
+      `POST ${ORG}/devices`,
+      `POST ${ORG}/enroll/${TOKEN}/claim`,
+    ]);
+    // The personal identity is untouched; the org's index sits next to it and is now active.
+    const devices = await readDevices();
+    expect(Object.keys(devices).sort()).toEqual([ORG, OPEN].sort());
+    expect(devices[OPEN]?.deviceId).toBe('dev_01K3ZB2N9G0000000000000001');
+    expect(devices[ORG]?.deviceId).toBe('dev_01K3ZB2N9G0000000000000001');
+    expect(devices[OPEN]?.devicePrivHex).not.toBe(devices[ORG]?.devicePrivHex);
+    expect((await readSettings()).activeIndexUrl).toBe(ORG);
+    expect((await readEnrollment()).managedBy).toEqual({ org: 'Acme', index: ORG });
+
+    // Enrolling again with the org index already held (but not active) just switches to it.
+    await writeSettings({ ...(await readSettings()), activeIndexUrl: OPEN });
+    const again = index.calls.length;
+    await claimEnrollment(link, info);
+    expect(index.calls.slice(again).map((c) => c.url)).toEqual([`${ORG}/enroll/${TOKEN}/claim`]);
+    expect((await readSettings()).activeIndexUrl).toBe(ORG);
   });
 
   it('a phone already registered on the org index claims straight away', async () => {
     const index = arrange();
-    await createIdentity({ indexUrl: ORG, biometricRequired: false, bluetoothEnabled: false });
+    await createIdentity({
+      activeIndexUrl: ORG,
+      biometricRequired: false,
+      bluetoothEnabled: false,
+    });
     await register(null);
     const info = await beginEnrollment(link);
     const before = index.calls.length;
@@ -308,7 +340,11 @@ describe('enrollment state machine', () => {
       begin: { status: 200, body: strict },
       claim: err(403, 'attestation_required'),
     });
-    await createIdentity({ indexUrl: OPEN, biometricRequired: false, bluetoothEnabled: false });
+    await createIdentity({
+      activeIndexUrl: OPEN,
+      biometricRequired: false,
+      bluetoothEnabled: false,
+    });
     const info = await beginEnrollment(link);
     const before = index.calls.length;
     await expect(claimEnrollment(link, info, 'ios')).rejects.toMatchObject({
@@ -333,7 +369,11 @@ describe('enrollment state machine', () => {
 
   it('sends the attestation the provider produced, bound to the nonce and device key', async () => {
     const index = arrange();
-    await createIdentity({ indexUrl: OPEN, biometricRequired: false, bluetoothEnabled: false });
+    await createIdentity({
+      activeIndexUrl: OPEN,
+      biometricRequired: false,
+      bluetoothEnabled: false,
+    });
     const attest = jest.fn(() =>
       Promise.resolve<Attestation>({ platform: 'android', payload: 'integrity-token' }),
     );
@@ -353,7 +393,11 @@ describe('enrollment state machine', () => {
   it('maps claim refusals', async () => {
     for (const code of ['device_already_enrolled', 'enrollment_used', 'attestation_failed']) {
       arrange({ claim: err(409, code) });
-      await createIdentity({ indexUrl: ORG, biometricRequired: false, bluetoothEnabled: false });
+      await createIdentity({
+        activeIndexUrl: ORG,
+        biometricRequired: false,
+        bluetoothEnabled: false,
+      });
       await expect(claimEnrollment(link, await beginEnrollment(link))).rejects.toMatchObject({
         code,
       });
@@ -372,7 +416,11 @@ describe('enrollment state machine', () => {
         { status: 200, body: { status: 'approved', approval_required: true } },
       ],
     });
-    await createIdentity({ indexUrl: OPEN, biometricRequired: false, bluetoothEnabled: false });
+    await createIdentity({
+      activeIndexUrl: OPEN,
+      biometricRequired: false,
+      bluetoothEnabled: false,
+    });
     expect(await claimEnrollment(link, await beginEnrollment(link))).toEqual({
       kind: 'waiting',
       org: 'Acme',
@@ -400,7 +448,11 @@ describe('enrollment state machine', () => {
 
   it('polling gives up at the deadline, stops on abort, and a denial clears the claim', async () => {
     arrange();
-    await createIdentity({ indexUrl: ORG, biometricRequired: false, bluetoothEnabled: false });
+    await createIdentity({
+      activeIndexUrl: ORG,
+      biometricRequired: false,
+      bluetoothEnabled: false,
+    });
     await register(null);
     const pending = { token: TOKEN, indexUrl: ORG, org: 'Acme', claimedAt: 0 };
     await writeEnrollment({ pending, managedBy: null });

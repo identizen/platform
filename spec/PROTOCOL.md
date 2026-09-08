@@ -157,7 +157,7 @@ Discovery finds the phone; it never changes what the phone shows (site name, cod
 
 ### 6.1 Deep link (phone)
 
-`https://app.identizen.com/l/<challenge_id>` is a universal / app link into the app. The app fetches `GET <index>/challenge/<id>`, verifies the index signature, shows the challenge, and on approval `POST`s the assertion. The OIDC flow completes by opening the site's `redirect_uri` (`?code=…&state=…`) in the system browser.
+`https://app.identizen.com/l/<challenge_id>?index=<index url>` is a universal / app link into the app (`index` tells a phone registered on several indexes which one issued it; without it the phone asks each). The app fetches `GET <index>/challenge/<id>`, verifies the index signature, shows the challenge, and on approval `POST`s the assertion. The OIDC flow completes by opening the site's `redirect_uri` (`?code=…&state=…`) in the system browser.
 
 ### 6.2 QR
 
@@ -201,7 +201,7 @@ A Mac app plus browser extension intercepts `navigator.credentials` on plain-Web
 
 ## 7. Push
 
-The push payload is `{ "challenge_id": "ch_…" }` and nothing else. The phone fetches the full signed challenge from the index over TLS. Nothing sensitive transits APNs / FCM / Web Push.
+The push payload is `{ "challenge_id": "ch_…", "index": "<index url>" }` and nothing else (`index` names the issuing index for phones registered on several; older indexes omit it and the phone asks each of its indexes). The phone fetches the full signed challenge from the index over TLS. Nothing sensitive transits APNs / FCM / Web Push.
 
 Delivery of record is the device **inbox**: whenever the index targets a device (step-up, verification, BLE or paired discovery) it queues the `challenge_id` in that device's inbox, and the phone drains `GET /devices/:id/inbox` (device-authenticated, see section 8) while it is in the foreground. A provider push is an accelerator: an index with no APNs / FCM credentials, or a failed push, still delivers through the inbox. Inbox entries expire with the challenge.
 

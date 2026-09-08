@@ -142,7 +142,7 @@ export function oidcRoutes(): Hono<AppEnv> {
         rpName: site.name,
         acr: v.acr,
         reason: null,
-        deepLink: `${services.appUrl}/l/${id}`,
+        deepLink: `${services.appUrl}/l/${id}?index=${encodeURIComponent(services.indexUrl)}`,
         wsUrl: wsUrl.toString(),
         indexUrl: services.indexUrl,
         exp: started.signed.payload.exp,

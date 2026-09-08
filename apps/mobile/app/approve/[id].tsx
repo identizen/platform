@@ -6,21 +6,24 @@ import { approveChallenge, denyChallenge, receiveChallenge } from '../../src/cha
 import { challengeStore } from '../../src/challenges/store';
 import { useChallenge } from '../../src/challenges/useChallenge';
 import { ErrorText, Muted, Screen } from '../../src/components/ui';
+import { normalizeIndexUrl } from '../../src/enrollment/links';
 import { readSettings } from '../../src/identity/store';
 import { ApproveScreen, type ApproveOutcome } from '../../src/screens/ApproveScreen';
 
 export default function Approve() {
   const router = useRouter();
-  const { id } = useLocalSearchParams<{ id: string }>();
+  const { id, index } = useLocalSearchParams<{ id: string; index?: string }>();
   // Retained after approval or denial removes it from the store, so the result screen stays up.
   const challenge = useChallenge(id);
   const [error, setError] = useState<string | null>(null);
 
-  // Opened from a link before the challenge was fetched: fetch it now.
+  // Opened from a link before the challenge was fetched: fetch it now, from the index the link
+  // named or from whichever registered index knows the id.
   useEffect(() => {
     if (challenge || !id || challengeStore.find(id)) return;
-    receiveChallenge(id, 'link').catch((err: unknown) => setError(String(err)));
-  }, [challenge, id]);
+    const indexUrl = index ? normalizeIndexUrl(index) : null;
+    receiveChallenge(id, 'link', indexUrl).catch((err: unknown) => setError(String(err)));
+  }, [challenge, id, index]);
 
   if (!challenge) {
     return (
@@ -44,6 +47,7 @@ export default function Approve() {
       settings.biometricRequired,
     );
     if (!gate.ok) return 'cancelled';
+    // Signed with the device this phone holds on the challenge's own index.
     const result = await approveChallenge(challenge, gate.amr);
     // The waiting browser receives the OIDC redirect itself (WebSocket or poll). Opening it here
     // would run the site's callback in a browser that holds none of that tab's sign-in state.

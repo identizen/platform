@@ -1,13 +1,15 @@
 /**
- * Push delivery. The payload is only `{ challenge_id }` (PROTOCOL.md section 7); the phone fetches
- * the signed challenge itself. When notifications are unavailable (Expo Go, simulator, denied
- * permission) the install registers `push_token: 'poll'` and drains its inbox on an interval.
+ * Push delivery. The payload is `{ challenge_id }` (PROTOCOL.md section 7), optionally with the
+ * issuing `index`; the phone fetches the signed challenge itself. When notifications are
+ * unavailable (Expo Go, simulator, denied permission) the install registers `push_token: 'poll'`
+ * and drains its inbox on an interval. Every registered index gets the push token and is polled.
  */
 import Constants from 'expo-constants';
 import * as Notifications from 'expo-notifications';
 import { AppState, Platform } from 'react-native';
 import { api } from '../api/client';
-import { readDevice, writeDevice } from '../identity/store';
+import { registeredDevices } from '../identity/identity';
+import { writeDevice } from '../identity/store';
 import { receiveChallenge } from '../challenges/receive';
 import type { PendingChallenge } from '../challenges/store';
 
@@ -15,6 +17,9 @@ export interface PushRegistration {
   platform: 'apns' | 'fcm' | 'web';
   token: string;
 }
+
+/** A challenge id and, when the delivery path knows it, the index it was issued by. */
+export type ChallengeHandler = (challengeId: string, indexUrl: string | null) => void;
 
 const POLL: PushRegistration = { platform: 'web', token: 'poll' };
 
@@ -55,21 +60,38 @@ export async function obtainPushToken(): Promise<PushRegistration> {
   }
 }
 
-/** Re-sync the token with the index after registration (tokens rotate; permissions change). */
+/**
+ * Re-sync the token with every registered index (tokens rotate; permissions change). One index
+ * being unreachable does not stop the others.
+ */
 export async function syncPushToken(): Promise<void> {
-  const device = await readDevice();
-  if (!device?.deviceId) return;
+  const devices = await registeredDevices();
+  if (devices.length === 0) return;
   const reg = await obtainPushToken();
   const mode = reg.token === 'poll' ? 'poll' : reg.platform === 'web' ? 'poll' : reg.platform;
-  if (device.pushMode === mode && mode !== 'apns' && mode !== 'fcm') return;
-  await api.updatePushToken(device.deviceId, reg.token, reg.platform);
-  await writeDevice({ ...device, pushMode: mode });
+  for (const device of devices) {
+    if (device.pushMode === mode && mode !== 'apns' && mode !== 'fcm') continue;
+    try {
+      await api.updatePushToken(device.deviceId, reg.token, reg.platform, device.indexUrl);
+      await writeDevice({ ...device, pushMode: mode });
+    } catch (err) {
+      console.warn(`push token sync failed for ${device.indexUrl}`, err);
+    }
+  }
 }
 
 type Unsubscribe = () => void;
 
+/** The push payload: `challenge_id`, and `index` when the sender includes it. */
+export function pickPushPayload(data: unknown): { id: string; index: string | null } | null {
+  const d = data as { challenge_id?: unknown; index?: unknown } | null;
+  const id = d?.challenge_id;
+  if (typeof id !== 'string') return null;
+  return { id, index: typeof d?.index === 'string' && d.index.length > 0 ? d.index : null };
+}
+
 /** Foreground and tap handlers: both lead to the approve screen through `onChallenge`. */
-export function listenForPushes(onChallenge: (challengeId: string) => void): Unsubscribe {
+export function listenForPushes(onChallenge: ChallengeHandler): Unsubscribe {
   Notifications.setNotificationHandler({
     handleNotification: () =>
       Promise.resolve({
@@ -79,17 +101,13 @@ export function listenForPushes(onChallenge: (challengeId: string) => void): Uns
         shouldSetBadge: false,
       }),
   });
-  const pick = (data: unknown): string | null => {
-    const id = (data as { challenge_id?: unknown } | null)?.challenge_id;
-    return typeof id === 'string' ? id : null;
-  };
   const a = Notifications.addNotificationReceivedListener((n) => {
-    const id = pick(n.request.content.data);
-    if (id) onChallenge(id);
+    const p = pickPushPayload(n.request.content.data);
+    if (p) onChallenge(p.id, p.index);
   });
   const b = Notifications.addNotificationResponseReceivedListener((r) => {
-    const id = pick(r.notification.request.content.data);
-    if (id) onChallenge(id);
+    const p = pickPushPayload(r.notification.request.content.data);
+    if (p) onChallenge(p.id, p.index);
   });
   return () => {
     a.remove();
@@ -98,30 +116,34 @@ export function listenForPushes(onChallenge: (challengeId: string) => void): Uns
 }
 
 /**
- * Drain the inbox once, right now. The index queues every challenge aimed at this device in its
- * inbox whatever push platform we registered with, so this is the delivery of record; a push
- * notification only gets us here sooner. Also used when a nearby computer reads our Bluetooth id.
+ * Drain every registered index's inbox once, right now. An index queues every challenge aimed at
+ * this device in its inbox whatever push platform we registered with, so this is the delivery of
+ * record; a push notification only gets us here sooner. Also used when a nearby computer reads
+ * our Bluetooth id. Each id is handed back with the index it came from.
  */
-export async function drainInboxOnce(onChallenge: (challengeId: string) => void): Promise<void> {
+export async function drainInboxOnce(onChallenge: ChallengeHandler): Promise<void> {
+  let devices: Awaited<ReturnType<typeof registeredDevices>>;
   try {
-    const device = await readDevice();
-    if (device?.deviceId) {
-      for (const id of await api.inbox(device.deviceId)) onChallenge(id);
-    }
+    devices = await registeredDevices();
   } catch {
-    /* offline; the regular poll will catch up */
+    return;
+  }
+  for (const device of devices) {
+    try {
+      for (const id of await api.inbox(device.deviceId, device.indexUrl))
+        onChallenge(id, device.indexUrl);
+    } catch {
+      /* offline; the regular poll will catch up */
+    }
   }
 }
 
 /**
- * Inbox polling for every enrolled install, while the app is in the foreground. Drains at once
+ * Inbox polling for every registered index, while the app is in the foreground. Drains at once
  * when the app comes back to the foreground, since that is when a person looks for the request.
  * Returns a stop function.
  */
-export function startInboxPolling(
-  onChallenge: (challengeId: string) => void,
-  intervalMs = 2000,
-): Unsubscribe {
+export function startInboxPolling(onChallenge: ChallengeHandler, intervalMs = 2000): Unsubscribe {
   let stopped = false;
   let timer: ReturnType<typeof setTimeout> | null = null;
   const tick = async () => {
@@ -145,9 +167,10 @@ export function startInboxPolling(
 export async function handleIncomingChallenge(
   challengeId: string,
   via: PendingChallenge['via'],
+  indexUrl: string | null = null,
 ): Promise<void> {
   try {
-    await receiveChallenge(challengeId, via);
+    await receiveChallenge(challengeId, via, indexUrl);
   } catch (err) {
     console.warn('challenge rejected', err);
   }

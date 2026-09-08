@@ -33,7 +33,9 @@ describe('ChallengeSession DO', () => {
     const started = await startChallenge({ client_id: site.client_id });
     expect(started.challenge_id).toMatch(/^ch_/);
     expect(started.code).toMatch(/^[0-9]{2}$/);
-    expect(started.deep_link).toBe(`http://app.test/l/${started.challenge_id}`);
+    expect(started.deep_link).toBe(
+      `http://app.test/l/${started.challenge_id}?index=${encodeURIComponent('http://index.test')}`,
+    );
     expect(started.ws_url).toBe(`ws://index.test/challenge/${started.challenge_id}/ws`);
     expect(started.pushed).toBe(false);
 

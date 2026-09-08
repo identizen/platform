@@ -24,9 +24,10 @@ The 32-byte Ed25519 key that signs every challenge and every browser pairing. Wh
 
 If the key is lost, generating a new one means every phone registered before the change rejects every challenge from your index. Recovery is per phone, and it is the same as a lost phone:
 
-1. In the app, Settings → **Forget identity on this phone**.
-2. Restore from the 24 words. This creates a new device record with the same seed.
-3. Set the index URL in Settings if it is not the default, then tap **Register this phone** on Home. The phone registers a new `device_id` and pins the new key.
+1. In the app, Settings → **Indexes** → **Forget this index** for your index. (When it is the only index on the phone the app refuses, so use **Forget identity on this phone** instead, restore from the 24 words, and choose your index under **Advanced: index URL** on the restore screen.)
+2. Settings → **Indexes** → **Add index** with your index URL. The phone registers a new `device_id` there, with a fresh device key and the same seed, and pins the new key. Any other index on the phone is untouched.
+
+Both steps are in the next app build; the build in the stores today holds one index at a time, so there the person forgets the identity, restores from the 24 words, sets the index URL in Settings, and taps **Register this phone** on Home.
 
 The person's `sub` at every site is unchanged because it derives from the seed and the site's `rp_id`. Their old device row stays `active` on the index until they revoke it from the new phone's Devices tab or the dashboard. Until then a browser paired to the old device pushes each login to a device that no longer exists and the login times out, so revoking is part of the procedure; revocation ends the old pairings and sessions, and those browsers show the QR once and pair again. There is no way to do this for everyone at once. Back this key up first. Rotating it without a re-pin is open item 1 in the [threat model](/protocol/threat-model/).
 
@@ -96,7 +97,7 @@ A site that started on `index.identizen.com` can move to its own index. The proc
 | ------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `sub` for each person                 | Yes, by construction. `sub = base64url(SHA-256(perSitePublicKey))[0:32]`, and the per-site key is HKDF of the seed and your `rp_id`. Nothing from the index goes in. The new index creates the `site_bindings` row on the first approval. |
 | Your site registration                | No. Register again on the new index; you get a new `client_id` and secret.                                                                                                                                                                |
-| Phone registrations                   | No. The app registers with one index at a time. Each person forgets the identity on the phone, restores from the 24 words, sets the new index URL in Settings, and registers.                                                             |
+| Phone registrations                   | No. Each person adds the new index on the phone (Settings → **Indexes** → **Add index**). The phone keeps its registration on the hosted index next to the new one, so nothing stops working meanwhile.                                   |
 | Paired browsers                       | No. Pairings belong to a device on the old index. Browsers show the QR once and pair again.                                                                                                                                               |
 | Sessions                              | No. People log in again. Your own application sessions are yours and are not affected.                                                                                                                                                    |
 | Handles                               | No. A handle is unique per index and resolves through WebFinger at that index's host. People set it again.                                                                                                                                |
@@ -112,7 +113,7 @@ The steps:
    ```
 
 2. Add the new issuer, `client_id`, and secret to your application. Because `sub` is identical on both indexes, you can accept id_tokens from both issuers for a transition period and look up the same user row either way. Verify each token against the JWKS of the issuer named in its `iss`.
-3. Tell your users to move their phone. The steps are in the key-loss section above, with the new index URL entered in Settings before **Register this phone**. A phone can be registered with one index, so a person who moves stops being able to approve logins for other sites that stayed on the hosted index.
+3. Tell your users to add the new index on their phone: Settings → **Indexes** → **Add index** with your index URL (next app build; on the build in the stores today the phone holds one index, so the steps are the key-loss ones above). The phone then holds the same identity on both indexes and approves each request on the index that issued it, so logins to sites that stayed on the hosted index keep working.
 4. When everyone has moved, drop the old issuer from your configuration. The registration on the hosted index can stay; it holds a hashed secret and your redirect URIs, nothing more.
 
 The hosted index exports or deletes an identity's records on the holder's request, as described in the [privacy policy](https://identizen.com/legal/privacy/). A [tenant index on Identizen Cloud](/enterprise/cloud-setup/#data-residency) puts an organisation's data in the US or the EU, chosen at provisioning; nothing promises a migration tool between the hosted index, a tenant index, and a self-hosted one beyond the steps above.

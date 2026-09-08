@@ -48,6 +48,10 @@ describe('EnrollScreen', () => {
     expect(screen.getByTestId('enroll-email')).toHaveTextContent('g***@acme.example');
     expect(screen.getByText(managementSentence('Acme'))).toBeOnTheScreen();
     expect(managementSentence('Acme')).toMatch(/they never get your keys/);
+    // Enrolling adds the org's index next to the personal one rather than replacing it.
+    expect(screen.getByTestId('enroll-index')).toHaveTextContent(
+      /registered on acme\.index\.test, next to the indexes already on this phone/,
+    );
     await fireEvent.press(screen.getByTestId('enroll-submit'));
     expect(h.onEnrol).toHaveBeenCalledTimes(1);
     await fireEvent.press(screen.getByTestId('enroll-cancel'));
@@ -159,7 +163,24 @@ describe('managed-by surfaces', () => {
   it('Settings shows the org and its index URL', async () => {
     await render(
       <SettingsScreen
-        indexUrl="https://acme.index.test"
+        indexes={[
+          {
+            indexUrl: 'https://index.identizen.com',
+            idz: 'idz_01K3ZB2N9G0000000000000000',
+            deviceId: 'dev_1',
+            handle: null,
+            registered: true,
+            active: false,
+          },
+          {
+            indexUrl: 'https://acme.index.test',
+            idz: 'idz_01K3ZB2N9G0000000000000000',
+            deviceId: 'dev_2',
+            handle: null,
+            registered: true,
+            active: true,
+          },
+        ]}
         handle={null}
         registered
         theme="system"
@@ -169,7 +190,9 @@ describe('managed-by surfaces', () => {
         managedBy={{ org: 'Acme', index: 'https://acme.index.test' }}
         onBluetoothEnabled={jest.fn()}
         onSaveHandle={jest.fn()}
-        onSaveIndexUrl={jest.fn()}
+        onMakeActive={jest.fn()}
+        onForgetIndex={jest.fn()}
+        onAddIndex={jest.fn()}
         onTheme={jest.fn()}
         onBiometricRequired={jest.fn()}
         onShowPhrase={jest.fn()}
@@ -180,6 +203,9 @@ describe('managed-by surfaces', () => {
     expect(screen.getByText('Managed by Acme')).toBeOnTheScreen();
     expect(screen.getByTestId('managed-index')).toHaveTextContent('https://acme.index.test');
     expect(screen.getByText(/They never get your keys/)).toBeOnTheScreen();
+    // The org's index sits next to the personal one in the Indexes card, and is the active one.
+    expect(screen.queryByTestId('make-active-acme.index.test')).toBeNull();
+    expect(screen.getByTestId('make-active-index.identizen.com')).toBeOnTheScreen();
   });
 });
 

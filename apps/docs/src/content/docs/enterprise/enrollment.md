@@ -40,7 +40,7 @@ The sheet shows the organisation's name and logo, **Enrolling as** with the memb
 On **Enrol**, in order:
 
 1. The phone needs an identity. Without one it says _Create or restore an identity before enrolling_.
-2. The phone must be registered on the organisation's index. A phone that is not registered anywhere yet is pointed at the link's index and registers there (the app's index setting changes to the organisation's). A phone registered on a different index is refused: _This phone is registered with a different index. To enrol here, forget the identity in Settings, then restore it from your 24 words with the index set to the one in this link._
+2. The phone must be registered on the organisation's index. The phone holds one identity on several indexes at once, so this step adds the organisation's index next to whatever the phone already has (the public index, another organisation): a phone not yet registered there registers there with the same recovery phrase and a fresh device key, and a phone already registered there just switches to it. Either way the organisation's index becomes the phone's _active_ index (Home and the Devices, Browsers and Sessions tabs show it; a chip on Home switches back, and **Settings → Indexes** lists them all). Nothing is forgotten, and the personal identity on the public index keeps working. The sheet says so before the tap: _Your identity is registered on {index host}, next to the indexes already on this phone; nothing there changes._
 3. The phone claims the enrollment with its device signature (`POST /enroll/:token/claim`). Today no phone build attaches an attestation (see [attestation](/enterprise/mdm/#attestation)), so an organisation with `require_attestation` on refuses at this step with _This organisation only enrols verified devices. This build of Identizen cannot prove the phone is genuine yet, so it cannot enrol here._
 4. The index checks that the phone belongs to this member and to nobody else: a phone whose identity is already another member's, or that is managed for another member, is refused (_This phone is already enrolled with someone else in this organisation_); a member who already has an identity can only add phones holding that same identity.
 
@@ -48,7 +48,7 @@ Then either **You are enrolled** (_This phone is now managed by {org}_), when th
 
 Once enrolled, the phone's home screen says **Managed by {org}**.
 
-The phone app's enrolment flow is written and tested, but it is not in the app build that is in the stores today; it ships with the next build.
+The phone app's enrolment flow, and holding several indexes on one phone, are written and tested, but they are not in the app build that is in the stores today; they ship with the next build.
 
 ## Approval or auto-approve
 
@@ -88,7 +88,8 @@ The organisation's activity log gains the fleet kinds: `enrollment.issued`, `enr
 
 - **Another phone for the same person.** A member who already has an identity can enrol a further phone only if it holds that same identity (restored from the 24 words). Issue a new enrollment; the claim is accepted and the new phone gets its own managed record. A phone holding a different identity is refused (`identity_mismatch`), because one identity holds one membership.
 - **The same phone again.** A phone whose identity is already this member's can claim a new enrollment; approval updates its managed record (attestation status, enrolled time) in place.
-- **After a revoke or a deny.** The device key is gone for good on this index. The member needs a new enrollment, and the phone needs a device the index accepts again. The phone app has no step that re-registers a revoked device: the person forgets the identity in the app's Settings and restores it from the 24 words, which registers a fresh device, then opens the new link.
+- **After a revoke or a deny.** The device key is gone for good on this index. The member needs a new enrollment, and the phone needs a device the index accepts again. The phone app has no step that re-registers a revoked device: the person forgets that index in the app's **Settings → Indexes** (**Forget this index**, which drops only the organisation's registration; the personal identity on the public index stays), then opens the new link, which registers a fresh device on the organisation's index.
+- **A new phone, restored from the 24 words.** Restoring brings back the personal identity on the public index (or the index chosen under **Advanced: index URL** on the restore screen), not the organisation's registration: the member opens a new enrolment link, which adds the organisation's index again with the same identity, so the claim is accepted as in the first case above.
 - **After disable.** Nothing to re-enrol: **Enable** brings the same device back.
 
 ## Policy reference

@@ -1,5 +1,10 @@
-/** Container hooks for the three list screens: fetch, map to ListItem, revoke. */
-import { useCallback, useEffect, useState } from 'react';
+/**
+ * Container hooks for the three list screens: fetch, map to ListItem, revoke. The lists are the
+ * active index's; they refetch whenever their tab gains focus, so switching the active index on
+ * Home shows the other index's devices, browsers and sessions on the next visit.
+ */
+import { useFocusEffect } from 'expo-router';
+import { useCallback, useState } from 'react';
 import { api, type DeviceRow, type PairingRow, type SessionRow } from '../api/client';
 import type { ListItem } from '../screens/ListScreen';
 
@@ -24,7 +29,7 @@ function useList<T>(fetcher: () => Promise<T[]>, map: (row: T) => ListItem): Lis
       .catch((err: unknown) => setError(String(err)))
       .finally(() => setLoading(false));
   }, [fetcher, map]);
-  useEffect(() => refresh(), [refresh]);
+  useFocusEffect(useCallback(() => refresh(), [refresh]));
   return { items, loading, error, refresh };
 }
 

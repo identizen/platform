@@ -1,5 +1,11 @@
 # @identizen/index
 
+## 0.4.2
+
+### Patch Changes
+
+- Push payloads carry `index` and the `/l/<id>` deep links carry `?index=`, so a phone registered on several indexes knows which one issued a challenge. Older phones ignore both.
+
 ## 0.4.1
 
 ### Patch Changes

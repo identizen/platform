@@ -49,17 +49,25 @@ export async function beginEnrollment(link: EnrollmentLink): Promise<EnrollmentI
   };
 }
 
+/** Signed with the device this phone holds on `indexUrl` (the link's index). */
 export function claimEnrollmentRequest(
   token: string,
   attestation: Attestation | null,
+  indexUrl?: string,
 ): Promise<ClaimResponse> {
   return signedJson<ClaimResponse>(
     'POST',
     `/enroll/${encodeURIComponent(token)}/claim`,
     attestation ? { attestation } : {},
+    indexUrl,
   );
 }
 
-export function enrollmentStatusRequest(token: string): Promise<StatusResponse> {
-  return signedJson<StatusResponse>('GET', `/enroll/${encodeURIComponent(token)}/status`);
+export function enrollmentStatusRequest(token: string, indexUrl?: string): Promise<StatusResponse> {
+  return signedJson<StatusResponse>(
+    'GET',
+    `/enroll/${encodeURIComponent(token)}/status`,
+    undefined,
+    indexUrl,
+  );
 }

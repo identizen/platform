@@ -1,11 +1,16 @@
 import { useState } from 'react';
 import { TextInput } from 'react-native';
 import { BIP39_WORDLIST, mnemonicToSeed } from '@identizen/protocol';
+import {
+  AdvancedIndexField,
+  DEFAULT_INDEX_URL,
+  validateIndexInput,
+} from '../components/indexField';
 import { Body, Button, ErrorText, Heading, Muted, Screen } from '../components/ui';
 
 export interface RestoreScreenProps {
-  /** Throws when the phrase is invalid (checksum, length). */
-  onRestore: (mnemonic: string) => Promise<void>;
+  /** Throws when the phrase is invalid (checksum, length). `indexUrl` is where it registers first. */
+  onRestore: (mnemonic: string, indexUrl: string) => Promise<void>;
   onBack: () => void;
 }
 
@@ -35,16 +40,21 @@ export function restoreErrorMessage(err: unknown): string {
 /** PRD 7.5: restore on a new phone from the 24 words. */
 export function RestoreScreen({ onRestore, onBack }: RestoreScreenProps) {
   const [phrase, setPhrase] = useState('');
+  const [indexUrl, setIndexUrl] = useState(DEFAULT_INDEX_URL);
+  const [indexError, setIndexError] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
   const submit = async () => {
     const hint = validatePhrase(phrase);
     if (hint) return setError(hint);
+    const checked = validateIndexInput(indexUrl);
+    if ('error' in checked) return setIndexError(checked.error);
+    setIndexError(null);
     setBusy(true);
     setError(null);
     try {
-      await onRestore(phrase.trim().toLowerCase().split(/\s+/).join(' '));
+      await onRestore(phrase.trim().toLowerCase().split(/\s+/).join(' '), checked.url);
     } catch (err) {
       setError(restoreErrorMessage(err));
     } finally {
@@ -70,8 +80,14 @@ export function RestoreScreen({ onRestore, onBack }: RestoreScreenProps) {
       {error ? <ErrorText>{error}</ErrorText> : null}
       <Muted>
         The phrase never leaves this phone. Your identity will be identical to the one on your old
-        phone.
+        phone. Organisation indexes are added again by enrolling, or from Settings.
       </Muted>
+      <AdvancedIndexField
+        value={indexUrl}
+        onChange={setIndexUrl}
+        error={indexError}
+        disabled={busy}
+      />
       <Button label="Restore" onPress={() => void submit()} busy={busy} testID="restore-submit" />
     </Screen>
   );

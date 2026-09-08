@@ -2,8 +2,10 @@ import { useState } from 'react';
 import { Linking, Switch, Text, TextInput, View } from 'react-native';
 import { biometricName } from '../biometrics';
 import type { ThemePreference } from '../theme/useTheme';
+import { IndexesCard } from '../components/indexes';
 import { ManagedByCard } from '../components/managed';
 import { Button, Card, ErrorText, Heading, Muted, Screen } from '../components/ui';
+import type { IndexSummary } from '../identity/identity';
 import type { ManagedBy } from '../identity/store';
 
 const HANDLE_RE = /^[a-z0-9][a-z0-9_.-]*[a-z0-9]$/;
@@ -19,8 +21,11 @@ export function validateHandle(input: string): string | null {
 }
 
 export interface SettingsScreenProps {
-  indexUrl: string;
+  /** Every index on this phone, active first. */
+  indexes: IndexSummary[];
+  /** The active index's handle. */
   handle: string | null;
+  /** Whether the active index is registered (handles are per index). */
   registered: boolean;
   theme: ThemePreference;
   biometricRequired: boolean;
@@ -28,7 +33,9 @@ export interface SettingsScreenProps {
   bluetoothSupported: boolean;
   onBluetoothEnabled: (v: boolean) => Promise<void>;
   onSaveHandle: (handle: string | null) => Promise<void>;
-  onSaveIndexUrl: (url: string) => Promise<void>;
+  onMakeActive: (indexUrl: string) => Promise<void>;
+  onForgetIndex: (indexUrl: string) => Promise<void>;
+  onAddIndex: (url: string) => Promise<void>;
   onTheme: (t: ThemePreference) => void;
   onBiometricRequired: (v: boolean) => Promise<void>;
   onShowPhrase: () => Promise<void>;
@@ -47,10 +54,10 @@ export interface AboutInfo {
   commit: string | null;
 }
 
-/** "0.1.0 (4) · built 3 Sep 2026, 10:34 · 2d84922", or "development build" for a local run. */
 /** Help for people using the app; the same page is the store listings' support URL. */
 export const HELP_URL = 'https://identizen.com/help/';
 
+/** "0.1.0 (4) · built 3 Sep 2026, 10:34 · 2d84922", or "development build" for a local run. */
 export function formatAbout(a: AboutInfo): string {
   const parts: string[] = [];
   if (a.version) parts.push(a.build ? `${a.version} (${a.build})` : a.version);
@@ -69,7 +76,6 @@ export function formatAbout(a: AboutInfo): string {
 export function SettingsScreen(p: SettingsScreenProps) {
   const [handle, setHandle] = useState(p.handle ?? '');
   const [handleError, setHandleError] = useState<string | null>(null);
-  const [indexUrl, setIndexUrl] = useState(p.indexUrl);
   const [busy, setBusy] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [confirmForget, setConfirmForget] = useState(false);
@@ -104,8 +110,8 @@ export function SettingsScreen(p: SettingsScreenProps) {
       <Card>
         <Text className="font-medium text-base text-fg dark:text-fg-dark">Handle</Text>
         <Muted>
-          Optional. Any site that asks for the handle scope receives it once you set one; leave it
-          empty to stay opaque everywhere.
+          Optional, and per index. Any site that asks for the handle scope receives it once you set
+          one; leave it empty to stay opaque everywhere.
         </Muted>
         <TextInput
           accessibilityLabel="Handle"
@@ -172,7 +178,7 @@ export function SettingsScreen(p: SettingsScreenProps) {
             </Text>
             <Muted>
               {p.bluetoothSupported
-                ? 'A computer next to you can find this phone and push the sign-in to it, no code to scan. Nothing identifying is broadcast: the id rotates every 15 minutes and only the index can read it.'
+                ? 'A computer next to you can find this phone and push the sign-in to it, no code to scan. Nothing identifying is broadcast: the id rotates every 15 minutes and only the active index can read it.'
                 : 'Not available on this build of the app.'}
             </Muted>
           </View>
@@ -186,31 +192,12 @@ export function SettingsScreen(p: SettingsScreenProps) {
         </View>
       </Card>
 
-      <Card>
-        <Text className="font-medium text-base text-fg dark:text-fg-dark">Index</Text>
-        <Muted>
-          Where this phone is registered. Changing it before registration points a new identity at
-          another index.
-        </Muted>
-        <TextInput
-          accessibilityLabel="Index URL"
-          testID="index-url-input"
-          autoCapitalize="none"
-          autoCorrect={false}
-          keyboardType="url"
-          value={indexUrl}
-          onChangeText={setIndexUrl}
-          editable={!p.registered}
-          className="h-12 rounded-md border border-border bg-surface-0 px-3 font-mono text-sm text-fg dark:border-border-dark dark:bg-surface-0-dark dark:text-fg-dark"
-        />
-        <Button
-          label="Save index"
-          variant="secondary"
-          onPress={() => void run('index', () => p.onSaveIndexUrl(indexUrl.trim()))}
-          busy={busy === 'index'}
-          disabled={p.registered}
-        />
-      </Card>
+      <IndexesCard
+        indexes={p.indexes}
+        onMakeActive={p.onMakeActive}
+        onForgetIndex={p.onForgetIndex}
+        onAddIndex={p.onAddIndex}
+      />
 
       <Card>
         <Text className="font-medium text-base text-fg dark:text-fg-dark">Recovery phrase</Text>
@@ -227,8 +214,9 @@ export function SettingsScreen(p: SettingsScreenProps) {
       <Card>
         <Text className="font-medium text-base text-danger dark:text-danger-dark">Danger zone</Text>
         <Muted>
-          Forgetting removes the identity from this phone. You can restore it from the 24 words.
-          Revoke the device from another phone or the dashboard so it can no longer sign.
+          Forgetting removes the identity from this phone, on every index. You can restore it from
+          the 24 words; organisation indexes come back by enrolling again. Revoke the device from
+          another phone or the dashboard so it can no longer sign.
         </Muted>
         {confirmForget ? (
           <Button

@@ -1,6 +1,11 @@
 /**
  * Decides whether the phone should be advertising right now (registered + setting on) and keeps the
- * advertiser in that state. Called at boot, after registration, and when the setting changes.
+ * advertiser in that state. Called at boot, after registration, when the setting changes, and
+ * when the active index changes.
+ *
+ * Multi-index note: the phone advertises one rotating id, derived from the BLE key of the device
+ * it holds on the ACTIVE index, so only that index can resolve a nearby read to this phone.
+ * Advertising for several indexes at once (one id each, or a shared key) is out of scope here.
  */
 import { readDevice, readSettings } from '../identity/store';
 import { startBleAdvertising, stopBleAdvertising } from './advertiser';
@@ -12,7 +17,7 @@ export function setBleReadHandler(handler: ((at: number) => void) | null): void 
   onCentralRead = handler;
 }
 
-/** Reconcile the advertiser with the stored device and settings. Safe to call often. */
+/** Reconcile the advertiser with the active index's device and the settings. Safe to call often. */
 export async function syncBleAdvertising(): Promise<void> {
   const [device, settings] = await Promise.all([readDevice(), readSettings()]);
   const shouldRun = Boolean(device?.deviceId) && settings.bluetoothEnabled;

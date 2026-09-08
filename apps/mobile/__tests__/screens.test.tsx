@@ -82,7 +82,9 @@ describe('onboarding', () => {
     expect(onRestore).not.toHaveBeenCalled();
     await fireEvent.changeText(screen.getByTestId('phrase-input'), WORDS.join(' '));
     await fireEvent.press(screen.getByTestId('restore-submit'));
-    await waitFor(() => expect(onRestore).toHaveBeenCalledWith(WORDS.join(' ')));
+    await waitFor(() =>
+      expect(onRestore).toHaveBeenCalledWith(WORDS.join(' '), 'https://index.identizen.com'),
+    );
     await waitFor(() => expect(screen.getByRole('alert')).toHaveTextContent(/does not check out/));
   });
 
@@ -231,7 +233,7 @@ describe('lists and settings', () => {
     const onSaveHandle = jest.fn(() => Promise.resolve());
     await render(
       <SettingsScreen
-        indexUrl="http://index.test"
+        indexes={[]}
         handle={null}
         registered
         theme="system"
@@ -240,7 +242,9 @@ describe('lists and settings', () => {
         bluetoothSupported={false}
         onBluetoothEnabled={jest.fn()}
         onSaveHandle={onSaveHandle}
-        onSaveIndexUrl={jest.fn()}
+        onMakeActive={jest.fn()}
+        onForgetIndex={jest.fn()}
+        onAddIndex={jest.fn()}
         onTheme={jest.fn()}
         onBiometricRequired={jest.fn()}
         onShowPhrase={jest.fn()}

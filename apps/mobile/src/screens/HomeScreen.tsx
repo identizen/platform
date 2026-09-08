@@ -3,13 +3,16 @@ import { Pressable, Text, View } from 'react-native';
 import type { BleStatus } from '../ble/advertiser';
 import type { ActivityEntry, PendingChallenge } from '../challenges/store';
 import { Lockup, useBrandColor } from '../components/brand';
+import { indexHost, IndexSwitcher } from '../components/indexes';
 import { ManagedByLine, PendingEnrollmentCard } from '../components/managed';
 import { Badge, Button, Card, ListRow, Mono, Muted, Screen, SectionLabel } from '../components/ui';
+import type { IndexSummary } from '../identity/identity';
 import type { ManagedBy, PendingEnrollment } from '../identity/store';
 
 export interface HomeScreenProps {
   idz: string | null;
   handle: string | null;
+  /** The active index. */
   indexUrl: string;
   registered: boolean;
   pending: PendingChallenge[];
@@ -20,6 +23,10 @@ export interface HomeScreenProps {
   onRefresh?: () => void;
   registering?: boolean;
   bluetooth?: BleStatus;
+  /** Every index on this phone; a switcher appears when there is more than one. */
+  indexes?: IndexSummary[];
+  onSelectIndex?: (indexUrl: string) => void;
+  switchingIndex?: boolean;
   /** Org enrollment (enterprise): who manages the phone, and a claim awaiting approval. */
   managedBy?: ManagedBy | null;
   pendingEnrollment?: PendingEnrollment | null;
@@ -49,17 +56,10 @@ const KIND_TONE: Record<ActivityEntry['kind'], Tone> = {
   failed: 'danger',
 };
 
-function host(url: string): string {
-  try {
-    return new URL(url).host;
-  } catch {
-    return url;
-  }
-}
-
 export function HomeScreen(p: HomeScreenProps) {
   const accentFg = useBrandColor('paper');
   const muted = useBrandColor('muted');
+  const several = (p.indexes?.length ?? 0) > 1 && p.onSelectIndex !== undefined;
   return (
     <Screen testID="home" onRefresh={p.onRefresh}>
       <View className="flex-row items-center justify-between pb-1 pt-2">
@@ -72,7 +72,15 @@ export function HomeScreen(p: HomeScreenProps) {
           {p.handle ? `@${p.handle}` : 'No handle yet'}
         </Text>
         <Mono>{p.idz ?? 'Not registered'}</Mono>
-        <Muted>{host(p.indexUrl)}</Muted>
+        {several && p.indexes && p.onSelectIndex ? (
+          <IndexSwitcher
+            indexes={p.indexes}
+            onSelect={p.onSelectIndex}
+            busy={p.switchingIndex ?? false}
+          />
+        ) : (
+          <Muted>{indexHost(p.indexUrl)}</Muted>
+        )}
         {p.managedBy ? <ManagedByLine managedBy={p.managedBy} /> : null}
         {!p.registered ? (
           <Button

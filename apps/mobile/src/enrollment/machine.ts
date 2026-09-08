@@ -3,10 +3,10 @@
  * approved | waiting -> poll status. Every step maps index errors to one `EnrollmentErrorCode`
  * with copy the screen can show as is.
  *
- * Index model: the store holds one device record, registered on one index (`DeviceRecord.indexUrl`,
- * which `signedFetch` uses). An unregistered phone is pointed at the enrollment's index the way
- * Settings does; a phone already registered elsewhere cannot enrol without forgetting the
- * identity and restoring it against the org's index, so that case is refused with a message.
+ * Index model: the store holds one device record per index (`readDevices`), and the phone can be
+ * registered on several at once. Enrolling registers the identity on the organisation's index if
+ * it is not there yet, next to the personal one, and makes it the active index; nothing already
+ * registered is touched. The claim and status calls are signed with that index's device key.
  */
 import { IndexError } from '../api/client';
 import {
@@ -17,12 +17,11 @@ import {
 } from '../attestation';
 import { getDeviceKey, register } from '../identity/identity';
 import {
-  readDevice,
+  indexKey,
+  readDevices,
   readEnrollment,
-  readSettings,
-  writeDevice,
+  setActiveIndexUrl,
   writeEnrollment,
-  writeSettings,
   type PendingEnrollment,
 } from '../identity/store';
 import { obtainPushToken } from '../push';
@@ -39,7 +38,6 @@ export type EnrollmentErrorCode =
   | 'attestation_required'
   | 'attestation_failed'
   | 'device_already_enrolled'
-  | 'index_mismatch'
   | 'no_identity'
   | 'network'
   | 'unknown';
@@ -53,8 +51,6 @@ export const ENROLLMENT_MESSAGES: Record<EnrollmentErrorCode, string> = {
   attestation_failed:
     'The organisation could not verify this phone. Try again, or ask your administrator.',
   device_already_enrolled: 'This phone is already enrolled with someone else in this organisation.',
-  index_mismatch:
-    'This phone is registered with a different index. To enrol here, forget the identity in Settings, then restore it from your 24 words with the index set to the one in this link.',
   no_identity: 'Create or restore an identity before enrolling.',
   network: 'Could not reach the organisation. Check your connection and try again.',
   unknown: 'Enrolment failed. Try again, or ask your administrator.',
@@ -91,25 +87,20 @@ export function toEnrollmentError(err: unknown): EnrollmentError {
   return new EnrollmentError('unknown');
 }
 
-const sameIndex = (a: string, b: string) =>
-  a.replace(/\/+$/, '').toLowerCase() === b.replace(/\/+$/, '').toLowerCase();
-
 /**
- * Make this phone a registered device of `indexUrl`. Unregistered: point settings and the device
- * record there and register (nonce-bound `POST /devices/nonce` + `POST /devices`). Registered
- * elsewhere: refuse.
+ * Make this phone a registered device of `indexUrl` and the active index. Already registered
+ * there (as the active index or another one): just switch. Not yet: register there with the
+ * nonce-bound proof (`POST /devices/nonce` + `POST /devices`), keeping every other index.
  */
 export async function ensureRegisteredOn(indexUrl: string): Promise<void> {
-  const device = await readDevice();
-  if (!device) throw new EnrollmentError('no_identity');
-  if (device.deviceId) {
-    if (!sameIndex(device.indexUrl, indexUrl)) throw new EnrollmentError('index_mismatch');
+  const devices = await readDevices();
+  if (Object.keys(devices).length === 0) throw new EnrollmentError('no_identity');
+  const existing = devices[indexKey(indexUrl)];
+  if (existing?.deviceId) {
+    await setActiveIndexUrl(existing.indexUrl);
     return;
   }
-  const settings = await readSettings();
-  await writeSettings({ ...settings, indexUrl });
-  await writeDevice({ ...device, indexUrl });
-  await register(await obtainPushToken());
+  await register(await obtainPushToken(), { indexUrl, makeActive: true });
 }
 
 export type ClaimOutcome = { kind: 'approved'; org: string } | { kind: 'waiting'; org: string };
@@ -127,17 +118,18 @@ export async function claimEnrollment(
     throw new EnrollmentError('attestation_required');
   try {
     await ensureRegisteredOn(link.index);
+    // The attestation binds the device key this phone uses on the org's index, not another one.
     const attestation =
       platform && canAttest
         ? await getAttestation({
             platform,
             nonce: info.nonce,
-            devicePubkeyHash: devicePubkeyHash((await getDeviceKey()).publicKey),
+            devicePubkeyHash: devicePubkeyHash((await getDeviceKey(link.index)).publicKey),
           })
         : null;
     if (info.policy.require_attestation && !attestation)
       throw new EnrollmentError('attestation_required');
-    const res = await claimEnrollmentRequest(link.token, attestation);
+    const res = await claimEnrollmentRequest(link.token, attestation, link.index);
     const org = info.org.display_name;
     const current = await readEnrollment();
     if (res.enrollment.status === 'approved') {
@@ -185,7 +177,7 @@ export async function checkPendingEnrollment(
 ): Promise<'approved' | 'denied' | 'expired' | 'waiting'> {
   let status: string;
   try {
-    status = (await enrollmentStatusRequest(pending.token)).status;
+    status = (await enrollmentStatusRequest(pending.token, pending.indexUrl)).status;
   } catch (err) {
     const e = toEnrollmentError(err);
     if (e.code === 'network' || e.code === 'unknown') return 'waiting';

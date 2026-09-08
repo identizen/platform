@@ -2,6 +2,7 @@ import { Image, Text, View } from 'react-native';
 import { Building2 } from 'lucide-react-native';
 import { Body, Button, Card, ErrorText, Heading, Muted, Screen } from '../components/ui';
 import { useBrandColor } from '../components/brand';
+import { indexHost } from '../components/indexes';
 import type { EnrollmentInfo } from '../enrollment/api';
 import type { EnrollmentErrorCode } from '../enrollment/machine';
 
@@ -27,6 +28,11 @@ export interface EnrollScreenProps {
 /** What the org gets, in one sentence, shown before the user commits. */
 export function managementSentence(org: string): string {
   return `This phone will be managed by ${org}: they can disable or remove it and see your sign-in activity; they never get your keys.`;
+}
+
+/** Where the identity lands: the org's index is added next to the ones already on the phone. */
+export function registrationSentence(index: string): string {
+  return `Your identity is registered on ${indexHost(index)}, next to the indexes already on this phone; nothing there changes.`;
 }
 
 function OrgHeader({ name, logoUrl }: { name: string; logoUrl: string | null }) {
@@ -125,6 +131,9 @@ export function EnrollScreen({
             </Text>
           </Card>
           <Body>{managementSentence(info.org.display_name)}</Body>
+          <Muted>
+            <Text testID="enroll-index">{registrationSentence(info.index)}</Text>
+          </Muted>
           {info.policy.require_attestation ? (
             <Muted>{info.org.display_name} requires a verified device.</Muted>
           ) : null}

@@ -6,8 +6,9 @@ export default function Scan() {
   const router = useRouter();
   return (
     <ScanScreen
-      onScanned={async (id) => {
-        await receiveChallenge(id, 'scan');
+      onScanned={async (id, indexUrl) => {
+        // A code that names its index is fetched there; otherwise every registered index is asked.
+        await receiveChallenge(id, 'scan', indexUrl ?? null);
         router.replace({ pathname: '/approve/[id]', params: { id } });
       }}
       onEnrollmentLink={(link) =>
