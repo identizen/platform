@@ -5,50 +5,122 @@ import Icon from '../components/Icon.astro';
 import { SITE } from '../lib/site';
 
 const oss = [
-  'Protocol, phone app, index/relay, OIDC provider, SDKs, CLI, dashboard',
+  'Protocol, index and OIDC provider, SDKs, CLI and fake phone, dashboard, phone app, design system',
   'Path A login and Path B MFA, Verification API, back-channel logout',
   'Instant revocation with back-channel logout to every connected site',
   'Personal identities on the public index at no cost',
-  'Self-host with one Worker deploy or one container; federate over WebFinger',
+  'Self-host the open index with one Worker deploy or one container; federate over WebFinger',
   'Community support on GitHub',
 ];
 
 const enterprise = [
-  'Hosted org index with SLA, or a supported self-host',
-  'Device fleet console: enroll, disable, re-enroll, attestation status',
-  'SSO bridging into your existing identity provider; SCIM in',
-  'Policy: require attestation, biometric class, geo/time rules',
-  'Exportable, SIEM-friendly audit; SOC 2 report, DPA, data residency',
+  'A dedicated tenant index: your own issuer, signing keys and Postgres, in the US or the EU',
+  'Admin portal and org app: users and roles, devices, approvals, sessions, two audit logs',
+  'Enrollment by link, QR or MDM; fleet console; Intune and Jamf recipes',
+  'Login policy: managed devices only, biometric class, login windows, session age',
+  'SSO apps, a SAML 2.0 identity provider, SCIM 2.0 from Okta or Entra',
+  'Audit export, signed SIEM webhooks, retention, status page and quotas',
+  'On-prem edition: signed containers, compose bundle, Helm chart, licence',
+];
+
+/** What each edition includes. Both columns are what ships today, per the docs. */
+const editions: { item: string; cloud: string; onprem: string }[] = [
+  {
+    item: 'Tenant index',
+    cloud: 'Dedicated issuer, keys and Postgres at {tenant}.index.identizen.com',
+    onprem: 'The same index in your own containers, on your own hostnames',
+  },
+  { item: 'Admin portal', cloud: 'Included', onprem: 'Included' },
+  { item: 'Org app for members', cloud: 'Included', onprem: 'Included' },
+  { item: 'Enrollment, fleet console, MDM', cloud: 'Included', onprem: 'Included' },
+  { item: 'Login policy', cloud: 'Included', onprem: 'Included' },
+  { item: 'SSO apps, SAML IdP, SCIM 2.0', cloud: 'Included', onprem: 'Included' },
+  { item: 'Audit export, SIEM webhooks, retention', cloud: 'Included', onprem: 'Included' },
+  { item: 'Status page and quotas', cloud: 'Included', onprem: 'Included' },
+  {
+    item: 'Key rotation',
+    cloud: 'Run by Identizen, with overlap',
+    onprem: 'Run by you, documented in the runbook',
+  },
+  {
+    item: 'Data residency',
+    cloud: 'US or EU, fixed at provisioning',
+    onprem: 'Wherever you run it',
+  },
+  {
+    item: 'Licence',
+    cloud: 'None; a subscription',
+    onprem: 'A signed licence with seat count and 14-day grace',
+  },
+  {
+    item: 'Packaging',
+    cloud: 'Operated by Identizen',
+    onprem: 'Signed images with SBOMs, compose bundle, Helm chart',
+  },
+  { item: 'Phone-home', cloud: 'Not applicable', onprem: 'None; air-gapped installs supported' },
+];
+
+const plans: { name: string; text: string; quotas: [string, string][] }[] = [
+  {
+    name: 'Standard',
+    text: 'A tenant on shared infrastructure with its own database, keys and namespaces.',
+    quotas: [
+      ['Members', '500'],
+      ['Devices', '2,000'],
+      ['SSO apps', '20'],
+      ['SCIM tokens', '5'],
+      ['Webhooks', '5'],
+    ],
+  },
+  {
+    name: 'Dedicated',
+    text: 'Its own connection pooling and higher quotas, for larger fleets.',
+    quotas: [
+      ['Members', '5,000'],
+      ['Devices', '20,000'],
+      ['SSO apps', '100'],
+      ['SCIM tokens', '20'],
+      ['Webhooks', '20'],
+    ],
+  },
 ];
 
 const faq = [
   [
-    'Is the open-source version crippled?',
-    'No. The enterprise tier will be hosting, control, and support, not withheld features. Everything a customer will pay for can be reproduced by a capable team running the OSS.',
+    'Is Identizen open source?',
+    'Identizen is open core. The protocol, the index and every route it serves, the database schema and migrations, the SDKs, the CLI and fake phone, the design system, the personal dashboard and the mobile app are Apache-2.0 and stay that way. What is proprietary is the layer that runs the open index for an organisation.',
+  ],
+  [
+    'What exactly is proprietary?',
+    'The multi-tenant control plane (tenant provisioning, sealed secrets, hostnames), the admin portal and org app, the enterprise extensions to the index (the org API, enrollment, fleet and MDM, login policy, the SAML identity provider, SCIM, audit export, SIEM webhooks, retention and status) and the on-prem packaging with its licence. Nothing in it changes what the open index promises, and nothing in it holds a private key.',
+  ],
+  [
+    'Can I self-host?',
+    'Yes. The open index runs on your own Cloudflare account or in a container, for free, with no licence and no seat count; the self-hosting guide covers it. The on-prem enterprise edition, which adds the portal, policy, SSO, SCIM and audit export inside your boundary, needs a licence.',
   ],
   [
     'What counts as an active device?',
-    'A device enrolled in your org index that completes at least one login or approval in the billing month. Personal identities on the public index will stay free.',
+    'A phone enrolled on your tenant index that completes at least one login or approval in the calendar month. The tenant index counts them. Personal identities on the public index stay free.',
   ],
   [
-    'Can we run the index ourselves and still buy support?',
-    'Yes. Support contracts and professional services will be available for self-hosters; the hosted org index will be optional.',
+    'Can we leave?',
+    'Yes. The portal exports the audit log and the organisation data as CSV or JSON, the protocol and the index are open, and every site integrates over standard OpenID Connect, so nothing at the integration boundary is ours. Phones register with one index at a time, so moving to another index means re-enrolling them.',
   ],
   [
     'Do you ever hold a private key?',
-    'Never. The org can enroll, disable, and re-enroll devices. It cannot log in as a user, and neither can we.',
+    'Never. The org can enroll, disable, and revoke devices. It cannot log in as a user, and neither can we.',
   ],
 ];
 ---
 
 <Base
   title="Pricing"
-  description="Identizen is open source and free to self-host. An enterprise tier, in development, will add a hosted org index, a fleet console, SSO bridging, audit export, and an SLA, priced per active device."
+  description="Identizen is open core: the protocol, index, SDKs, CLI and apps are Apache-2.0 and free to self-host. Identizen Cloud and the on-prem edition add a dedicated tenant index, the admin portal, enrollment and fleet, login policy, SSO with a SAML IdP and SCIM, and audit export, priced per active device per month."
 >
   <PageHeader
     eyebrow="Pricing"
     title="Free to run. Paid to not have to."
-    lede="Everything ships open. You pay for hosting, control, and a phone number that answers."
+    lede="The open index is free to run. Enterprise is the layer that runs it for your organisation: a tenant index, a portal, policy, SSO and audit, in our cloud or in your boundary."
   />
 
   <section class="container-site pb-16">
@@ -80,17 +152,17 @@ const faq = [
           class="absolute top-6 right-6 rounded-full bg-accent px-2.5 py-1 font-mono text-2xs font-semibold uppercase tracking-wider text-accent-fg"
           >Enterprise</span
         >
-        <p class="eyebrow">Hosted org index · In development</p>
+        <p class="eyebrow">Identizen Cloud · On-prem</p>
         <h2 id="ent" class="mt-2 text-2xl font-semibold tracking-tight">Enterprise</h2>
         <p class="mt-1 text-sm text-fg-muted">
-          In development. Will add hosting, control, and support for device fleets.
+          Available today. Your own index, run for your organisation, in our cloud or in yours.
         </p>
         <p class="headline mt-6 text-3xl sm:text-4xl">
           Per active device<span class="text-base font-normal text-fg-muted"> / month</span>
         </p>
         <p class="mt-2 text-sm text-fg-muted">
-          There will be a free tier for your first devices, so hosted and self-hosted start in the
-          same place.
+          Two plans, standard and dedicated. Talk to us for a quote; personal identities on the
+          public index stay free.
         </p>
         <ul class="mt-8 space-y-3 text-sm">
           {
@@ -104,9 +176,12 @@ const faq = [
             ))
           }
         </ul>
-        <a href="/contact" class="btn btn-primary mt-10 self-start">
-          Talk to us for early access <Icon name="arrow-right" />
-        </a>
+        <div class="mt-10 flex flex-wrap gap-3">
+          <a href="/contact" class="btn btn-primary">
+            Talk to us <Icon name="arrow-right" />
+          </a>
+          <a href="/enterprise" class="btn btn-secondary">What is included</a>
+        </div>
       </section>
     </div>
 
@@ -123,6 +198,87 @@ const faq = [
       </div>
       <a href="/contact" class="btn btn-secondary btn-sm">Request a quote</a>
     </section>
+  </section>
+
+  <section aria-labelledby="editions" class="section border-t border-border bg-surface-1">
+    <div class="container-site">
+      <div class="max-w-2xl">
+        <p class="eyebrow">Cloud or on-prem</p>
+        <h2 id="editions" class="headline mt-3 text-3xl">Same code, two places to run it</h2>
+        <p class="mt-4 text-lg text-fg-muted">
+          Identizen Cloud is a dedicated tenant index per organisation, provisioned by us on
+          request. On-prem is the same edition packaged for your own boundary.
+        </p>
+      </div>
+      <div class="mt-8 overflow-x-auto rounded-xl border border-border bg-surface-0">
+        <table class="w-full min-w-[40rem] text-left text-sm">
+          <thead class="bg-surface-1 text-xs uppercase tracking-wider text-fg-muted">
+            <tr>
+              <th scope="col" class="px-5 py-3 font-medium">Included</th>
+              <th scope="col" class="px-5 py-3 font-medium">Identizen Cloud</th>
+              <th scope="col" class="px-5 py-3 font-medium">On-prem</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-border">
+            {
+              editions.map((row) => (
+                <tr>
+                  <th scope="row" class="px-5 py-3 font-medium">
+                    {row.item}
+                  </th>
+                  <td class="px-5 py-3 text-fg-muted">{row.cloud}</td>
+                  <td class="px-5 py-3 text-fg-muted">{row.onprem}</td>
+                </tr>
+              ))
+            }
+          </tbody>
+        </table>
+      </div>
+      <p class="mt-4 text-sm text-fg-muted">
+        Everything in the table exists today. What is still on the roadmap is listed, with no dates,
+        in the <a href={`${SITE.docs}/enterprise/`} class="link" rel="noopener">enterprise docs</a>.
+      </p>
+    </div>
+  </section>
+
+  <section aria-labelledby="billing" class="section border-t border-border">
+    <div class="container-site grid gap-12 lg:grid-cols-[0.9fr_1.1fr]">
+      <div>
+        <p class="eyebrow">How you are billed</p>
+        <h2 id="billing" class="headline mt-3 text-3xl">Active devices, per month</h2>
+        <p class="mt-4 leading-relaxed text-fg-muted">
+          The metric is the number of phones enrolled on your tenant index that complete at least
+          one login or approval in the month. The tenant index measures it. You are invoiced monthly
+          for that number, at the rate in your order form. Members who never sign in, sites, apps
+          and administrators cost nothing.
+        </p>
+        <p class="mt-4 leading-relaxed text-fg-muted">
+          Both plans include every capability above; they differ in isolation and quotas. Identizen
+          can raise any quota for a tenant. The on-prem licence is priced on the same metric and
+          carries a seat count sized to your fleet.
+        </p>
+      </div>
+      <div class="grid gap-5 sm:grid-cols-2">
+        {
+          plans.map((p) => (
+            <section aria-labelledby={`plan-${p.name.toLowerCase()}`} class="card p-6">
+              <h3 id={`plan-${p.name.toLowerCase()}`} class="text-lg font-semibold tracking-tight">
+                {p.name}
+              </h3>
+              <p class="mt-2 text-sm leading-relaxed text-fg-muted">{p.text}</p>
+              <dl class="mt-5 divide-y divide-border text-sm">
+                {p.quotas.map(([k, v]) => (
+                  <div class="flex items-center justify-between py-2">
+                    <dt class="text-fg-muted">{k}</dt>
+                    <dd class="tabular font-medium">{v}</dd>
+                  </div>
+                ))}
+              </dl>
+            </section>
+          ))
+        }
+      </div>
+    </div>
   </section>
 
   <section aria-labelledby="faq" class="section border-t border-border bg-surface-1">

@@ -155,7 +155,7 @@ The organisation has two logs, both cursor-paged (**Load more**), newest first.
 
 **Admin actions** (owners, admins and auditors) is the record of what administrators changed through the portal: who (`actor_email`), what (`org.update`, `domain.add`, `domain.verify`, `domain.remove`, `member.invite`, `member.update`, `member.suspend`, `member.reinstate`, `member.reinvite`, `member.deprovision`, `enrollment.issue`, `enrollment.approve`, `enrollment.deny`, `enrollment.revoke`, `device.disable`, `device.enable`, `device.revoke`, `policy.update`, `site.update`, `member.sessions_revoke`, `org.sessions_revoke_all`, `mdm.token_create`, `mdm.token_revoke`), the target, and the object **before and after** the change. Every mutation in the portal writes one of these; the overview shows the most recent ten.
 
-There is no export and no SIEM webhook yet; both are on the [roadmap](/enterprise/#on-the-roadmap). Everything in both logs is also reachable over the org API on your index, with the same bearer token the portal uses.
+Both logs can be exported and streamed to a SIEM from [Compliance](/enterprise/compliance/). Everything in both logs is also reachable over the org API on your index, with the same bearer token the portal uses.
 
 ## What the organisation never gets
 

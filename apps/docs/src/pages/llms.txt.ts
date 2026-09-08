@@ -59,6 +59,13 @@ export const GET: APIRoute = async () => {
     'enterprise/scim',
     'enterprise/compliance',
     'enterprise/on-prem',
+    'enterprise/api',
+    'enterprise/api/orgs',
+    'enterprise/api/fleet',
+    'enterprise/api/policy',
+    'enterprise/api/sso',
+    'enterprise/api/scim',
+    'enterprise/api/operations',
     'versioning',
   ]);
   section('Optional', ['protocol', 'protocol/threat-model', 'ai-assistants']);

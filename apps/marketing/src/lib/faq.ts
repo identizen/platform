@@ -16,7 +16,7 @@ export const FAQ_GROUPS: readonly { heading: string; items: readonly Faq[] }[] =
       {
         question: 'What is Identizen?',
         answer:
-          'Identizen is accountless identity, open source. A private key is created on the user’s phone and never leaves it. Websites integrate Identizen as a standard OpenID Connect provider, and each sign-in is a signature the user approves on the phone with Face ID or a fingerprint. There is no password, no email address, and no Google or Microsoft account involved.',
+          'Identizen is accountless identity, open core: the protocol, the index, the SDKs and the apps are Apache-2.0. A private key is created on the user’s phone and never leaves it. Websites integrate Identizen as a standard OpenID Connect provider, and each sign-in is a signature the user approves on the phone with Face ID or a fingerprint. There is no password, no email address, and no Google or Microsoft account involved.',
       },
       {
         question: 'How is Identizen different from passkeys?',
@@ -67,7 +67,7 @@ export const FAQ_GROUPS: readonly { heading: string; items: readonly Faq[] }[] =
       {
         question: 'What does Identizen cost?',
         answer:
-          'The protocol, apps, SDKs, and the hosted public index are free and Apache-2.0 licensed. An enterprise tier, in development, will add a hosted organisation index, a fleet console, SSO bridging, audit export, and an SLA, priced per active device. Talk to us for early access.',
+          'The protocol, the index, the SDKs, the CLI, the dashboard and the phone app are free and Apache-2.0 licensed, and personal identities on the public index cost nothing. Identizen Enterprise, available today as Identizen Cloud or an on-prem edition, adds a dedicated tenant index, an admin portal, enrollment and fleet management, login policy, SSO with a SAML identity provider and SCIM, and audit export, priced per active device per month on a standard or dedicated plan. Talk to us for a quote.',
       },
     ],
   },

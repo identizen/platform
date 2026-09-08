@@ -1,6 +1,6 @@
 ---
 title: Enterprise
-description: Open core, the two editions (Identizen Cloud today, on-prem on the roadmap), what an organisation gets, what it never gets, and an honest today-versus-roadmap table.
+description: Open core, the two editions (Identizen Cloud and the on-prem edition), what an organisation gets, what it never gets, and an honest today-versus-roadmap table.
 ---
 
 Identizen is open core. The protocol, the index (`@identizen/index`, every route it serves today), the database schema and migrations, the SDKs, the CLI and fake phone, the design system, the personal dashboard features and the mobile app are open under Apache-2.0 and stay that way. What is proprietary is the layer that runs the open index _for an organisation_: the multi-tenant control plane that provisions tenants, holds their sealed secrets and resolves hostnames, and the management surfaces built on top of it. Nothing proprietary changes what the open index promises, and nothing in it ever holds a private key.
@@ -13,6 +13,8 @@ Identizen is open core. The protocol, the index (`@identizen/index`, every route
 | **On-prem**         | The same code packaged as signed containers (compose bundle and Helm chart) with a signed licence, installed inside your own boundary. [Install](/enterprise/on-prem/).                                                  | Available from `ee-v0.6.0`; installed with Identizen |
 
 If you need the index inside your boundary now, [self-hosting](/self-hosting/) the open index is supported today and needs no licence.
+
+Everything the portal, the org app, an MDM or an IdP does is an HTTP API on your tenant index; the [Enterprise API reference](/enterprise/api/) documents every route, role and error.
 
 ## Available today
 

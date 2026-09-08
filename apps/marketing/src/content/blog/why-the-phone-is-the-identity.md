@@ -33,6 +33,6 @@ Most teams do not want to replace their login this quarter. They want to replace
 
 ## What we are not doing
 
-We are not building a blockchain. We are not asking you to trust a new company with your users. Everything ships under Apache-2.0 in one repository: the protocol, the index, the app, the SDKs. Run the index yourself with one Worker deploy or one container. If Identizen the company disappeared tomorrow, your users would still be able to log in.
+We are not building a blockchain. We are not asking you to trust a new company with your users. The protocol, the index, the app and the SDKs ship under Apache-2.0 in one repository. Run the index yourself with one Worker deploy or one container. If Identizen the company disappeared tomorrow, your users would still be able to log in.
 
 The phone is the identity. The rest is standards.

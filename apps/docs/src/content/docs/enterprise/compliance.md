@@ -62,13 +62,4 @@ The tenant index runs a job every five minutes for every active tenant: webhook 
 
 ## Over the API
 
-| Method        | Path                                       | Role                     |
-| ------------- | ------------------------------------------ | ------------------------ |
-| GET, POST     | `/orgs/exports`                            | auditor+                 |
-| GET, DELETE   | `/orgs/exports/:id` (+ `/download`)        | auditor+ (delete admin+) |
-| GET, POST     | `/orgs/webhooks`                           | admin+                   |
-| PATCH, DELETE | `/orgs/webhooks/:id`                       | admin+                   |
-| POST          | `/orgs/webhooks/:id/test`                  | admin+                   |
-| GET           | `/orgs/webhooks/:id/deliveries`            | admin+                   |
-| POST          | `/orgs/webhooks/:id/deliveries/:did/retry` | admin+                   |
-| GET           | `/orgs/status`                             | auditor+                 |
+Every route on this page, with roles, bodies, the webhook signature and a verification sample, is on the [Operations API](/enterprise/api/operations/) reference.

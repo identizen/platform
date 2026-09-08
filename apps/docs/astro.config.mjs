@@ -88,6 +88,18 @@ export default defineConfig({
             { label: 'SCIM provisioning', link: '/enterprise/scim/' },
             { label: 'Compliance and operations', link: '/enterprise/compliance/' },
             { label: 'On-prem installation', link: '/enterprise/on-prem/' },
+            {
+              label: 'API reference',
+              items: [
+                { label: 'Overview', link: '/enterprise/api/' },
+                { label: 'Organisation', link: '/enterprise/api/orgs/' },
+                { label: 'Fleet', link: '/enterprise/api/fleet/' },
+                { label: 'Policy, sites, sessions', link: '/enterprise/api/policy/' },
+                { label: 'SSO', link: '/enterprise/api/sso/' },
+                { label: 'SCIM', link: '/enterprise/api/scim/' },
+                { label: 'Operations', link: '/enterprise/api/operations/' },
+              ],
+            },
           ],
         },
         { label: 'Data handling for relying parties', link: '/data-handling/' },

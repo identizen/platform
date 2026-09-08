@@ -120,13 +120,4 @@ The portal shows the same preview on the **Policy** page when the rule is about 
 
 ## Over the API
 
-| Method  | Path                   | Role                            | Body → Response                                                                       |
-| ------- | ---------------------- | ------------------------------- | ------------------------------------------------------------------------------------- |
-| `GET`   | `/orgs/policy`         | owner, admin, helpdesk, auditor | `{ policy }`, the whole object including the enrollment fields                        |
-| `PUT`   | `/orgs/policy`         | owner, admin                    | any subset of the fields → `{ policy }`; `400 invalid_policy` names the field         |
-| `GET`   | `/orgs/policy/preview` | owner, admin                    | `?require_managed_device=true` → `{ members_active, members_without_managed_device }` |
-| `GET`   | `/orgs/sites`          | owner, admin, helpdesk          | `{ sites }`, every site on the tenant                                                 |
-| `GET`   | `/orgs/sites/:id`      | owner, admin, helpdesk          | `{ site }`                                                                            |
-| `PATCH` | `/orgs/sites/:id`      | owner, admin                    | `{ workforce_only?, name? }` → `{ site }`                                             |
-
-The bearer is the token the portal itself uses on your index. Reading the policy over the API is open to helpdesk, although the portal shows **Policy** to owners, admins and auditors only; listing sites is open to helpdesk and not to auditors, because it sits with the support grants. Sessions have their own routes, described on the [portal page](/enterprise/portal/#sessions).
+The policy, preview, site and session routes, with roles, bodies and a worked example, are on the [Policy API](/enterprise/api/policy/) reference. The bearer is the token the portal itself uses on your index. Reading the policy over the API is open to helpdesk, although the portal shows **Policy** to owners, admins and auditors only; listing sites is open to helpdesk and not to auditors, because it sits with the support grants. Sessions have their own routes, described on the [portal page](/enterprise/portal/#sessions).

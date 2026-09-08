@@ -41,11 +41,6 @@ In the enterprise application (Provisioning → Automatic): tenant URL `https://
 
 ## Over the API
 
-| Method | Path                    | Role     | Notes                                           |
-| ------ | ----------------------- | -------- | ----------------------------------------------- |
-| GET    | `/orgs/scim/tokens`     | admin+   | `{ tokens, endpoint }`                          |
-| POST   | `/orgs/scim/tokens`     | admin+   | `{ name }` → `{ token, secret }` (once)         |
-| DELETE | `/orgs/scim/tokens/:id` | admin+   | 204                                             |
-| GET    | `/orgs/scim/log`        | auditor+ | `limit`, `cursor` → `{ entries, next_cursor? }` |
+The token and log routes and every `/scim/v2/*` operation, with the User resource shape and a worked example, are on the [SCIM API](/enterprise/api/scim/) reference.
 
 Errors from `/scim/v2/*` use the SCIM error schema (`urn:ietf:params:scim:api:messages:2.0:Error`) with `status`, `detail` and, where the RFC defines one, `scimType`.

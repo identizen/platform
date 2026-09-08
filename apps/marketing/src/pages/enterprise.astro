@@ -1,0 +1,239 @@
+---
+import Base from '../layouts/Base.astro';
+import PageHeader from '../components/PageHeader.astro';
+import Icon from '../components/Icon.astro';
+import type { IconName } from '../lib/icons';
+import { SITE } from '../lib/site';
+
+const docs = `${SITE.docs}/enterprise`;
+
+const pillars: { icon: IconName; title: string; text: string; href: string }[] = [
+  {
+    icon: 'server',
+    title: 'Own it',
+    text: 'A dedicated index with its own issuer, signing keys and Postgres, at {tenant}.index.identizen.com in the US or the EU, or inside your boundary. Sites, identities, devices and audit events exist only there, and a token minted by any other issuer is rejected.',
+    href: `${docs}/cloud-setup/`,
+  },
+  {
+    icon: 'shield',
+    title: 'Control who signs in',
+    text: 'Invite by email and role. Enrol phones by link, QR or MDM and approve them by policy or by hand. Require managed devices, a biometric class, login windows and a session age. Suspend or deprovision a member and every session ends everywhere, with back-channel logout.',
+    href: `${docs}/policy/`,
+  },
+  {
+    icon: 'link',
+    title: 'Plug into what you have',
+    text: 'Register your own applications as OIDC clients, serve SAML 2.0 to the ones that need it, and provision members from Okta or Entra over SCIM 2.0. Intune and Jamf recipes for enrollment; every SDK and guide works unchanged against your issuer.',
+    href: `${docs}/sso/`,
+  },
+  {
+    icon: 'book',
+    title: 'Prove it',
+    text: 'Every login, denial, enrollment, session and revocation is an audit event. Export as CSV or JSON, stream to your SIEM over webhooks signed with the tenant key, set retention per log, and read a status page with quotas, job runs and health.',
+    href: `${docs}/compliance/`,
+  },
+];
+
+const editions: { name: string; eyebrow: string; text: string; items: string[]; href: string }[] = [
+  {
+    name: 'Identizen Cloud',
+    eyebrow: 'Provisioned by us',
+    text: 'A tenant index per organisation, operated by Identizen on the same code as the public index.',
+    items: [
+      'Issuer, JWKS and challenge key of your own, sealed at provisioning',
+      'Dedicated Postgres in the US or the EU, never moved',
+      'Portal at {tenant}.portal and org app at {tenant}.app, already registered',
+      'Key rotation with overlap, run by Identizen',
+      'Standard or dedicated plan',
+    ],
+    href: `${docs}/cloud-setup/`,
+  },
+  {
+    name: 'On-prem',
+    eyebrow: 'Installed with us',
+    text: 'The same edition packaged as signed containers for a pilot with Compose or production with Helm.',
+    items: [
+      'Images signed keyless with Sigstore, with an SPDX SBOM attestation',
+      'A compose bundle for pilots; a Helm chart with a migration Job for production',
+      'One Postgres, two keys you generate, one signed licence with seat count and 14-day grace',
+      'Nothing phones home; air-gapped installs pull from your registry',
+      'Backup, restore and upgrade runbooks in the release bundle',
+    ],
+    href: `${docs}/on-prem/`,
+  },
+];
+
+const steps = [
+  {
+    title: 'We provision',
+    text: 'Send us a slug, a display name, an admin contact and a residency. We create the tenant, its keys and its database, and hand your admin contact the registration token and the first owner invitation out of band. On-prem, we install alongside you and the bootstrap prints the invitation once.',
+  },
+  {
+    title: 'You invite your first owner',
+    text: 'The owner enrols a phone on your index, opens the invitation and accepts. From the portal they invite administrators, helpdesk, auditors and members by email and role, and verify your domains.',
+  },
+  {
+    title: 'Enrol phones',
+    text: 'Each person gets a one-time enrollment link or QR code, issued from the portal, from the org app, or by your MDM. The phone shows the organisation, registers on your index and is approved by policy or in the Approvals queue.',
+  },
+  {
+    title: 'Connect apps',
+    text: 'Register your sites and apps as OIDC clients, add SAML apps, turn on SCIM. Point any SDK at your issuer and the quickstart works as written.',
+  },
+];
+---
+
+<Base
+  title="Enterprise"
+  description="Identizen Enterprise: organisation-controlled identities on the phone, no passwords, and your own index. Identizen Cloud or on-prem, with an admin portal, enrollment and fleet, login policy, SSO with a SAML IdP and SCIM, and audit export. Available today."
+>
+  <PageHeader
+    eyebrow="Enterprise"
+    title="Organisation-controlled identity, on the phone."
+    lede="No passwords, no accounts at a broker, and your own index: a dedicated OpenID Provider for your organisation, run by us in our cloud or by you inside your boundary. Available today."
+  >
+    <div class="mt-8 flex flex-wrap gap-3">
+      <a href="/contact" class="btn btn-primary">
+        Talk to us <Icon name="arrow-right" />
+      </a>
+      <a href={`${docs}/`} class="btn btn-secondary" rel="noopener">Read the enterprise docs</a>
+    </div>
+  </PageHeader>
+
+  <section class="container-site pb-16" aria-labelledby="pillars">
+    <h2 id="pillars" class="sr-only">What you get</h2>
+    <ul class="grid gap-5 sm:grid-cols-2">
+      {
+        pillars.map((p) => (
+          <li class="card flex flex-col p-6">
+            <span class="icon-tile">
+              <Icon name={p.icon} />
+            </span>
+            <h3 class="mt-5 text-lg font-semibold tracking-tight">{p.title}</h3>
+            <p class="mt-2 text-sm leading-relaxed text-fg-muted">{p.text}</p>
+            <a href={p.href} class="link mt-4 text-sm" rel="noopener">
+              In the docs
+            </a>
+          </li>
+        ))
+      }
+    </ul>
+  </section>
+
+  <section class="section border-t border-border bg-surface-1" aria-labelledby="editions">
+    <div class="container-site">
+      <div class="max-w-2xl">
+        <p class="eyebrow">Cloud or on-prem</p>
+        <h2 id="editions" class="headline mt-3 text-3xl sm:text-4xl">
+          Same code, two places to run it
+        </h2>
+        <p class="mt-4 text-lg text-fg-muted">
+          Everything documented for Identizen Cloud applies to on-prem unchanged. Choose by where
+          the database has to live and who you want operating it.
+        </p>
+      </div>
+      <div class="mt-10 grid gap-6 lg:grid-cols-2">
+        {
+          editions.map((e) => (
+            <section
+              aria-labelledby={`ed-${e.name.toLowerCase().replace(/\W+/g, '-')}`}
+              class="card flex flex-col p-8"
+            >
+              <p class="eyebrow">{e.eyebrow}</p>
+              <h3
+                id={`ed-${e.name.toLowerCase().replace(/\W+/g, '-')}`}
+                class="mt-2 text-2xl font-semibold tracking-tight"
+              >
+                {e.name}
+              </h3>
+              <p class="mt-2 text-sm leading-relaxed text-fg-muted">{e.text}</p>
+              <ul class="mt-6 space-y-3 text-sm">
+                {e.items.map((t) => (
+                  <li class="flex items-start gap-3">
+                    <span class="mt-0.5 inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-accent-soft text-accent-soft-fg">
+                      <Icon name="check" size={12} />
+                    </span>
+                    <span class="text-fg-muted">{t}</span>
+                  </li>
+                ))}
+              </ul>
+              <a href={e.href} class="btn btn-secondary btn-sm mt-8 self-start" rel="noopener">
+                How to set it up
+              </a>
+            </section>
+          ))
+        }
+      </div>
+      <p class="mt-6 text-sm text-fg-muted">
+        Need the index inside your boundary without the enterprise layer? Self-hosting the open
+        index is supported today, free, with no licence. See the
+        <a href={`${SITE.docs}/self-hosting/`} class="link" rel="noopener">self-hosting guide</a>
+        and <a href="/pricing" class="link">pricing</a>.
+      </p>
+    </div>
+  </section>
+
+  <section class="section border-t border-border" aria-labelledby="install">
+    <div class="container-site">
+      <div class="max-w-2xl">
+        <p class="eyebrow">How an install goes</p>
+        <h2 id="install" class="headline mt-3 text-3xl sm:text-4xl">White-glove, four steps</h2>
+        <p class="mt-4 text-lg text-fg-muted">
+          There is no self-serve sign-up. We provision, you invite, phones enrol, apps connect.
+        </p>
+      </div>
+      <ol class="mt-12 grid gap-8 md:grid-cols-2 lg:grid-cols-4 lg:gap-6">
+        {
+          steps.map((s, i) => (
+            <li>
+              <span class="tabular inline-flex h-12 w-12 items-center justify-center rounded-full border border-border bg-surface-0 font-mono text-sm font-semibold text-accent shadow-xs">
+                0{i + 1}
+              </span>
+              <h3 class="mt-5 text-lg font-semibold tracking-tight">{s.title}</h3>
+              <p class="mt-2 text-sm leading-relaxed text-fg-muted">{s.text}</p>
+            </li>
+          ))
+        }
+      </ol>
+    </div>
+  </section>
+
+  <section class="section border-t border-border bg-surface-1" aria-labelledby="posture">
+    <div class="container-site max-w-3xl">
+      <p class="eyebrow">Security posture</p>
+      <h2 id="posture" class="headline mt-3 text-3xl">What the org never gets</h2>
+      <p class="mt-6 leading-relaxed text-fg-muted">
+        The index holds public keys, push tokens, revocation state and audit events, and nothing
+        that could sign for a person; that is true of the public index, of a tenant index and of an
+        on-prem install. Private keys are generated on the phone and never leave it. The
+        organisation can enrol, disable and revoke devices, and policy can refuse a login; neither
+        can approve one, and neither the organisation nor Identizen can log in as a user. On-prem
+        images are signed with Sigstore and ship with SBOMs, and nothing phones home. The rest of
+        the design, and the risks we still accept, are on the
+        <a href="/security" class="link">security page</a>.
+      </p>
+    </div>
+  </section>
+
+  <section class="container-site pt-16 pb-24">
+    <div class="card-gradient bg-glow relative overflow-hidden px-6 py-14 text-center sm:px-12">
+      <div class="relative">
+        <h2 class="headline text-3xl">Want a tenant index?</h2>
+        <p class="mx-auto mt-4 max-w-xl text-lg text-fg-muted">
+          Tell us the slug, the region and who your first owner is. Pricing is per active device per
+          month, on a standard or dedicated plan.
+        </p>
+        <div class="mt-8 flex flex-wrap items-center justify-center gap-3">
+          <a href="/contact" class="btn btn-primary">
+            <Icon name="mail" />
+            Talk to us
+          </a>
+          <a href={`${docs}/`} class="btn btn-secondary" rel="noopener">
+            Enterprise docs
+            <Icon name="arrow-right" />
+          </a>
+        </div>
+      </div>
+    </div>
+  </section>
+</Base>

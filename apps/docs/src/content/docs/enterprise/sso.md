@@ -50,17 +50,6 @@ In the app's SAML settings, paste the entity id as the IdP issuer, the SSO URL a
 
 ## Over the API
 
-Everything the portal does is `https://{tenant}.index.identizen.com` with a portal session bearer; the roles are the [portal roles](/enterprise/portal/#roles).
-
-| Method   | Path                 | Role      | Notes                                                                                                                                          |
-| -------- | -------------------- | --------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
-| GET      | `/orgs/sso/apps`     | any admin | every OIDC and SAML app                                                                                                                        |
-| POST     | `/orgs/sso/oidc`     | admin+    | `{ name, rp_id, redirect_uris, public?, backchannel_logout_uri?, release_profile?, workforce_only? }` → `{ app, client_secret }`               |
-| POST     | `/orgs/sso/saml`     | admin+    | `{ name, entity_id, acs_url, name_id_format?, attributes?, sign_assertion? }` → `{ app, idp }`                                                 |
-| GET      | `/orgs/sso/apps/:id` | any admin | `{ app }`, plus `{ idp }` for SAML                                                                                                             |
-| PATCH    | `/orgs/sso/apps/:id` | admin+    | `name`, `status`, and per kind `release_profile`, `workforce_only` or `entity_id`, `acs_url`, `name_id_format`, `attributes`, `sign_assertion` |
-| DELETE   | `/orgs/sso/apps/:id` | admin+    | OIDC: disabled, site kept; SAML: removed                                                                                                       |
-| GET      | `/saml/metadata`     | none      | IdP metadata XML                                                                                                                               |
-| GET/POST | `/saml/sso`          | none      | `SAMLRequest` (+ `RelayState`) or `?app=<id>`                                                                                                  |
+Everything the portal does is `https://{tenant}.index.identizen.com` with a portal session bearer; the roles are the [portal roles](/enterprise/portal/#roles). The app routes and the SAML endpoints, with bodies, resource shapes and a worked example, are on the [SSO API](/enterprise/api/sso/) reference.
 
 Admin actions are recorded as `sso.app_create`, `sso.app_update` and `sso.app_remove`; audit events as `sso.app_created`, `sso.app_updated`, `sso.app_removed` and, for every SAML login, `sso.saml_login`.

@@ -16,6 +16,7 @@ const PAGES = [
   ['/blog/human-approval-for-agents', 'Human approval for agents'],
   ['/developers', 'Built for the afternoon you have.'],
   ['/pricing', 'Free to run. Paid to not have to.'],
+  ['/enterprise', 'Organisation-controlled identity, on the phone.'],
   ['/blog', 'Blog'],
   ['/blog/why-the-phone-is-the-identity', 'Why the phone is the identity'],
   ['/about', 'Identity that belongs to the person holding it.'],
