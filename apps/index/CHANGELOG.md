@@ -1,5 +1,11 @@
 # @identizen/index
 
+## 0.4.1
+
+### Patch Changes
+
+- The `stores` factory receives the request database (`(env, db) => Stores`) so a database-backed store shares the request pool and is closed with the request.
+
 ## 0.4.0
 
 ### Minor Changes

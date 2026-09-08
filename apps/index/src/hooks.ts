@@ -4,6 +4,7 @@ import type { Hono } from 'hono';
 import type { AppEnv } from './app';
 import type { Env } from './env';
 import type { Services } from './lib/services';
+import type { Db } from '@identizen/db';
 import type { Stores } from './stores';
 
 /**
@@ -112,5 +113,5 @@ export interface AppOptions {
    * without Durable Objects supplies stores over its own database and the `CHALLENGE_SESSION`
    * and `REQUEST_GUARD` bindings are never read. See `Stores` for the semantics to honour.
    */
-  stores?: (env: Env) => Stores;
+  stores?: (env: Env, db: Db) => Stores;
 }

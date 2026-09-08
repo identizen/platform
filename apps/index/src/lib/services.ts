@@ -28,9 +28,11 @@ export interface Services {
 export function createServices(
   env: Env,
   hooks: IndexHooks = defaultHooks,
-  stores: Stores = defaultStores(env),
+  storesFor?: (env: Env, db: Db) => Stores,
 ): Services {
   const handle = createDb(env.HYPERDRIVE.connectionString, { max: 2 });
+  // A database-backed store shares the request pool, so it is closed with the request.
+  const stores = storesFor ? storesFor(env, handle.db) : defaultStores(env);
   const indexKey = keyPairFromPrivateKey(fromHex(requireEnv(env, 'INDEX_SIGNING_KEY')));
   const pending: Promise<unknown>[] = [];
   return {

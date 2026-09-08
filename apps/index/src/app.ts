@@ -42,7 +42,7 @@ export function createApp(options: AppOptions = {}): Hono<AppEnv> {
 
   app.use('*', async (c, next) => {
     if (options.resolveEnv) c.env = await options.resolveEnv(c.req.raw, c.env);
-    const services = createServices(c.env, hooks, options.stores?.(c.env));
+    const services = createServices(c.env, hooks, options.stores);
     c.set('services', services);
     try {
       await next();
