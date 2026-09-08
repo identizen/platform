@@ -86,6 +86,8 @@ export default defineConfig({
             { label: 'MFA and step-up', link: '/enterprise/mfa-and-step-up/' },
             { label: 'SSO into your apps', link: '/enterprise/sso/' },
             { label: 'SCIM provisioning', link: '/enterprise/scim/' },
+            { label: 'Compliance and operations', link: '/enterprise/compliance/' },
+            { label: 'On-prem installation', link: '/enterprise/on-prem/' },
           ],
         },
         { label: 'Data handling for relying parties', link: '/data-handling/' },
