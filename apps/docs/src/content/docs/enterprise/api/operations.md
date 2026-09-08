@@ -151,7 +151,7 @@ Once a day the scheduled job deletes rows past retention (the tenant's whole aud
 
 ## Scheduled jobs
 
-The index runs a job set every five minutes for every active tenant, in this order: `retention` (once a day), `exports` (deletes objects past `expires_at`; the row stays so the download answers `410`), `purge` (expired SAML flows; pending enrollments past `expires_at` become `expired`), `webhooks` (the cursor sweep, then up to 100 due deliveries). Each job writes a run record with `status: 'running' | 'ok' | 'error'`; a job that throws is recorded and the next job still runs; a tenant whose database is unreachable is skipped and never blocks another. The latest run of each job is in `GET /orgs/status`.
+The index runs a job set every five minutes for every active tenant, in this order: `retention` (once a day), `exports` (deletes objects past `expires_at`; the row stays so the download answers `410`), `purge` (expired SAML flows; pending enrollments past `expires_at` become `expired`), `domains` (once a day: re-checks verified domains whose last check is older than 30 days plus every stale one, detail `{ checked, stale, unverified }`; the run is only recorded when at least one domain was due, so a tenant without verified domains shows no `domains` job; [semantics](/enterprise/api/orgs/#domain-re-checks)), `usage` (once a day: counts active devices and reports them for [billing](#billing); on-prem it records `skipped: no_control_plane`), `webhooks` (the cursor sweep, then up to 100 due deliveries, which is why it runs after `domains`). Each job writes a run record with `status: 'running' | 'ok' | 'error'`; a job that throws is recorded and the next job still runs; a tenant whose database is unreachable is skipped and never blocks another. The latest run of each job is in `GET /orgs/status`.
 
 ## Status and quotas
 
@@ -171,6 +171,7 @@ interface OrgStatus {
   >;
   jobs: { job: string; last_run_at: string | null; status: string | null }[];
   webhooks: { active: number; failing: number; pending_deliveries: number };
+  domains: { verified: number; stale: number }; // verified domains: healthy, and with stale_at set
 }
 
 /** GET /status */
@@ -200,6 +201,48 @@ Quotas come from the plan and can be raised or lowered per tenant by Identizen:
 
 Exceeding one refuses the create with `409 quota_exceeded` and `{ quota, used, limit }`; SCIM answers with its own envelope and `scimType: quota_exceeded`.
 
+## Billing
+
+Every Identizen Cloud tenant is metered on **active devices** and billed in one of two modes, chosen per account by Identizen at setup: **`stripe`** (medium and smaller organisations pay by card: a Stripe customer with a metered subscription, invoices from Stripe) or **`invoice`** (enterprise agreements: Identizen raises invoices at month end from the period's peak and records them in its own ledger). The routes and the portal page are the same for both.
+
+An active device is a device row with status `active` that was used in the last 30 days: `last_seen_at` inside the window, or a session created for the device inside the window, or the device itself registered inside the window. Disabled and revoked devices never count, whatever their timestamps; every device in the tenant database counts, managed or not. Once a day the `usage` job counts them and reports `{ tenant_id, day, active_devices }` to the control plane, which keeps one figure per tenant and day for both modes; in `stripe` mode it also sets the quantity on the tenant's metered subscription item, so repeating a day is a no-op and a corrected count replaces the day's figure. A period is billed on its peak: Stripe's metered price aggregates by `max`, and an invoice-mode invoice takes the maximum daily count over its period when it is raised. The invoice-mode period is the calendar month; the stripe-mode period is the subscription's. On-prem installs have no control plane and are licensed, not metered: the job still counts and records `skipped: no_control_plane`.
+
+```ts
+interface OrgBilling {
+  configured: boolean; // false on-prem and before Identizen has set billing up
+  mode: 'stripe' | 'invoice' | null;
+  plan: 'standard' | 'dedicated';
+  status: 'none' | 'trialing' | 'active' | 'past_due' | 'canceled' | 'suspended'; // stripe: mirrors the subscription; invoice: set by Identizen
+  contact_email: string | null; // the billing contact
+  current_period_start: string | null;
+  current_period_end: string | null;
+  active_devices: { now: number; this_period: number; quota: number }; // counted now / period peak as billed / plan quota
+  invoices: {
+    // one shape for both modes: Stripe's invoices (stripe) or Identizen's ledger (invoice)
+    id: string;
+    number: string | null; // Stripe's number, or IDZ-<YYYY>-<NNNN>
+    period_start: string | null; // YYYY-MM-DD
+    period_end: string | null;
+    active_devices: number | null; // the period peak; null when Stripe's invoice carries no quantity
+    amount_cents: number;
+    currency: string;
+    status: 'issued' | 'paid' | 'void' | 'uncollectible'; // Stripe's draft/open map to issued
+    issued_at: string;
+    due_at: string | null;
+    paid_at: string | null;
+    url: string | null; // Stripe's hosted invoice, or the document Identizen attached
+  }[]; // newest first; Stripe's last 12, cached 5 minutes by the control plane
+  can_manage: boolean; // an owner on a stripe-mode account
+}
+```
+
+| Method | Path                        | Role                          | Body → Response                                                                                                                                                                                                    |
+| ------ | --------------------------- | ----------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `GET`  | `/orgs/billing`             | owner, admin (`billing.read`) | `OrgBilling`: the control plane's view of the account plus the local device count and the plan quota                                                                                                               |
+| `POST` | `/orgs/billing/portal-link` | owner (`billing.manage`)      | → `{ url }`, a single-use Stripe billing-portal session that returns to the portal's Billing page. `404 not_stripe_billing` in invoice mode, `404 billing_not_set_up` before setup, `501 no_control_plane` on-prem |
+
+The control plane never holds card data, only Stripe ids and the invoice ledger; in `stripe` mode the payment method is entered and changed on Stripe's hosted page, and in `invoice` mode there is no payment method to manage. Admin action: `billing.portal_link`. The administrator's view is [Billing](/enterprise/billing/).
+
 ## Licence (on-prem)
 
 An on-prem install runs in single-tenant mode: the tenant record and secrets come from environment variables, and `LICENSE` is an Ed25519-signed JSON document issued by Identizen, verified at boot against Identizen's public key baked into the image.
@@ -220,7 +263,7 @@ An expired licence enters a 14-day grace period, reported as `licence.status: 'g
 
 ## Audit and admin actions
 
-Audit kinds: `export.created`, `export.completed`, `export.failed`, `webhook.created`, `webhook.updated`, `webhook.removed`, `webhook.test`, `webhook.failing`, `retention.run`, `licence.grace`, `licence.expired`; a retention change is `policy.updated`. Admin actions: `export.create`, `export.remove`, `webhook.create`, `webhook.update`, `webhook.remove`, `webhook.test`, `webhook.retry`, `retention.update`.
+Audit kinds: `export.created`, `export.completed`, `export.failed`, `webhook.created`, `webhook.updated`, `webhook.removed`, `webhook.test`, `webhook.failing`, `retention.run`, `licence.grace`, `licence.expired`; a retention change is `policy.updated`; the domain re-check writes `domain.stale`, `domain.reverified`, `domain.unverified` (detail `{ domain_id, domain, method, reason }`, no actor). Admin actions: `export.create`, `export.remove`, `webhook.create`, `webhook.update`, `webhook.remove`, `webhook.test`, `webhook.retry`, `retention.update`, `billing.portal_link`.
 
 ## Example: stream every login and membership event to a SIEM
 

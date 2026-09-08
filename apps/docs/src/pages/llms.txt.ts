@@ -58,6 +58,7 @@ export const GET: APIRoute = async () => {
     'enterprise/sso',
     'enterprise/scim',
     'enterprise/compliance',
+    'enterprise/billing',
     'enterprise/on-prem',
     'enterprise/api',
     'enterprise/api/orgs',

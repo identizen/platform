@@ -44,7 +44,7 @@ Export files are kept for 7 days. A scheduled job deletes rows past retention on
 
 ## Status and quotas
 
-**Compliance → Status** (and `GET /orgs/status` for owners, admins and auditors) shows the tenant's plan and region, whether the database, mail and SAML signing are healthy, every scheduled job with its last run, the webhook summary, and the quotas of the plan with how much of each is used:
+**Compliance → Status** (and `GET /orgs/status` for owners, admins and auditors) shows the tenant's plan and region, whether the database, mail and SAML signing are healthy, every scheduled job with its last run, the webhook summary, the verified domains split into healthy and stale (`domains: { verified, stale }`), and the quotas of the plan with how much of each is used:
 
 | Quota       | Standard | Dedicated |
 | ----------- | -------- | --------- |
@@ -58,7 +58,7 @@ Identizen can raise any of them for a tenant. Creating past a quota answers 409 
 
 ## Scheduled jobs
 
-The tenant index runs a job every five minutes for every active tenant: webhook retries that are due, expired export files, expired SAML flows and enrollments, and once a day the retention sweep. Each run is recorded, and a tenant whose database is unreachable is skipped without affecting the others.
+The tenant index runs a job set every five minutes for every active tenant: `retention` (once a day), `exports` (expired export files), `purge` (expired SAML flows and enrollments), `domains` (once a day: the [domain re-checks](/enterprise/portal/#domains); recorded only when at least one domain was due), `usage` (once a day: the active-device count for [billing](/enterprise/billing/)) and `webhooks` (deliveries that are due). Each run is recorded and shown under **Status**, and a tenant whose database is unreachable is skipped without affecting the others.
 
 ## Over the API
 

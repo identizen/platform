@@ -5,14 +5,14 @@ description: The organisation API on a tenant index — how to authenticate (por
 
 Every Identizen Cloud tenant, and every on-prem install, runs one tenant index at `https://{tenant}.index.identizen.com`. It serves everything the open index serves ([Index API](/reference/index-api/), [OIDC](/reference/oidc/), [Verification API](/reference/verification-api/)) plus the organisation surface on these pages. The portal, the org app, an MDM, an IdP's SCIM client, a SAML service provider and the phone all talk to it over these routes; the guides under Enterprise describe the same features from the administrator's side.
 
-| Page                                      | Surface                                                                                  |
-| ----------------------------------------- | ---------------------------------------------------------------------------------------- |
-| [Organisation](/enterprise/api/orgs/)     | Profile, domains, members and invitations, the audit log and the admin-actions log       |
-| [Fleet](/enterprise/api/fleet/)           | Enrollments, managed devices, approvals, MDM tokens and profile, the phone's `/enroll/*` |
-| [Policy](/enterprise/api/policy/)         | The policy document, sites and workforce-only, live sessions                             |
-| [SSO](/enterprise/api/sso/)               | OIDC apps, SAML apps and the SAML identity-provider endpoints                            |
-| [SCIM](/enterprise/api/scim/)             | SCIM tokens, the SCIM log, `/scim/v2/*`                                                  |
-| [Operations](/enterprise/api/operations/) | Exports, webhooks and signature verification, retention, status, quotas, licence         |
+| Page                                      | Surface                                                                                   |
+| ----------------------------------------- | ----------------------------------------------------------------------------------------- |
+| [Organisation](/enterprise/api/orgs/)     | Profile, domains, members and invitations, the audit log and the admin-actions log        |
+| [Fleet](/enterprise/api/fleet/)           | Enrollments, managed devices, approvals, MDM tokens and profile, the phone's `/enroll/*`  |
+| [Policy](/enterprise/api/policy/)         | The policy document, sites and workforce-only, live sessions                              |
+| [SSO](/enterprise/api/sso/)               | OIDC apps, SAML apps and the SAML identity-provider endpoints                             |
+| [SCIM](/enterprise/api/scim/)             | SCIM tokens, the SCIM log, `/scim/v2/*`                                                   |
+| [Operations](/enterprise/api/operations/) | Exports, webhooks and signature verification, retention, status, quotas, billing, licence |
 
 ## Conventions
 
@@ -69,6 +69,8 @@ Every member has one role. Routes are gated by grants, and the grant table is th
 | `exports.read`, `exports.write` | List, create and download exports                                                                                       |   yes   |   yes   |     no     |    yes    |
 | `webhooks.manage`               | Everything under `/orgs/webhooks`                                                                                       |   yes   |   yes   |     no     |    no     |
 | `status.read`                   | `GET /orgs/status`                                                                                                      |   yes   |   yes   |     no     |    yes    |
+| `billing.read`                  | `GET /orgs/billing`                                                                                                     |   yes   |   yes   |     no     |    no     |
+| `billing.manage`                | `POST /orgs/billing/portal-link`                                                                                        |   yes   |   no    |     no     |    no     |
 
 `member` has no grant and is refused on every admin route with `not_admin`. The route tables use this shorthand:
 

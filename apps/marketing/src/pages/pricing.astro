@@ -100,7 +100,7 @@ const faq = [
   ],
   [
     'What counts as an active device?',
-    'A phone enrolled on your tenant index that completes at least one login or approval in the calendar month. The tenant index counts them. Personal identities on the public index stay free.',
+    'A phone on your tenant index that is not disabled or revoked and was used in the last 30 days: it approved a login, drained its inbox, started a session, or was enrolled. The tenant index counts them once a day, and a period is billed on its peak. Personal identities on the public index stay free.',
   ],
   [
     'Can we leave?',
@@ -247,10 +247,11 @@ const faq = [
         <p class="eyebrow">How you are billed</p>
         <h2 id="billing" class="headline mt-3 text-3xl">Active devices, per month</h2>
         <p class="mt-4 leading-relaxed text-fg-muted">
-          The metric is the number of phones enrolled on your tenant index that complete at least
-          one login or approval in the month. The tenant index measures it. You are invoiced monthly
-          for that number, at the rate in your order form. Members who never sign in, sites, apps
-          and administrators cost nothing.
+          The metric is the number of phones on your tenant index that were used in the last 30
+          days. The tenant index counts them once a day, and a period is billed on its peak, at the
+          rate in your order form. You are billed monthly per active device, by card through Stripe
+          or by invoice under an enterprise agreement. Members who never sign in, sites, apps and
+          administrators cost nothing.
         </p>
         <p class="mt-4 leading-relaxed text-fg-muted">
           Both plans include every capability above; they differ in isolation and quotas. Identizen

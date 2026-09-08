@@ -35,10 +35,12 @@ interface Member {
 interface OrgDomain {
   id: string; // d_…
   domain: string; // lower-case, no trailing dot
-  status: 'pending' | 'verified' | 'stale';
+  status: 'pending' | 'verified' | 'stale'; // older name; `pending` = `state: 'unverified'`
+  state: 'unverified' | 'verified' | 'stale'; // stale = verified, but the last scheduled re-check found no proof
   method: 'dns' | 'https' | null;
   verified_at: string | null;
-  checked_at: string | null;
+  checked_at: string | null; // last check, on demand or scheduled, whatever the outcome
+  stale_at: string | null; // when a re-check first failed; null while healthy
   auto_join: boolean; // stored; self-enrolment by domain is not built yet
   created_at: string;
 }
@@ -111,15 +113,17 @@ interface MemberDetail {
 
 ## Domains
 
-| Method   | Path                       | Role                            | Body → Response                                                                                                            |
-| -------- | -------------------------- | ------------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
-| `GET`    | `/orgs/domains`            | any admin role (`domains.read`) | `{ domains: OrgDomain[] }`                                                                                                 |
-| `POST`   | `/orgs/domains`            | admin+ (`domains.write`)        | `{ domain, auto_join? }` → `{ domain: OrgDomain, instructions: DomainInstructions }` (`201`). `409 domain_taken`           |
-| `GET`    | `/orgs/domains/:id`        | any admin role (`domains.read`) | `{ domain, instructions }`                                                                                                 |
-| `POST`   | `/orgs/domains/:id/verify` | admin+ (`domains.write`)        | → `{ domain }`. Checks the DNS record and the well-known file; `409 verification_failed` with `detail: { checked: [...] }` |
-| `DELETE` | `/orgs/domains/:id`        | admin+ (`domains.write`)        | → `204`                                                                                                                    |
+| Method   | Path                       | Role                            | Body → Response                                                                                                                                                                                   |
+| -------- | -------------------------- | ------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `GET`    | `/orgs/domains`            | any admin role (`domains.read`) | `{ domains: OrgDomain[] }`                                                                                                                                                                        |
+| `POST`   | `/orgs/domains`            | admin+ (`domains.write`)        | `{ domain, auto_join? }` → `{ domain: OrgDomain, instructions: DomainInstructions }` (`201`). `409 domain_taken`                                                                                  |
+| `GET`    | `/orgs/domains/:id`        | any admin role (`domains.read`) | `{ domain, instructions }`                                                                                                                                                                        |
+| `POST`   | `/orgs/domains/:id/verify` | admin+ (`domains.write`)        | → `{ domain }`. Checks the DNS record, then the well-known file; sets `verified_at` and clears `stale_at`. `409 verification_failed` with `detail: { checked: [...] }` (`checked_at` still moves) |
+| `DELETE` | `/orgs/domains/:id`        | admin+ (`domains.write`)        | → `204`                                                                                                                                                                                           |
 
-A verified domain becomes `stale` when its last successful check is more than 30 days old; call `verify` again. The index does not re-check on its own yet.
+### Domain re-checks
+
+The scheduled `domains` job ([scheduled jobs](/enterprise/api/operations/#scheduled-jobs)) re-checks every verified domain 30 days after its last check with the same DNS-then-HTTPS lookup as `verify`. Success moves `checked_at`; a failure stamps `stale_at` (`state: 'stale'`) and writes `domain.stale` with `{ domain_id, domain, method, reason }`, delivered to webhooks like every audit event. A stale domain is re-checked on every daily run: success clears `stale_at` and writes `domain.reverified`; a failure more than 30 days after `stale_at` clears `verified_at` (`state: 'unverified'`), keeps `stale_at` and writes `domain.unverified`. Unverifying changes nothing else today: `auto_join` is stored, not acted on, so no membership is created or removed by a domain lapsing. An administrator can re-verify at any time with `POST /orgs/domains/:id/verify`.
 
 ## Members
 
@@ -147,7 +151,7 @@ A verified domain becomes `stale` when its last successful check is more than 30
 | `GET`  | `/orgs/audit`         | auditor+ (`audit.read`); helpdesk with `member_id` or `idz` (`audit.read_member`) | query `kind`, `member_id`, `idz`, `from`, `to`, `limit` (≤ 200), `cursor` → `{ events: AuditEvent[], next_cursor }` |
 | `GET`  | `/orgs/admin-actions` | auditor+ (`audit.read`)                                                           | query `limit`, `cursor` → `{ actions: AdminAction[], next_cursor }`                                                 |
 
-Audit kinds these routes write: `admin.bootstrapped`, `org.updated`, `domain.added`, `domain.verified`, `domain.removed`, `member.invited`, `member.accepted`, `member.role_changed`, `member.suspended`, `member.reinstated`, `member.deprovisioned`. Admin actions: `org.update`, `domain.add`, `domain.verify`, `domain.remove`, `member.invite`, `member.update`, `member.suspend`, `member.reinstate`, `member.reinvite`, `member.deprovision`. An identity linked to a suspended or deprovisioned member is refused at phone approval and at code exchange with `member_suspended` or `member_deprovisioned`, audited as `login.denied`.
+Audit kinds these routes write: `admin.bootstrapped`, `org.updated`, `domain.added`, `domain.verified`, `domain.removed`, `member.invited`, `member.accepted`, `member.role_changed`, `member.suspended`, `member.reinstated`, `member.deprovisioned`; the scheduled re-check writes `domain.stale`, `domain.reverified` and `domain.unverified` with no actor. Admin actions: `org.update`, `domain.add`, `domain.verify`, `domain.remove`, `member.invite`, `member.update`, `member.suspend`, `member.reinstate`, `member.reinvite`, `member.deprovision`. An identity linked to a suspended or deprovisioned member is refused at phone approval and at code exchange with `member_suspended` or `member_deprovisioned`, audited as `login.denied`.
 
 ## Example: invite a member
 

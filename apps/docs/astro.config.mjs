@@ -87,6 +87,7 @@ export default defineConfig({
             { label: 'SSO into your apps', link: '/enterprise/sso/' },
             { label: 'SCIM provisioning', link: '/enterprise/scim/' },
             { label: 'Compliance and operations', link: '/enterprise/compliance/' },
+            { label: 'Billing', link: '/enterprise/billing/' },
             { label: 'On-prem installation', link: '/enterprise/on-prem/' },
             {
               label: 'API reference',
