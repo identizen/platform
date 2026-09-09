@@ -16,6 +16,9 @@ const extraTransformed = [
 module.exports = {
   preset: 'jest-expo',
   setupFilesAfterEnv: ['./jest.setup.ts'],
+  // The first render of a screen (NativeWind, navigation, babel on a cold cache) takes seconds
+  // on a loaded CI runner; the default 5 s hit `navigation` and `enrollment-screens` there.
+  testTimeout: 30_000,
   testMatch: ['**/__tests__/**/*.test.[jt]s?(x)'],
   // lucide-react-native ships .mjs; run it through the same babel-jest as .js.
   transform: { ...preset.transform, '\\.mjs$': preset.transform['\\.[jt]sx?$'] },

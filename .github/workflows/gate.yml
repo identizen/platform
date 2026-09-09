@@ -5,6 +5,8 @@ on:
   push:
     branches: [main]
     tags: ['v*']
+  # Baselines pushed by update-snapshots use GITHUB_TOKEN, which never triggers a run; start one by hand.
+  workflow_dispatch:
 
 concurrency:
   group: gate-${{ github.ref }}
@@ -31,6 +33,9 @@ jobs:
       DATABASE_URL: postgres://identizen:identizen@localhost:5433/identizen
       CI: 'true'
       TURBO_TELEMETRY_DISABLED: '1'
+      # Four Playwright suites plus their web servers on a four-core runner starve each other:
+      # the browser session dies mid-test and Jest hits its per-test timeout. Two at a time.
+      TURBO_CONCURRENCY: '2'
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -39,7 +44,8 @@ jobs:
           cache: npm
       - run: npm ci
       - name: Install Playwright browsers
-        run: npx playwright install --with-deps chromium
+        # --with-deps runs apt, whose mirrors fail now and then; try three times before failing.
+        run: for i in 1 2 3; do npx playwright install --with-deps chromium && break || sleep 20; done
       - name: Build packages
         run: npm run build
       - name: Gate
