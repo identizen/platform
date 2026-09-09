@@ -62,13 +62,33 @@ export const MAX_SIGNED_BODY_BYTES = 64 * 1024;
  * or actual size past the cap is refused as `413 payload_too_large` (F09).
  */
 export async function readBodyCapped(
-  c: { req: { raw: Request; header: (name: string) => string | undefined } },
+  c: {
+    req: {
+      raw: Request;
+      header: (name: string) => string | undefined;
+      /** Hono's parsed-body cache (promises at runtime): filled here so a later `c.req.json()` still works. */
+      bodyCache?: { text?: Promise<string> | string };
+    };
+  },
   maxBytes = MAX_SIGNED_BODY_BYTES,
 ): Promise<string> {
   const declared = Number(c.req.header('content-length') ?? '0');
   if (declared > maxBytes)
     throw new ApiError(413, 'payload_too_large', 'request body is too large');
-  const body = c.req.raw.body;
+  const cached = c.req.bodyCache?.text;
+  if (cached !== undefined) {
+    const text = typeof cached === 'string' ? cached : await cached;
+    if (text.length > maxBytes)
+      throw new ApiError(413, 'payload_too_large', 'request body is too large');
+    return text;
+  }
+  const text = await readRawCapped(c.req.raw, maxBytes);
+  if (c.req.bodyCache) Object.assign(c.req.bodyCache, { text: Promise.resolve(text) });
+  return text;
+}
+
+async function readRawCapped(raw: Request, maxBytes: number): Promise<string> {
+  const body = raw.body;
   if (!body) return '';
   const reader = body.getReader();
   const chunks: Uint8Array[] = [];
