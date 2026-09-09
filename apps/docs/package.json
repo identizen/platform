@@ -28,9 +28,9 @@
   "devDependencies": {
     "@astrojs/check": "^0.9.10",
     "@axe-core/playwright": "^4.10.2",
-    "@identizen/protocol": "^0.2.0",
-    "@identizen/react": "^0.3.1",
-    "@identizen/sdk": "^0.3.1",
+    "@identizen/protocol": "^0.5.0",
+    "@identizen/react": "^0.5.0",
+    "@identizen/sdk": "^0.5.0",
     "@lhci/cli": "^0.15.1",
     "@playwright/test": "^1.55.0",
     "@tailwindcss/vite": "^4.1.12",

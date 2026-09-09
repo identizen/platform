@@ -1,6 +1,6 @@
 {
   "name": "@identizen/protocol",
-  "version": "0.2.0",
+  "version": "0.5.0",
   "description": "Identizen protocol: keys, canonical encoding (JCS), challenge/assertion signing and verification, rotating BLE identifiers. The single implementation every Identizen component imports.",
   "license": "Apache-2.0",
   "type": "module",

@@ -1,5 +1,12 @@
 # @identizen/sdk
 
+## 0.5.0
+
+### Patch Changes
+
+- Updated dependencies [33ee52c]
+  - @identizen/protocol@0.5.0
+
 ## 0.3.1
 
 ### Patch Changes

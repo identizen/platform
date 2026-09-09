@@ -1,5 +1,17 @@
 # @identizen/index
 
+## 0.9.0
+
+### Minor Changes
+
+- 33ee52c: Index key rotation without stranding phones. `INDEX_KEY_ROTATIONS` (a JSON array of signed rotation statements, oldest first) is published as `rotations` at `GET /.well-known/identizen`, now cached for five minutes; `npm run keys:index -- rotate` generates the new key and the statement the retiring key signs. The rotation runbook is in the production self-hosting guide.
+
+### Patch Changes
+
+- Updated dependencies [33ee52c]
+  - @identizen/protocol@0.5.0
+  - @identizen/db@0.5.1
+
 ## 0.8.0
 
 ### Minor Changes

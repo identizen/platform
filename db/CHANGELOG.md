@@ -1,5 +1,12 @@
 # @identizen/db
 
+## 0.5.1
+
+### Patch Changes
+
+- Updated dependencies [33ee52c]
+  - @identizen/protocol@0.5.0
+
 ## 0.5.0
 
 ### Minor Changes

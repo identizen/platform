@@ -1,5 +1,16 @@
 # @identizen/fake-phone
 
+## 0.3.0
+
+### Minor Changes
+
+- 33ee52c: Re-pins the index key along the published rotation chain (PROTOCOL.md §3.1) when a challenge fails with `bad_index_signature`; a chain that does not verify, or names another index, leaves the pin alone.
+
+### Patch Changes
+
+- Updated dependencies [33ee52c]
+  - @identizen/protocol@0.5.0
+
 ## 0.2.0
 
 ### Minor Changes

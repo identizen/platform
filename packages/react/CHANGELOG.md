@@ -1,5 +1,11 @@
 # @identizen/react
 
+## 0.5.0
+
+### Patch Changes
+
+- @identizen/sdk@0.5.0
+
 ## 0.3.1
 
 ### Patch Changes

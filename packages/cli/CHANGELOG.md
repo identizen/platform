@@ -1,5 +1,12 @@
 # identizen
 
+## 0.5.0
+
+### Patch Changes
+
+- Updated dependencies [33ee52c]
+  - @identizen/fake-phone@0.3.0
+
 ## 0.4.0
 
 ### Minor Changes

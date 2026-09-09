@@ -1,6 +1,6 @@
 {
   "name": "@identizen/db",
-  "version": "0.5.0",
+  "version": "0.5.1",
   "private": false,
   "description": "Identizen index schema (Drizzle), migrations, and the typed query module.",
   "license": "Apache-2.0",
@@ -32,7 +32,7 @@
     "studio": "drizzle-kit studio"
   },
   "dependencies": {
-    "@identizen/protocol": "^0.2.0",
+    "@identizen/protocol": "^0.5.0",
     "drizzle-orm": "^0.45.2",
     "postgres": "^3.4.7"
   },
