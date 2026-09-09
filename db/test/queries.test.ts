@@ -46,6 +46,14 @@ import {
   touchPairing,
 } from '../src/queries/pairings';
 import {
+  claimDueDeliveries,
+  enqueueDelivery,
+  getDelivery,
+  listDeliveriesForSite,
+  purgeDeliveries,
+  recordDeliveryAttempt,
+} from '../src/queries/deliveries';
+import {
   createSession,
   createSessionForActiveDevice,
   getSession,
@@ -484,5 +492,58 @@ describe('BLE lookup bound (F09)', () => {
       'dev_01K3ZB2N9G0000000000000220',
     ]);
     expect(await listActiveBleDevices(h.db)).toHaveLength(3);
+  });
+});
+
+describe('deliveries (outbox)', () => {
+  it('claims due rows once under a lease, records attempts, lists and purges', async () => {
+    await seedSite();
+    const now = new Date();
+    const past = new Date(now.getTime() - 1000);
+    const future = new Date(now.getTime() + 60_000);
+    const a = await enqueueDelivery(h.db, {
+      id: 'dl_a',
+      kind: 'webhook',
+      clientId: 'idz_live_site1',
+      payload: { verification_id: 'vf_1' },
+      nextAttemptAt: past,
+    });
+    expect(a.status).toBe('pending');
+    await enqueueDelivery(h.db, {
+      id: 'dl_b',
+      kind: 'logout',
+      clientId: 'idz_live_site1',
+      payload: { sid: 's1', sub: 'u1' },
+      nextAttemptAt: future,
+    });
+    const claimed = await claimDueDeliveries(h.db, now);
+    expect(claimed.map((d) => d.id)).toEqual(['dl_a']);
+    // Leased: a second sweeper at the same moment sees nothing.
+    expect(await claimDueDeliveries(h.db, now)).toEqual([]);
+    const retried = await recordDeliveryAttempt(h.db, 'dl_a', {
+      status: 'pending',
+      nextAttemptAt: future,
+      lastStatus: 503,
+      lastError: null,
+      now,
+    });
+    expect(retried.attempts).toBe(1);
+    expect(retried.nextAttemptAt.getTime()).toBe(future.getTime());
+    const done = await recordDeliveryAttempt(h.db, 'dl_a', {
+      status: 'delivered',
+      lastStatus: 200,
+      lastError: null,
+      now,
+    });
+    expect(done.attempts).toBe(2);
+    expect(done.deliveredAt).not.toBeNull();
+    expect((await listDeliveriesForSite(h.db, 'idz_live_site1')).map((d) => d.id)).toEqual([
+      'dl_b',
+      'dl_a',
+    ]);
+    // Purge takes resolved rows only, and only old ones.
+    expect(await purgeDeliveries(h.db, past)).toBe(0);
+    expect(await purgeDeliveries(h.db, new Date(now.getTime() + 1000))).toBe(1);
+    expect(await getDelivery(h.db, 'dl_b')).not.toBeNull();
   });
 });

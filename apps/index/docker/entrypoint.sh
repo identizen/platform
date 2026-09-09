@@ -28,5 +28,21 @@ echo "[identizen] applying database migrations"
 DATABASE_URL="$DATABASE_URL" node /repo/db/dist/src/cli-migrate.js
 
 export CLOUDFLARE_HYPERDRIVE_LOCAL_CONNECTION_STRING_HYPERDRIVE="$DATABASE_URL"
+# wrangler dev never fires cron triggers by itself. With --test-scheduled it exposes
+# /__scheduled, so a background loop fires the five-minute job (webhook and logout retries) the
+# way Cloudflare would. SCHEDULED_INTERVAL=0 disables it: when several replicas share a database,
+# let one of them run it (the sweep claims rows under a lease, so overlap is harmless anyway).
+interval="${SCHEDULED_INTERVAL:-300}"
+if [ "$interval" != "0" ]; then
+  (
+    sleep 30
+    while :; do
+      wget -qO- --timeout=60 "http://127.0.0.1:${PORT}/__scheduled?cron=*%2F5+*+*+*+*" >/dev/null 2>&1 \
+        || echo "[identizen] scheduled run failed; next attempt in ${interval}s" >&2
+      sleep "$interval"
+    done
+  ) &
+fi
+
 echo "[identizen] starting index at ${INDEX_URL} (port ${PORT})"
-exec npx wrangler dev --env dev --ip 0.0.0.0 --port "$PORT" --persist-to /data --show-interactive-dev-session=false
+exec npx wrangler dev --env dev --ip 0.0.0.0 --port "$PORT" --persist-to /data --test-scheduled --show-interactive-dev-session=false

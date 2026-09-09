@@ -7,6 +7,10 @@
   "observability": {
     "enabled": true,
   },
+  // Every five minutes: retry the webhooks and logout tokens the index still owes sites.
+  "triggers": {
+    "crons": ["*/5 * * * *"],
+  },
   "vars": {
     "INDEX_URL": "https://index.identizen.com",
     "APP_URL": "https://app.identizen.com",

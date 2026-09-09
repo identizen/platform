@@ -113,7 +113,9 @@ per-minute rate windows, and an inbox that drains atomically. `reserve()` and `r
 the approval claim: the assertion route claims the session before it writes anything durable,
 `deny()` must throw `ReservedError` while the claim is held, and expiry must wait
 `RESERVE_GRACE_MS` for a claimed session, so a store backed by a database implements them as
-conditional updates on one row. A store without a WebSocket bridge
+conditional updates on one row. The outbox for webhooks and logout tokens lives in the
+database (`deliveries`); a host runs `sweepDeliveries(deliveryContext(env), db)` from its own
+scheduler (the Worker's `scheduled` export does this every five minutes on a plain index). A store without a WebSocket bridge
 returns `426` from `websocket` and the login page polls `/challenge/:id/state` instead.
 
 `GuardState` is exported and reusable as is: give it a `GuardStorage` over your database and every

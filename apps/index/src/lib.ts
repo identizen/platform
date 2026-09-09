@@ -48,6 +48,19 @@ export {
 export { defaultStores, type ChallengeStore, type GuardStore, type Stores } from './stores';
 export { expireVerification } from './services/verification';
 export {
+  MAX_DELIVERY_ATTEMPTS,
+  RETRY_SCHEDULE_MS,
+  attemptDelivery,
+  deliverWebhook,
+  deliveryContext,
+  sendLogoutTokens,
+  sweepDeliveries,
+  type DeliveryContext,
+  type DeliveryOutcome,
+  type SweepReport,
+} from './services/deliveries';
+export { runScheduledJobs, type ScheduledReport } from './services/scheduled';
+export {
   ApiError,
   badRequest,
   conflict,

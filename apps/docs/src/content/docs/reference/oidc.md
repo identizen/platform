@@ -113,7 +113,7 @@ Content-Type: application/x-www-form-urlencoded
 logout_token=<JWT>
 ```
 
-The token is signed with the index keys, `typ: logout+jwt`, `iss` = index URL, `aud` = `client_id`, `sub` = the user's per-site `sub`, `sid` = the session to end, `jti` unique, `events` = `{"http://schemas.openid.net/event/backchannel-logout": {}}`, no `nonce`, 2-minute expiry. Respond `200` quickly. Delivery is attempted three times, immediately, after 0.5 s, and after 2 s; a 4xx other than 429 stops the retries. `@identizen/sdk/server` verifies it with `verifyLogoutToken(token)`.
+The token is signed with the index keys, `typ: logout+jwt`, `iss` = index URL, `aud` = `client_id`, `sub` = the user's per-site `sub`, `sid` = the session to end, `jti` unique, `events` = `{"http://schemas.openid.net/event/backchannel-logout": {}}`, no `nonce`, 2-minute expiry. Respond `200` quickly. Delivery is durable: the logout is queued in the index's outbox, sent once at once and retried by the five-minute scheduled sweep with backoff over about two days (nine attempts), each with a freshly minted token; a 4xx other than 429 is a refusal and ends the retries, and a delivery that runs out is recorded as a `delivery.failed` audit event. `@identizen/sdk/server` verifies it with `verifyLogoutToken(token)`.
 
 ## Site registration
 

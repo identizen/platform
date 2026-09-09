@@ -2049,8 +2049,9 @@ components:
             verify against `/.well-known/jwks.json`) with claims `iss` (index URL), `aud`
             (`client_id`), `sub` (the per-site sub), `sid`, `jti`, `iat`, `exp` (2 minutes),
             and `events: { "http://schemas.openid.net/event/backchannel-logout": {} }`; there is
-            no `nonce`. Delivery is retried up to three times (immediately, after 0.5 s, after
-            2 s) on network errors, `429`, and `5xx`; other `4xx` stop retries.
+            no `nonce`. Delivery is durable: queued in the index outbox, tried once at once, then retried
+            by the scheduled sweep with backoff over about two days (nine attempts, a fresh
+            token each time) on network errors, `429` and `5xx`; other `4xx` stop retries.
           requestBody:
             required: true
             content:
@@ -2078,8 +2079,9 @@ components:
             `verification_id`, `status`, `sub`, `reason`, `assertion` (the signed assertion
             when approved, else `null`), and `resolved_at` (Unix seconds or `null`). The
             `Idz-Webhook-Signature` header (`sha256=<hex>`) is informational; verify the JWT.
-            Delivery is retried up to three times (immediately, after 0.5 s, after 2 s) on
-            network errors, `429`, and `5xx`; other `4xx` stop retries.
+            Delivery is durable: queued in the index outbox, tried once at once, then retried by
+            the scheduled sweep with backoff over about two days (nine attempts, a fresh JWT
+            each time) on network errors, `429` and `5xx`; other `4xx` stop retries.
           parameters:
             - name: Idz-Event
               in: header

@@ -127,7 +127,7 @@ The JWT is signed with the index's OIDC keys (`typ: idz-webhook+jwt`, `iss` = in
 }
 ```
 
-Verify it against `/.well-known/jwks.json`; `@identizen/sdk/server` does this with `verifyWebhook(body)`. Delivery is retried up to three times (immediately, after 0.5 s, after 2 s) on network errors, `429`, and `5xx`; a `2xx` stops retries, other `4xx` responses are not retried.
+Verify it against `/.well-known/jwks.json`; `@identizen/sdk/server` does this with `verifyWebhook(body)`. Delivery is durable: the result is written to the index's outbox before the first attempt, tried once at once, and retried by the five-minute scheduled sweep with backoff (30 s, 2 min, 10 min, 30 min, 2 h, 6 h, 12 h, 24 h; nine attempts over about two days) on network errors, `429` and `5xx`. Each attempt carries a freshly minted JWT, so a late delivery is never expired. A `2xx` ends the retries; any other `4xx` is a refusal and ends them too, and a delivery that runs out of attempts is recorded as a `delivery.failed` audit event for your site.
 
 ## SDK equivalents
 

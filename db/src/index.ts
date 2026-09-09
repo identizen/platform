@@ -9,6 +9,7 @@ export * from './queries/pairings.js';
 export * from './queries/verifications.js';
 export * from './queries/sessions.js';
 export * from './queries/audit.js';
+export * from './queries/deliveries.js';
 export type {
   AuditEvent,
   Device,
@@ -20,6 +21,9 @@ export type {
   PairingStatus,
   PushPlatform,
   Session,
+  Delivery,
+  DeliveryKind,
+  DeliveryStatus,
   Site,
   SiteBinding,
   Verification,

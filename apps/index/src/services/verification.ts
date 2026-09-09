@@ -1,6 +1,5 @@
 import {
   createVerification,
-  getSite,
   getVerification,
   recordAudit,
   resolveVerification,
@@ -10,17 +9,11 @@ import {
 import {
   CHALLENGE_TTL_SECONDS,
   verificationId as newVerificationId,
-  sha256,
   toBase64Url,
-  toHex,
-  utf8Encode,
 } from '@identizen/protocol';
 import type { Env } from '../env';
 import type { Services } from '../lib/services';
-import { fetchOutbound, outboundPolicy } from '../lib/outbound';
 import { createServices } from '../lib/services';
-import { loadKeyring } from '../oidc/keys';
-import { mintWebhookToken } from '../oidc/tokens';
 import { startChallenge } from './challenge';
 
 export interface VerifyRequest {
@@ -115,61 +108,8 @@ export async function expireVerification(env: Env, id: string): Promise<void> {
   }
 }
 
-const RETRY_DELAYS_MS = [0, 500, 2000];
-
-/** POST the result to the site's webhook as a signed JWT (`application/jwt`) with an HMAC header. */
-export async function deliverWebhook(
-  services: Services,
-  env: Env,
-  v: Verification,
-  fetchImpl: typeof fetch = fetch,
-): Promise<boolean> {
-  const site = await getSite(services.db, v.clientId);
-  if (!site?.webhookUrl) return false;
-  const ring = await loadKeyring(env);
-  const body = await mintWebhookToken(ring, {
-    issuer: services.indexUrl,
-    clientId: site.clientId,
-    now: services.now(),
-    claims: {
-      event: 'verification.resolved',
-      verification_id: v.id,
-      status: v.status,
-      sub: v.sub,
-      reason: v.reason,
-      assertion: v.status === 'approved' ? v.assertion : null,
-      resolved_at: v.resolvedAt ? Math.floor(v.resolvedAt.getTime() / 1000) : null,
-    },
-  });
-  const sigHeader = site.webhookSecretHash
-    ? `sha256=${toHex(sha256(utf8Encode(site.webhookSecretHash + '.' + body)))}`
-    : '';
-  for (const delay of RETRY_DELAYS_MS) {
-    if (delay) await new Promise((r) => setTimeout(r, delay));
-    try {
-      // Site-supplied URL: policy-checked, five-second deadline per attempt, no redirects.
-      const res = await fetchOutbound(
-        fetchImpl,
-        site.webhookUrl,
-        {
-          method: 'POST',
-          headers: {
-            'content-type': 'application/jwt',
-            'idz-event': 'verification.resolved',
-            ...(sigHeader && { 'idz-webhook-signature': sigHeader }),
-          },
-          body,
-        },
-        outboundPolicy(env),
-      );
-      if (res.ok) return true;
-      if (res.status >= 400 && res.status < 500 && res.status !== 429) return false;
-    } catch {
-      /* retry */
-    }
-  }
-  return false;
-}
+import { deliverWebhook } from './deliveries';
+export { deliverWebhook };
 
 /** Seconds a verification stays pending before timing out (one challenge lifetime). */
 export const VERIFICATION_TTL_SECONDS = CHALLENGE_TTL_SECONDS;

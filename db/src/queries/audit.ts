@@ -23,6 +23,7 @@ export const AUDIT_KINDS = [
   'verification.approved',
   'verification.denied',
   'verification.timeout',
+  'delivery.failed',
   'site.created',
   'site.updated',
   'site.verified',

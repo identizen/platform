@@ -11,6 +11,7 @@ import {
   check,
   customType,
   index,
+  integer,
   uniqueIndex,
   jsonb,
   pgTable,
@@ -219,3 +220,45 @@ export type PairingRow = typeof pairings.$inferSelect;
 export type Verification = typeof verifications.$inferSelect;
 export type Session = typeof sessions.$inferSelect;
 export type AuditEvent = typeof auditEvents.$inferSelect;
+
+export const DELIVERY_KINDS = ['webhook', 'logout'] as const;
+export type DeliveryKind = (typeof DELIVERY_KINDS)[number];
+export const DELIVERY_STATUSES = ['pending', 'delivered', 'failed'] as const;
+export type DeliveryStatus = (typeof DELIVERY_STATUSES)[number];
+
+/**
+ * Outbox for everything the index owes a site: a Verification API result (`webhook`) or a
+ * back-channel logout (`logout`). A row is written before the first attempt and retried by the
+ * scheduled sweep with backoff until delivered, refused by the site, or exhausted; the token is
+ * minted at send time, so a retry never carries an expired one.
+ */
+export const deliveries = pgTable(
+  'deliveries',
+  {
+    id: text('id').primaryKey(),
+    kind: text('kind', { enum: DELIVERY_KINDS }).notNull(),
+    clientId: text('client_id')
+      .notNull()
+      .references(() => sites.clientId),
+    /** `webhook`: `{ verification_id }`; `logout`: `{ sid, sub }`. */
+    payload: jsonb('payload').$type<Record<string, unknown>>().notNull(),
+    status: text('status', { enum: DELIVERY_STATUSES }).notNull().default('pending'),
+    attempts: integer('attempts').notNull().default(0),
+    nextAttemptAt: timestamptz('next_attempt_at').notNull(),
+    /** HTTP status of the last attempt, or null when it did not reach the site. */
+    lastStatus: integer('last_status'),
+    lastError: text('last_error'),
+    createdAt: timestamptz('created_at').notNull().defaultNow(),
+    deliveredAt: timestamptz('delivered_at'),
+  },
+  (t) => [
+    check('deliveries_kind_check', sql`${t.kind} in ('webhook','logout')`),
+    check('deliveries_status_check', sql`${t.status} in ('pending','delivered','failed')`),
+    index('deliveries_due_idx')
+      .on(t.nextAttemptAt)
+      .where(sql`${t.status} = 'pending'`),
+    index('deliveries_client_idx').on(t.clientId, t.createdAt.desc()),
+  ],
+);
+
+export type Delivery = typeof deliveries.$inferSelect;

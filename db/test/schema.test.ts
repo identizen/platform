@@ -98,6 +98,19 @@ const REFERENCE: Record<string, Record<string, [string, 'YES' | 'NO', string | n
     kind: ['text', 'NO', null],
     detail: ['jsonb', 'YES', null],
   },
+  deliveries: {
+    id: ['text', 'NO', null],
+    kind: ['text', 'NO', null],
+    client_id: ['text', 'NO', null],
+    payload: ['jsonb', 'NO', null],
+    status: ['text', 'NO', "'pending'::text"],
+    attempts: ['integer', 'NO', '0'],
+    next_attempt_at: ['timestamp with time zone', 'NO', null],
+    last_status: ['integer', 'YES', null],
+    last_error: ['text', 'YES', null],
+    created_at: ['timestamp with time zone', 'NO', 'now()'],
+    delivered_at: ['timestamp with time zone', 'YES', null],
+  },
 };
 
 const REFERENCE_CONSTRAINTS: [table: string, type: string, columns: string][] = [

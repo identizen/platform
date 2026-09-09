@@ -3263,7 +3263,7 @@ export const OPENAPI_DOCUMENT: Record<string, unknown> = {
         "{$request.body#/backchannel_logout_uri}": {
           "post": {
             "summary": "OpenID Connect Back-Channel Logout 1.0",
-            "description": "Sent once per revoked session (device revocation, session revocation from the\nphone or dashboard) to the site's registered `backchannel_logout_uri`.\n`logout_token` is a JWT signed with the index OIDC keys (`typ: logout+jwt`, ES256,\nverify against `/.well-known/jwks.json`) with claims `iss` (index URL), `aud`\n(`client_id`), `sub` (the per-site sub), `sid`, `jti`, `iat`, `exp` (2 minutes),\nand `events: { \"http://schemas.openid.net/event/backchannel-logout\": {} }`; there is\nno `nonce`. Delivery is retried up to three times (immediately, after 0.5 s, after\n2 s) on network errors, `429`, and `5xx`; other `4xx` stop retries.\n",
+            "description": "Sent once per revoked session (device revocation, session revocation from the\nphone or dashboard) to the site's registered `backchannel_logout_uri`.\n`logout_token` is a JWT signed with the index OIDC keys (`typ: logout+jwt`, ES256,\nverify against `/.well-known/jwks.json`) with claims `iss` (index URL), `aud`\n(`client_id`), `sub` (the per-site sub), `sid`, `jti`, `iat`, `exp` (2 minutes),\nand `events: { \"http://schemas.openid.net/event/backchannel-logout\": {} }`; there is\nno `nonce`. Delivery is durable: queued in the index outbox, tried once at once, then retried\nby the scheduled sweep with backoff over about two days (nine attempts, a fresh\ntoken each time) on network errors, `429` and `5xx`; other `4xx` stop retries.\n",
             "requestBody": {
               "required": true,
               "content": {
@@ -3295,7 +3295,7 @@ export const OPENAPI_DOCUMENT: Record<string, unknown> = {
         "{$request.body#/webhook_url}": {
           "post": {
             "summary": "Verification API result",
-            "description": "Sent to the site's `webhook_url` when a verification resolves (`approved`,\n`denied`, or `timeout`). The body is a JWT signed with the index OIDC keys\n(`typ: idz-webhook+jwt`, ES256, `iss` = index URL, `aud` = `client_id`, `jti`,\n`iat`, `exp` = 10 minutes) whose claims are `event: \"verification.resolved\"`,\n`verification_id`, `status`, `sub`, `reason`, `assertion` (the signed assertion\nwhen approved, else `null`), and `resolved_at` (Unix seconds or `null`). The\n`Idz-Webhook-Signature` header (`sha256=<hex>`) is informational; verify the JWT.\nDelivery is retried up to three times (immediately, after 0.5 s, after 2 s) on\nnetwork errors, `429`, and `5xx`; other `4xx` stop retries.\n",
+            "description": "Sent to the site's `webhook_url` when a verification resolves (`approved`,\n`denied`, or `timeout`). The body is a JWT signed with the index OIDC keys\n(`typ: idz-webhook+jwt`, ES256, `iss` = index URL, `aud` = `client_id`, `jti`,\n`iat`, `exp` = 10 minutes) whose claims are `event: \"verification.resolved\"`,\n`verification_id`, `status`, `sub`, `reason`, `assertion` (the signed assertion\nwhen approved, else `null`), and `resolved_at` (Unix seconds or `null`). The\n`Idz-Webhook-Signature` header (`sha256=<hex>`) is informational; verify the JWT.\nDelivery is durable: queued in the index outbox, tried once at once, then retried by\nthe scheduled sweep with backoff over about two days (nine attempts, a fresh JWT\neach time) on network errors, `429` and `5xx`; other `4xx` stop retries.\n",
             "parameters": [
               {
                 "name": "Idz-Event",
