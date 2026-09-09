@@ -10,6 +10,7 @@ export * from './queries/verifications.js';
 export * from './queries/sessions.js';
 export * from './queries/audit.js';
 export * from './queries/deliveries.js';
+export * from './queries/retention.js';
 export type {
   AuditEvent,
   Device,
@@ -24,6 +25,8 @@ export type {
   Delivery,
   DeliveryKind,
   DeliveryStatus,
+  IdentityTombstone,
+  TombstoneReason,
   Site,
   SiteBinding,
   Verification,

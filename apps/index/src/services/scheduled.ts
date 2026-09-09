@@ -1,9 +1,11 @@
 import { createDb } from '@identizen/db';
 import type { Env } from '../env';
 import { deliveryContext, sweepDeliveries, type SweepReport } from './deliveries';
+import { runRetention, type RetentionReport } from './retention';
 
 export interface ScheduledReport {
   deliveries: SweepReport;
+  retention: RetentionReport;
 }
 
 /**
@@ -18,7 +20,8 @@ export async function runScheduledJobs(
   const handle = createDb(env.HYPERDRIVE.connectionString, { max: 1 });
   try {
     const deliveries = await sweepDeliveries(deliveryContext(env, fetchImpl), handle.db);
-    return { deliveries };
+    const retention = await runRetention(handle.db, env);
+    return { deliveries, retention };
   } finally {
     await handle.close();
   }

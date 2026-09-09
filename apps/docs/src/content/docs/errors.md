@@ -237,6 +237,10 @@ HTTP 404. `/me/sessions/:sid/revoke` or `/me/pairings/:id/revoke` named a sessio
 
 HTTP 400. A `webhook_url`, `backchannel_logout_uri` or web `push_token` URL is one the index will not call: it must be https (plain http only with `OUTBOUND_ALLOW_LOCAL=true`), carry no credentials, and not point at a loopback, private, link-local or CGNAT address or a local hostname. The message names the field and the reason.
 
+### identity_revoked
+
+HTTP 403 from `POST /devices`. This master key belongs to an identity whose holder deleted it with `reason: compromised` (the seed leaked), so nothing derived from that seed enrolls again. Set up a new identity with a new seed.
+
 ### device_revoked
 
 HTTP 403. `POST /devices` with a device key that was revoked or disabled. A key is enrolled at most once; the phone must create a fresh device key and register that.

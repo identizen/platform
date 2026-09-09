@@ -62,9 +62,22 @@ export interface TokenClaimsContext {
   audience: 'id_token' | 'userinfo';
 }
 
+export interface DeleteIdentityContext {
+  services: Services;
+  identity: Identity;
+  /** `deleted` at the person's request; `compromised` when their seed leaked (blocks re-enrollment). */
+  reason: 'deleted' | 'compromised';
+}
+
 export interface IndexHooks {
   /** Before a challenge is created. Throw to refuse the login. */
   onChallengeStart(ctx: ChallengeStartContext): Promise<void> | void;
+  /**
+   * Before an identity and everything the index holds about it are deleted (`DELETE /me`). A
+   * host removes its own rows for the identity here (they have no foreign keys the core knows
+   * about); throw to refuse.
+   */
+  onDeleteIdentity(ctx: DeleteIdentityContext): Promise<void> | void;
   /** After the assertion verified and before the session is approved. Throw to deny. */
   onAssert(ctx: AssertContext): Promise<void> | void;
   /** Before a device (and possibly its identity) is enrolled. Throw to refuse. */
@@ -87,6 +100,7 @@ const allow = (): void => undefined;
 
 export const defaultHooks: IndexHooks = {
   onChallengeStart: allow,
+  onDeleteIdentity: allow,
   onAssert: allow,
   onEnroll: allow,
   onSessionCreate: () => undefined,

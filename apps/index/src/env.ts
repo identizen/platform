@@ -62,6 +62,12 @@ export interface Env {
    */
   BLE_LOOKUP_LIMIT?: string;
   /**
+   * How long the scheduled sweep keeps audit events (default 365 days). Ended sessions, resolved
+   * verifications and settled deliveries go after 30 days, unverified registrations after two
+   * days; those are fixed. `0` disables audit retention (keep everything).
+   */
+  AUDIT_RETENTION_DAYS?: string;
+  /**
    * Comma-separated web origins allowed to call the bearer-authenticated `/me/*` routes from a
    * browser, in addition to `APP_URL`'s origin. Everything else is refused CORS there; the
    * public login endpoints keep answering any origin, as OIDC public clients need (F08).

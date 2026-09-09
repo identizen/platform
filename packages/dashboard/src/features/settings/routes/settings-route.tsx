@@ -10,7 +10,9 @@ import {
 } from '@identizen/ui';
 import { PageHeader } from '../../../components/shared/page-header';
 import { clearSession, useSession } from '../../auth';
+import { DeleteIdentityCard } from '../components/delete-identity-card';
 import { HandleForm } from '../components/handle-form';
+import { useDeleteIdentity } from '../hooks/use-delete-identity';
 import { useMe, useSetHandle } from '../hooks/use-handle';
 
 /** Container: `/settings`. */
@@ -24,6 +26,7 @@ export function SettingsRoute() {
     clearSession();
     void navigate({ to: '/', replace: true });
   };
+  const remove = useDeleteIdentity(signOut);
 
   return (
     <>
@@ -104,6 +107,12 @@ export function SettingsRoute() {
             </Button>
           </CardContent>
         </Card>
+
+        <DeleteIdentityCard
+          busy={remove.isPending}
+          error={remove.error ? remove.error.message : null}
+          onDelete={(reason) => remove.mutate(reason)}
+        />
       </div>
     </>
   );

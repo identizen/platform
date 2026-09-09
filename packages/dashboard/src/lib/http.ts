@@ -20,7 +20,7 @@ export class UnauthorizedError extends ApiError {
 }
 
 export interface ApiOptions {
-  method?: 'GET' | 'POST';
+  method?: 'GET' | 'POST' | 'DELETE';
   body?: unknown;
   /** Skip the bearer token (public endpoints). */
   anonymous?: boolean;

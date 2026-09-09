@@ -30,7 +30,9 @@ import {
 } from '../src/queries/devices';
 import {
   createIdentity,
+  deleteIdentityData,
   getIdentity,
+  getTombstone,
   getIdentityByHandle,
   requireIdentity,
   setHandle,
@@ -80,6 +82,12 @@ import {
   resolveVerification,
 } from '../src/queries/verifications';
 import { listAuditForIdentity, listAuditForSite, recordAudit } from '../src/queries/audit';
+import {
+  purgeAuditEvents,
+  purgeSessions,
+  purgeStalePendingSites,
+  purgeVerifications,
+} from '../src/queries/retention';
 import { bytes, freshDatabase, truncateAll } from './setup';
 
 let h: DbHandle;
@@ -545,5 +553,83 @@ describe('deliveries (outbox)', () => {
     expect(await purgeDeliveries(h.db, past)).toBe(0);
     expect(await purgeDeliveries(h.db, new Date(now.getTime() + 1000))).toBe(1);
     expect(await getDelivery(h.db, 'dl_b')).not.toBeNull();
+  });
+});
+
+describe('retention and deletion', () => {
+  it('purges ended sessions, resolved verifications, old audit and stale pending sites', async () => {
+    const d = await seedIdentityAndDevice();
+    await seedSite();
+    const old = new Date(Date.now() - 40 * 24 * 3_600_000);
+    await createSession(h.db, {
+      sid: 'sid_old',
+      idz: IDZ,
+      deviceId: d.id,
+      clientId: 'idz_live_site1',
+      expiresAt: old,
+    });
+    await createSession(h.db, {
+      sid: 'sid_live',
+      idz: IDZ,
+      deviceId: d.id,
+      clientId: 'idz_live_site1',
+      expiresAt: new Date(Date.now() + 60_000),
+    });
+    await h.db.execute(
+      sql`insert into verifications (id, client_id, sub, status, resolved_at) values ('vf_old', 'idz_live_site1', 's', 'denied', ${old.toISOString()}), ('vf_pending', 'idz_live_site1', 's', 'pending', null)`,
+    );
+    await recordAudit(h.db, { kind: 'login.success', idz: IDZ });
+    await h.db.execute(sql`update audit_events set at = ${old.toISOString()}`);
+    await recordAudit(h.db, { kind: 'login.success', idz: IDZ });
+    await createSite(h.db, {
+      clientId: 'idz_live_squat',
+      rpId: 'squat.example',
+      name: 'squat',
+      redirectUris: ['https://squat.example/cb'],
+      verifiedAt: null,
+    });
+    await h.db.execute(
+      sql`update sites set created_at = ${old.toISOString()} where client_id = 'idz_live_squat'`,
+    );
+    const cutoff = new Date(Date.now() - 30 * 24 * 3_600_000);
+    expect(await purgeSessions(h.db, cutoff)).toBe(1);
+    expect(await purgeVerifications(h.db, cutoff)).toBe(1);
+    expect(await purgeAuditEvents(h.db, cutoff)).toBe(1);
+    expect(await purgeStalePendingSites(h.db, cutoff)).toBe(1);
+    expect(await getSession(h.db, 'sid_live')).not.toBeNull();
+    expect(await getVerification(h.db, 'vf_pending')).not.toBeNull();
+    expect(await listAuditForIdentity(h.db, IDZ)).toHaveLength(1);
+    expect(await getSite(h.db, 'idz_live_site1')).not.toBeNull();
+  });
+
+  it('deletes everything about an identity in one go and leaves a tombstone', async () => {
+    const d = await seedIdentityAndDevice();
+    await seedSite();
+    await createSession(h.db, {
+      sid: 'sid_1',
+      idz: IDZ,
+      deviceId: d.id,
+      clientId: 'idz_live_site1',
+      expiresAt: new Date(Date.now() + 60_000),
+    });
+    await createPairing(h.db, { id: 'pr_1', deviceId: d.id, browserPubkey: bytes(5) });
+    await bindOrVerify(h.db, {
+      rpId: 'app.example.com',
+      sub: 'sub-1',
+      idz: IDZ,
+      sitePubkey: bytes(6),
+    });
+    await recordAudit(h.db, { kind: 'login.success', idz: IDZ, deviceId: d.id });
+    const gone = await deleteIdentityData(h.db, IDZ, 'compromised');
+    expect(gone.sessions.map((s) => s.sid)).toEqual(['sid_1']);
+    expect(gone).toMatchObject({ devices: 1, pairings: 1, bindings: 1, auditEvents: 1 });
+    expect(await getIdentity(h.db, IDZ)).toBeNull();
+    expect(await getDevice(h.db, d.id)).toBeNull();
+    expect(await getSession(h.db, 'sid_1')).toBeNull();
+    expect(await getTombstone(h.db, IDZ)).toMatchObject({ reason: 'compromised' });
+    // A later request to delete again upgrades nothing and does not fail.
+    await createIdentity(h.db, { idz: IDZ, masterPubkey: bytes(1) });
+    await deleteIdentityData(h.db, IDZ, 'deleted');
+    expect(await getTombstone(h.db, IDZ)).toMatchObject({ reason: 'deleted' });
   });
 });

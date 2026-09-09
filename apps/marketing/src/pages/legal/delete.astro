@@ -26,21 +26,30 @@ import Base from '../../layouts/Base.astro';
 
       <h2>2. Revoke the phone on the index</h2>
       <p>
-        Sign in to <a href="https://app.identizen.com">app.identizen.com</a> from another device, open
+        Sign in to <a href="https://app.identizen.com">app.identizen.com</a> from another device,
+        open
         <strong>Devices</strong>, and revoke the phone. From that moment the phone can no longer
         sign in anywhere, every browser it paired is unpaired, and every session it opened is signed
         out. The index marks the device record as revoked rather than deleting it, so that the
         revocation stays effective and can be audited; step 3 removes it.
       </p>
 
-      <h2>3. Ask us to delete everything</h2>
+      <h2>3. Delete everything yourself</h2>
       <p>
-        To have the index remove every record tied to an identity, including device records,
-        per-site identifiers, and the audit trail, use the <a href="/contact/">contact form</a> or write
-        to <a href="mailto:privacy@identizen.com">privacy@identizen.com</a> and include the identifier
-        shown on the app's Home tab (it begins with <code>idz_</code>). We confirm the request by
-        sending a sign-in challenge to that identity, so only its holder can trigger it, and
-        complete the deletion within 30 days. Hosting request logs, which contain IP addresses,
+        In the dashboard, open Settings and choose "Delete my identity". The index removes every
+        record tied to the identity at once: device records, paired browsers, sessions, per-site
+        identifiers, and the audit trail. Every site where you were signed in is told to end that
+        session. Only a note that a deletion happened remains, without your identifier. If you
+        believe your recovery phrase leaked, tick "my recovery phrase was compromised": the same
+        phrase can then never be enrolled again, and you start over with a new one.
+      </p>
+      <p>
+        If you no longer have a phone or dashboard access, use the{' '}
+        <a href="/contact/">contact form</a>
+        or write to <a href="mailto:privacy@identizen.com">privacy@identizen.com</a> with the
+        identifier shown on the app's Home tab (it begins with <code>idz_</code>). We confirm the
+        request by sending a sign-in challenge to that identity, so only its holder can trigger it,
+        and complete the deletion within 30 days. Hosting request logs, which contain IP addresses,
         expire on their own within days.
       </p>
 

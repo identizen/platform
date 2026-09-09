@@ -98,6 +98,11 @@ const REFERENCE: Record<string, Record<string, [string, 'YES' | 'NO', string | n
     kind: ['text', 'NO', null],
     detail: ['jsonb', 'YES', null],
   },
+  identity_tombstones: {
+    idz: ['text', 'NO', null],
+    reason: ['text', 'NO', null],
+    at: ['timestamp with time zone', 'NO', 'now()'],
+  },
   deliveries: {
     id: ['text', 'NO', null],
     kind: ['text', 'NO', null],

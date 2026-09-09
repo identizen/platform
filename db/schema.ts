@@ -262,3 +262,23 @@ export const deliveries = pgTable(
 );
 
 export type Delivery = typeof deliveries.$inferSelect;
+
+export const TOMBSTONE_REASONS = ['deleted', 'compromised'] as const;
+export type TombstoneReason = (typeof TOMBSTONE_REASONS)[number];
+
+/**
+ * What remains after an identity is deleted: its `idz` and why. `compromised` refuses every
+ * later enrollment of the same master key (the seed leaked, so the key is the attacker's too);
+ * `deleted` only records that the person asked, and a later enrollment starts a fresh identity.
+ */
+export const identityTombstones = pgTable(
+  'identity_tombstones',
+  {
+    idz: text('idz').primaryKey(),
+    reason: text('reason', { enum: TOMBSTONE_REASONS }).notNull(),
+    at: timestamptz('at').notNull().defaultNow(),
+  },
+  (t) => [check('identity_tombstones_reason_check', sql`${t.reason} in ('deleted','compromised')`)],
+);
+
+export type IdentityTombstone = typeof identityTombstones.$inferSelect;

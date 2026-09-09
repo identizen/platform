@@ -1,6 +1,7 @@
 import { nsName } from '../lib/names';
 import {
   enrollDevice,
+  getTombstone,
   createIdentity,
   getDevice,
   getDeviceByPubkey,
@@ -83,6 +84,15 @@ export function devicesRoutes(): Hono<AppEnv> {
     }
     requirePushDestination(c.env, body.push_token ?? null);
     const idz = identityId(masterPub);
+    // A seed the person reported leaked is the attacker's seed too: nothing derived from it
+    // enrolls again. A plain deletion leaves the door open for a fresh start.
+    const tombstone = await getTombstone(db, idz);
+    if (tombstone?.reason === 'compromised') {
+      throw forbidden(
+        'identity_revoked',
+        'this identity was reported compromised and cannot enroll again; set up a new identity',
+      );
+    }
     const known = await getDeviceByPubkey(db, fromBase64Url(body.device_pubkey));
     if (known) {
       if (known.status !== 'active') {

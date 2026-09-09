@@ -1900,6 +1900,93 @@ export const OPENAPI_DOCUMENT: Record<string, unknown> = {
             }
           }
         }
+      },
+      "delete": {
+        "tags": [
+          "Account"
+        ],
+        "operationId": "deleteMe",
+        "summary": "Delete the identity and everything the index holds about it",
+        "description": "Removes the identity, its devices, pairings, sessions, site bindings and audit trail in\none transaction; every live session's site is sent a back-channel logout first (through\nthe durable outbox). Only a tombstone (`idz`, reason, when) remains, plus an anonymized\n`identity.deleted` audit event. `reason: compromised` (the seed leaked) also refuses any\nlater enrollment of the same master key with `403 identity_revoked`; `deleted` lets a\nfresh enrollment start over. Signed by any of the identity's phones, or a dashboard\nbearer.\n",
+        "security": [
+          {
+            "idzSignature": []
+          },
+          {
+            "bearer": []
+          }
+        ],
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "reason": {
+                    "type": "string",
+                    "enum": [
+                      "deleted",
+                      "compromised"
+                    ],
+                    "default": "deleted"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Gone. Counts of what was removed.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "deleted",
+                    "reason",
+                    "devices",
+                    "pairings",
+                    "sessions",
+                    "bindings"
+                  ],
+                  "properties": {
+                    "deleted": {
+                      "type": "boolean",
+                      "enum": [
+                        true
+                      ]
+                    },
+                    "reason": {
+                      "type": "string",
+                      "enum": [
+                        "deleted",
+                        "compromised"
+                      ]
+                    },
+                    "devices": {
+                      "type": "integer"
+                    },
+                    "pairings": {
+                      "type": "integer"
+                    },
+                    "sessions": {
+                      "type": "integer"
+                    },
+                    "bindings": {
+                      "type": "integer"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/DeviceUnauthorized"
+          }
+        }
       }
     },
     "/me/devices": {

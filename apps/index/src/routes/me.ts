@@ -1,5 +1,6 @@
 import { browserLabel, parseUserAgent } from '../lib/util';
 import {
+  deleteIdentityData,
   getDevice,
   getIdentity,
   getPairing,
@@ -17,6 +18,7 @@ import {
 } from '@identizen/db';
 import { HandleUpdateSchema } from '@identizen/protocol';
 import { Hono } from 'hono';
+import { z } from 'zod';
 import type { AppEnv } from '../app';
 import { conflict, forbidden, notFound } from '../lib/errors';
 import { meAuth } from '../middleware/principal';
@@ -198,5 +200,45 @@ export function meRoutes(): Hono<AppEnv> {
     });
   });
 
+  /**
+   * Delete the identity and everything the index holds about it: devices, pairings, sessions,
+   * site bindings and its audit trail; every live session's site gets a back-channel logout
+   * first. `reason: "compromised"` (the seed leaked) also refuses any later enrollment of the
+   * same master key, since the attacker holds it too; `deleted` lets a fresh enrollment start
+   * over. Only a tombstone (`idz`, reason, when) remains.
+   */
+  r.delete('/me', meAuth({ allowInactive: true }), async (c) => {
+    const p = c.get('principal');
+    const services = c.get('services');
+    const body = DeleteIdentitySchema.parse(JSON.parse(c.get('rawBody') || '{}'));
+    const identity = await getIdentity(services.db, p.idz);
+    if (!identity) throw notFound('unknown_identity', 'no such identity');
+    await services.hooks.onDeleteIdentity({ services, identity, reason: body.reason });
+    const gone = await deleteIdentityData(services.db, p.idz, body.reason);
+    // The audit trail went with the identity; what remains says only that a deletion happened.
+    await recordAudit(services.db, {
+      kind: 'identity.deleted',
+      detail: {
+        reason: body.reason,
+        via: p.via,
+        devices: gone.devices,
+        sessions: gone.sessions.length,
+      },
+    });
+    services.defer(fireBackchannelLogout(services, gone.sessions, c.env));
+    return c.json({
+      deleted: true,
+      reason: body.reason,
+      devices: gone.devices,
+      pairings: gone.pairings,
+      sessions: gone.sessions.length,
+      bindings: gone.bindings,
+    });
+  });
+
   return r;
 }
+
+const DeleteIdentitySchema = z
+  .object({ reason: z.enum(['deleted', 'compromised']).default('deleted') })
+  .strict();

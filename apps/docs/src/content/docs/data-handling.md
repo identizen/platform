@@ -42,7 +42,7 @@ What `detail` holds in audit events, so there is no surprise: `login.success` ca
 | OIDC session (`sid`)                     | 30 days, or until revoked                                                 |
 | `Idz-Signature` request                  | Accepted within ±60 seconds; the same signature is rejected if seen again |
 
-There is no scheduled job in the index. Rows in `sessions`, `verifications`, and `audit_events` are not deleted when they expire; they are removed when an identity's records are deleted on request.
+A scheduled sweep runs every five minutes. Ended sessions, resolved verifications and settled webhook or logout deliveries are removed after thirty days, registrations that never proved their domain after two days, and audit events after `AUDIT_RETENTION_DAYS` (365 on the hosted index). Everything about an identity goes at once when its holder deletes it (below).
 
 ## What a site receives
 
@@ -73,4 +73,4 @@ There is no published DPA yet. It is available on request for enterprise engagem
 
 ## Requests from your users
 
-A person can revoke any device, session, or paired browser from the app or the dashboard, and remove the identity from a phone at any time. To have the hosted index delete or export everything it holds about an identity, they follow [the deletion page](https://identizen.com/legal/delete/): the request is confirmed by sending a sign-in challenge to that identity, so only its holder can trigger it, and it is completed within 30 days. That removes their `sub` bindings too; your own records for that `sub` are yours to handle under your own policy.
+A person can revoke any device, session, or paired browser from the app or the dashboard, and remove the identity from a phone at any time. To delete everything the index holds about an identity they use the dashboard (Settings, "Delete my identity") or their phone (`DELETE /me`, signed by any of their devices): the identity, its devices, pairings, sessions, site bindings and audit trail go in one transaction, every site with a live session receives a back-channel logout first, and only a tombstone (`idz`, reason, when) plus an anonymized `identity.deleted` audit event remain. Reporting the seed as compromised in that request also blocks the same master key from ever enrolling again. Exports and anything the dashboard cannot do go through [the deletion page](https://identizen.com/legal/delete/). That removes their `sub` bindings too; your own records for that `sub` are yours to handle under your own policy.

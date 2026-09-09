@@ -12,6 +12,7 @@ export {
   type AssertContext,
   type ChallengeStartContext,
   type EnrollContext,
+  type DeleteIdentityContext,
   type IndexHooks,
   type SessionCreateContext,
   type SessionCreateResult,
@@ -60,6 +61,14 @@ export {
   type SweepReport,
 } from './services/deliveries';
 export { runScheduledJobs, type ScheduledReport } from './services/scheduled';
+export {
+  AUDIT_PURGE_BATCH,
+  DEFAULT_AUDIT_RETENTION_DAYS,
+  RESOLVED_ROWS_RETENTION_DAYS,
+  auditRetentionDays,
+  runRetention,
+  type RetentionReport,
+} from './services/retention';
 export {
   ApiError,
   badRequest,

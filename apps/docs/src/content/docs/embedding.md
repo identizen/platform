@@ -67,6 +67,7 @@ denial.
 | `onEnroll`         | before a device (and possibly its identity) is written      | closed enrollment, org-issued enrollment tokens |
 | `onSessionCreate`  | before the OIDC session row at code exchange                | session limits per site or org                  |
 | `onTokenClaims`    | for the id_token and `/userinfo`                            | `idz_role` and other org claims                 |
+| `onDeleteIdentity` | before `DELETE /me` removes an identity and its rows        | delete the host's own rows for that identity    |
 
 Extra claims from `onTokenClaims` never override the standard ones: `sub`, `sid`, `amr`, `acr`,
 `auth_time`, `idz_device`, `idz_handle`, `idz_org` and `at_hash` are always the index's.

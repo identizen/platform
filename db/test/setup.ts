@@ -18,7 +18,7 @@ export async function freshDatabase(): Promise<DbHandle> {
 /** Truncate all data tables between tests (faster than re-migrating). */
 export async function truncateAll(handle: DbHandle): Promise<void> {
   await handle.db.execute(
-    sql`truncate table deliveries, audit_events, sessions, verifications, pairings, site_bindings, sites, devices, identities, orgs restart identity cascade`,
+    sql`truncate table identity_tombstones, deliveries, audit_events, sessions, verifications, pairings, site_bindings, sites, devices, identities, orgs restart identity cascade`,
   );
 }
 
