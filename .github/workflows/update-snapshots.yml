@@ -24,6 +24,10 @@ jobs:
         with:
           node-version: 22
           cache: npm
+      # The same npm as the checkouts this repo is developed with: npm 10 (Node 22's bundled one)
+      # judges optional platform packages and overrides differently, and `npm sbom` refuses a tree
+      # that npm 12 accepts.
+      - run: npm install -g npm@12
       - run: npm ci
       - name: Install Playwright browsers
         run: npx playwright install --with-deps chromium
