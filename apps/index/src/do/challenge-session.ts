@@ -17,6 +17,27 @@ export type SessionStatus = 'pending' | 'approved' | 'denied' | 'expired';
 /** An authorization code can be redeemed this long after approval, then it is gone. */
 export const CODE_TTL_MS = CHALLENGE_TTL_SECONDS * 1000 * 5;
 
+/**
+ * How long a claim taken by `reserve` holds off expiry: long enough for the assertion's
+ * database writes, short enough that a crashed approval does not keep a login open.
+ */
+export const RESERVE_GRACE_MS = 30_000;
+
+/** The message `deny` fails with while an approval holds the claim (compare by message: RPC drops the class). */
+export const RESERVED_MESSAGE = 'session is reserved for approval';
+
+export class ReservedError extends Error {
+  constructor() {
+    super(RESERVED_MESSAGE);
+    this.name = 'ReservedError';
+  }
+}
+
+export function isReservedError(err: unknown): boolean {
+  // A Durable Object RPC rethrows as a plain Error whose message is prefixed with the class name.
+  return err instanceof Error && err.message.includes(RESERVED_MESSAGE);
+}
+
 /** OIDC authorization request parameters carried through the session (used by M4). */
 export interface OidcParams {
   client_id: string;
@@ -78,6 +99,8 @@ export interface SessionState {
   codeUsed: boolean;
   /** Session (sid) the code was exchanged for, so a reuse of the code can revoke it. */
   sid?: string | null;
+  /** When an approval claimed the session (`reserve`), until `approve` or `release`. */
+  reservedAt?: number | null;
   resolvedAt: number | null;
 }
 
@@ -146,12 +169,29 @@ export class ChallengeSession extends DurableObject<Env> {
       redirect: null,
       codeUsed: false,
       sid: null,
+      reservedAt: null,
       resolvedAt: null,
       signed: init.signed,
     };
     await this.save(stored);
     await this.ctx.storage.setAlarm(init.signed.payload.exp * 1000);
     return this.publicState(stored);
+  }
+
+  /** Claim the session for an approval in progress; see `ChallengeStore.reserve`. */
+  async reserve(): Promise<boolean> {
+    const s = await this.require();
+    if (s.status !== 'pending' || s.reservedAt) return false;
+    s.reservedAt = Date.now();
+    await this.save(s);
+    return true;
+  }
+
+  async release(): Promise<void> {
+    const s = await this.load();
+    if (!s || !s.reservedAt) return;
+    s.reservedAt = null;
+    await this.save(s);
   }
 
   async getSigned(): Promise<SignedChallenge | null> {
@@ -208,6 +248,7 @@ export class ChallengeSession extends DurableObject<Env> {
     s.pairing = pairing;
     s.code = code;
     s.redirect = redirect;
+    s.reservedAt = null;
     s.resolvedAt = Date.now();
     await this.save(s);
     this.broadcast({ type: 'approved', challenge_id: s.challengeId, pairing, redirect });
@@ -217,6 +258,7 @@ export class ChallengeSession extends DurableObject<Env> {
   async deny(): Promise<SessionState> {
     const s = await this.require();
     if (s.status !== 'pending') throw new Error(`session is ${s.status}`);
+    if (s.reservedAt) throw new ReservedError();
     s.status = 'denied';
     s.resolvedAt = Date.now();
     await this.save(s);
@@ -292,6 +334,12 @@ export class ChallengeSession extends DurableObject<Env> {
   override async alarm(): Promise<void> {
     const s = await this.load();
     if (!s) return;
+    // An approval in progress holds expiry off briefly; a claim older than the grace is a
+    // crashed approval and the session expires as usual.
+    if (s.status === 'pending' && s.reservedAt && Date.now() - s.reservedAt < RESERVE_GRACE_MS) {
+      await this.ctx.storage.setAlarm(s.reservedAt + RESERVE_GRACE_MS);
+      return;
+    }
     if (s.status === 'pending') {
       s.status = 'expired';
       s.resolvedAt = Date.now();

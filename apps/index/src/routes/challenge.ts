@@ -4,8 +4,8 @@ import { AcrSchema, REASON_MAX_LENGTH, type Acr } from '@identizen/protocol';
 import { Hono } from 'hono';
 import { z } from 'zod';
 import type { AppEnv } from '../app';
-import type { OidcParams } from '../do/challenge-session';
-import { badRequest, forbidden, notFound } from '../lib/errors';
+import { isReservedError, type OidcParams } from '../do/challenge-session';
+import { badRequest, conflict, forbidden, notFound } from '../lib/errors';
 import { registeredRedirect, validateAuthorizeRequest } from '../oidc/authorize-request';
 import { browserMeta } from '../lib/util';
 import { deviceAuth } from '../middleware/idz-signature';
@@ -186,7 +186,15 @@ export function challengeRoutes(): Hono<AppEnv> {
     } else if (state.targetDeviceId !== null && state.targetDeviceId !== device.id) {
       throw forbidden('wrong_device', 'this challenge was routed to a different device');
     }
-    await stub.deny();
+    try {
+      await stub.deny();
+    } catch (err) {
+      // An approval already holds the session (F03): the assertion verified and its writes are
+      // in flight, so this decline arrives too late to change the outcome.
+      if (isReservedError(err))
+        throw conflict('approval_in_progress', 'this challenge is being approved');
+      throw err;
+    }
     await recordAudit(db, {
       kind: 'login.denied',
       idz: device.idz,

@@ -3,10 +3,20 @@
  * reviewer's probe turned around: the attack must fail, and the legitimate path next to it must
  * still work.
  */
-import { SELF, env, fetchMock } from 'cloudflare:test';
+import {
+  SELF,
+  createExecutionContext,
+  env,
+  fetchMock,
+  waitOnExecutionContext,
+} from 'cloudflare:test';
+import { sql } from 'drizzle-orm';
 import { afterEach, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import { decodeJwt } from 'jose';
-import { requireSite, updateSite } from '@identizen/db';
+import { requireSite, revokeDevice, updateSite } from '@identizen/db';
+import { createApp } from '../src/app';
+import type { AppOptions } from '../src/hooks';
+import { nsName } from '../src/lib/names';
 import { createServices } from '../src/lib/services';
 import { verificationStatus } from '../src/services/site-verification';
 import { startChallenge as startChallengeService } from '../src/services/challenge';
@@ -14,6 +24,7 @@ import {
   deriveMasterKey,
   generateKeyPair,
   generateSeed,
+  identityId,
   rotatingBleIdString,
   sha256,
   signIdentityProof,
@@ -24,7 +35,9 @@ import {
   BASE,
   REDIRECT_URI,
   approve,
+  authorizeAndApprove,
   buildAssertion,
+  dbHandle,
   exchange,
   fetchChallenge,
   json,
@@ -33,9 +46,11 @@ import {
   registerPhone,
   registerSite,
   registrationNonce,
+  request,
   resetDb,
   signedFetch,
   startChallenge,
+  useFetcher,
   type Phone,
   type RegisteredSite,
 } from './helpers';
@@ -45,7 +60,28 @@ beforeAll(() => {
   fetchMock.disableNetConnect();
 });
 beforeEach(resetDb);
-afterEach(() => fetchMock.assertNoPendingInterceptors());
+afterEach(() => {
+  useFetcher(null);
+  fetchMock.assertNoPendingInterceptors();
+});
+
+/** Route the helpers through an app whose hooks stand in for a concurrent request. */
+function configure(options: AppOptions): void {
+  const app = createApp(options);
+  useFetcher(async (input, init) => {
+    const ctx = createExecutionContext();
+    const response = await app.fetch(new Request(input, init), env, ctx);
+    await waitOnExecutionContext(ctx);
+    return response;
+  });
+}
+
+const postVia = (path: string, body: unknown) =>
+  request(`${BASE}${path}`, {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify(body),
+  });
 
 const post = (path: string, body: unknown, headers: Record<string, string> = {}) =>
   SELF.fetch(`${BASE}${path}`, {
@@ -676,5 +712,182 @@ describe('F01: a test client is held to the same domain proof as a live one', ()
     const services = createServices(env);
     const site = await registerTest('localhost');
     await expect(login(services, site.client_id)).resolves.toBeTruthy();
+  });
+});
+
+describe('F02: a session exists only while its device is active', () => {
+  it('a revocation during token exchange leaves no session behind', async () => {
+    const site = await registerSite();
+    const phone = await registerPhone();
+    // The hook stands in for a revoke request that lands between the device check and the insert.
+    configure({
+      hooks: {
+        onSessionCreate: async ({ services, device }) => {
+          await revokeDevice(services.db, device.id);
+          return {};
+        },
+      },
+    });
+    const login = await authorizeAndApprove(site, phone);
+    const res = await exchange(site, login.code);
+    expect(res.status).toBe(400);
+    expect(await json(res)).toMatchObject({ error: 'invalid_grant' });
+    const h = dbHandle();
+    try {
+      const rows = await h.db.execute<{ n: number }>(
+        sql`select count(*)::int as n from sessions where revoked_at is null`,
+      );
+      expect(Array.from(rows)[0]).toMatchObject({ n: 0 });
+    } finally {
+      await h.close();
+    }
+  });
+
+  it('a bearer token dies with its device even when the session row was left live', async () => {
+    const site = await registerSite();
+    const phone = await registerPhone();
+    const { tokens } = await loginAndExchange(site, phone);
+    const h = dbHandle();
+    try {
+      await h.db.execute(sql`update devices set status = 'revoked' where id = ${phone.deviceId}`);
+    } finally {
+      await h.close();
+    }
+    const res = await request(`${BASE}/userinfo`, {
+      headers: { authorization: `Bearer ${tokens.access_token}` },
+    });
+    expect(res.status).toBe(401);
+  });
+});
+
+describe('F03: nothing durable is written for a login the session did not approve', () => {
+  it('a denial that wins first leaves no pairing and no success audit', async () => {
+    const site = await registerSite();
+    const phone = await registerPhone();
+    // The hook stands in for a decline that lands after the assertion verified.
+    configure({
+      hooks: {
+        onAssert: async ({ services, challengeId }) => {
+          await services.stores.challenge(nsName(env, challengeId)).deny();
+        },
+      },
+    });
+    const ch = await startChallenge({ client_id: site.client_id, browser_pubkey: 'A'.repeat(87) });
+    const res = await approve(phone, ch.challenge_id);
+    expect(res.status).toBe(410);
+    expect(await json(res)).toMatchObject({ error: 'challenge_denied' });
+    const h = dbHandle();
+    try {
+      expect(Array.from(await h.db.execute(sql`select id from pairings`))).toHaveLength(0);
+      expect(
+        Array.from(
+          await h.db.execute(sql`select id from audit_events where kind = 'login.success'`),
+        ),
+      ).toHaveLength(0);
+    } finally {
+      await h.close();
+    }
+    const state = await json<{ status: string }>(
+      await request(`${BASE}/challenge/${ch.challenge_id}/state`),
+    );
+    expect(state.status).toBe('denied');
+  });
+
+  it('while an approval holds the session, a decline is refused and a second approval waits', async () => {
+    const site = await registerSite();
+    const phone = await registerPhone();
+    const ch = await startChallenge({ client_id: site.client_id });
+    const stub = env.CHALLENGE_SESSION.getByName(nsName(env, ch.challenge_id));
+    expect(await stub.reserve()).toBe(true);
+    expect(await stub.reserve()).toBe(false);
+    const denied = await signedFetch(phone, 'POST', `/challenge/${ch.challenge_id}/deny`, {});
+    expect(denied.status).toBe(409);
+    expect(await json(denied)).toMatchObject({ error: 'approval_in_progress' });
+    const early = await approve(phone, ch.challenge_id);
+    expect(early.status).toBe(410);
+    expect(await json(early)).toMatchObject({ error: 'challenge_reserved' });
+    await stub.release();
+    // A second signature within the same second would be a replay; date it one second later.
+    const ok = await approve(phone, ch.challenge_id, 1);
+    expect(ok.status, await ok.clone().text()).toBe(200);
+    const late = await signedFetch(phone, 'POST', `/challenge/${ch.challenge_id}/deny`, {
+      late: true,
+    });
+    expect(await json(late)).toMatchObject({ status: 'approved' });
+  });
+});
+
+describe('F04: a device key is enrolled once even when two enrollments race', () => {
+  /** Hold both registrations inside the enroll hook so their inserts race at the database. */
+  function gateTwo(): void {
+    let arrived = 0;
+    let open!: () => void;
+    const gate = new Promise<void>((resolve) => {
+      open = resolve;
+    });
+    configure({
+      hooks: {
+        onEnroll: async () => {
+          arrived += 1;
+          if (arrived === 2) open();
+          await gate;
+        },
+      },
+    });
+  }
+
+  it('a second key for an existing identity gets one row; revoking it revokes the key', async () => {
+    const phone = await registerPhone();
+    const key = generateKeyPair();
+    const pub = toBase64Url(key.publicKey);
+    const nonce = await registrationNonce();
+    gateTwo();
+    const body = {
+      device_pubkey: pub,
+      master_pubkey: toBase64Url(phone.master.publicKey),
+      master_sig: signIdentityProof(pub, phone.master.privateKey, { index: BASE, nonce }),
+      nonce,
+    };
+    const replies = await Promise.all([postVia('/devices', body), postVia('/devices', body)]);
+    expect(replies.map((r) => r.status).sort()).toEqual([200, 201]);
+    const ids = await Promise.all(replies.map((r) => json<{ device_id: string }>(r)));
+    expect(ids[0]?.device_id).toBe(ids[1]?.device_id);
+    const deviceId = ids[0]?.device_id ?? '';
+    useFetcher(null);
+    expect((await signedFetch(phone, 'POST', `/devices/${deviceId}/revoke`, {})).status).toBe(200);
+    const twin: Phone = { ...phone, device: key, deviceId };
+    expect([401, 403]).toContain((await signedFetch(twin, 'GET', '/me/devices')).status);
+    // And the key cannot come back: the tombstone answers every later enrollment.
+    const again = await postVia('/devices', body);
+    expect(again.status).toBe(403);
+    expect(await json(again)).toMatchObject({ error: 'device_revoked' });
+  });
+
+  it('a brand-new identity enrolled twice at once gets one identity and one device', async () => {
+    const master = generateKeyPair();
+    const key = generateKeyPair();
+    const pub = toBase64Url(key.publicKey);
+    const nonce = await registrationNonce();
+    gateTwo();
+    const body = {
+      device_pubkey: pub,
+      master_pubkey: toBase64Url(master.publicKey),
+      master_sig: signIdentityProof(pub, master.privateKey, { index: BASE, nonce }),
+      nonce,
+    };
+    const replies = await Promise.all([postVia('/devices', body), postVia('/devices', body)]);
+    expect(replies.map((r) => r.status).sort()).toEqual([200, 201]);
+    const idz = identityId(master.publicKey);
+    const h = dbHandle();
+    try {
+      expect(
+        Array.from(await h.db.execute(sql`select idz from identities where idz = ${idz}`)),
+      ).toHaveLength(1);
+      expect(
+        Array.from(await h.db.execute(sql`select id from devices where idz = ${idz}`)),
+      ).toHaveLength(1);
+    } finally {
+      await h.close();
+    }
   });
 });

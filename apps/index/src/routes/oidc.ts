@@ -1,6 +1,6 @@
 import { nsName } from '../lib/names';
 import {
-  createSession,
+  createSessionForActiveDevice,
   getDevice,
   getIdentity,
   getSession,
@@ -266,13 +266,15 @@ export function oidcRoutes(): Hono<AppEnv> {
       SESSION_TTL_SECONDS,
       Math.max(60, Math.floor(sessionPolicy?.ttlSeconds ?? SESSION_TTL_SECONDS)),
     );
-    await createSession(services.db, {
+    // Inserted only while the device is still active, serialized against revocation (F02).
+    const session = await createSessionForActiveDevice(services.db, {
       sid,
       idz: device.idz,
       deviceId: device.id,
       clientId: site.clientId,
       expiresAt: new Date((now + ttl) * 1000),
     });
+    if (!session) return tokenError('invalid_grant', 'device is not active');
     await recordAudit(services.db, {
       kind: 'session.created',
       idz: device.idz,
@@ -362,6 +364,10 @@ export function oidcRoutes(): Hono<AppEnv> {
     if (!claims) return invalid('access token is invalid or expired');
     const session = await getSession(services.db, claims.sid);
     if (!session || !isSessionLive(session)) return invalid('session has been revoked');
+    // Defense in depth for F02: a session whose device is no longer active is dead even if the
+    // row was not ended.
+    const device = await getDevice(services.db, session.deviceId);
+    if (!device || device.status !== 'active') return invalid('device has been revoked');
     const identity = await getIdentity(services.db, session.idz);
     if (!identity) return invalid('identity no longer exists');
     const site = await getSite(services.db, session.clientId);
@@ -369,7 +375,7 @@ export function oidcRoutes(): Hono<AppEnv> {
       services,
       site: site ?? null,
       identity,
-      device: await getDevice(services.db, session.deviceId),
+      device,
       sid: session.sid,
       scope: claims.scope,
       assertion: null,

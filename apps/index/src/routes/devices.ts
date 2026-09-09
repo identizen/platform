@@ -1,11 +1,12 @@
 import { nsName } from '../lib/names';
 import {
-  createDevice,
+  enrollDevice,
   createIdentity,
   getDevice,
   getDeviceByPubkey,
   getIdentity,
   HandleTakenError,
+  IdentityExistsError,
   recordAudit,
   revokeDevice,
   updatePushToken,
@@ -125,10 +126,15 @@ export function devicesRoutes(): Hono<AppEnv> {
         createdIdentity = true;
       } catch (err) {
         if (err instanceof HandleTakenError) throw conflict('handle_taken', err.message);
-        throw err;
+        // A concurrent enrollment of the same identity got there first: use its row.
+        if (err instanceof IdentityExistsError) identity = await getIdentity(db, idz);
+        else throw err;
+        if (!identity) throw err;
       }
     }
-    const device = await createDevice(db, {
+    // The unique key index settles a concurrent enrollment of the same key (F04): the loser
+    // gets the row the winner created and answers as a repeated registration would.
+    const enrolled = await enrollDevice(db, {
       id: newDeviceId(),
       idz,
       devicePubkey: fromBase64Url(body.device_pubkey),
@@ -137,6 +143,28 @@ export function devicesRoutes(): Hono<AppEnv> {
       pushPlatform: body.push_platform ?? null,
       attestation: body.attestation ?? null,
     });
+    if (!enrolled.created) {
+      const known = enrolled.device;
+      if (known.status !== 'active') {
+        throw forbidden(
+          'device_revoked',
+          'this device key was revoked; enroll with a fresh device key',
+        );
+      }
+      if (known.idz !== idz)
+        throw conflict('identity_mismatch', 'this device key belongs to another identity');
+      return c.json(
+        {
+          device_id: known.id,
+          idz,
+          handle: identity.handle,
+          index: indexUrl,
+          index_pubkey: toBase64Url(indexKey.publicKey),
+        },
+        200,
+      );
+    }
+    const device = enrolled.device;
     if (createdIdentity)
       await recordAudit(db, { kind: 'identity.created', idz, deviceId: device.id });
     await recordAudit(db, {

@@ -17,6 +17,7 @@ import {
   createDevice,
   disableDevice,
   enableDevice,
+  enrollDevice,
   getDevice,
   listActiveBleDevices,
   listDevicesForIdentity,
@@ -45,6 +46,7 @@ import {
 } from '../src/queries/pairings';
 import {
   createSession,
+  createSessionForActiveDevice,
   getSession,
   isSessionLive,
   listLiveSessionsForIdentity,
@@ -86,9 +88,19 @@ beforeEach(async () => {
 const IDZ = 'idz_A'.padEnd(32, 'A');
 const IDZ2 = 'idz_B'.padEnd(32, 'B');
 
+/** A device key unique to the device id: keys are unique across the table. */
+function keyFor(deviceId: string): Uint8Array {
+  return new TextEncoder().encode(deviceId.padEnd(32, '.')).slice(0, 32);
+}
+
 async function seedIdentityAndDevice(idz = IDZ, deviceId = 'dev_01K3ZB2N9G0000000000000001') {
   await createIdentity(h.db, { idz, masterPubkey: bytes(1) });
-  return createDevice(h.db, { id: deviceId, idz, devicePubkey: bytes(2), bleKey: bytes(3) });
+  return createDevice(h.db, {
+    id: deviceId,
+    idz,
+    devicePubkey: keyFor(deviceId),
+    bleKey: bytes(3),
+  });
 }
 
 async function seedSite(clientId = 'idz_live_site1', rpId = 'app.example.com') {
@@ -386,5 +398,71 @@ describe('audit', () => {
     expect(rows[1]?.detail).toEqual({ reason: 'expired' });
     expect(await listAuditForSite(h.db, site.clientId)).toHaveLength(2);
     expect(await listAuditForIdentity(h.db, IDZ, 1)).toHaveLength(1);
+  });
+});
+
+describe('enrollment and sessions under concurrency (F02, F04)', () => {
+  it('enrollDevice creates once per key and then returns the existing row, whatever its status', async () => {
+    await createIdentity(h.db, { idz: IDZ, masterPubkey: bytes(1) });
+    const input = { id: 'dev_01K3ZB2N9G0000000000000101', idz: IDZ, devicePubkey: bytes(9) };
+    const first = await enrollDevice(h.db, input);
+    expect(first.created).toBe(true);
+    const again = await enrollDevice(h.db, { ...input, id: 'dev_01K3ZB2N9G0000000000000102' });
+    expect(again.created).toBe(false);
+    expect(again.device.id).toBe(first.device.id);
+    // The database, not the caller, holds the line: a plain insert of the same key is refused.
+    await expect(
+      createDevice(h.db, { ...input, id: 'dev_01K3ZB2N9G0000000000000103' }),
+    ).rejects.toThrow();
+    await revokeDevice(h.db, first.device.id);
+    const afterRevoke = await enrollDevice(h.db, {
+      ...input,
+      id: 'dev_01K3ZB2N9G0000000000000104',
+    });
+    expect(afterRevoke.created).toBe(false);
+    expect(afterRevoke.device.status).toBe('revoked');
+    expect(await listDevicesForIdentity(h.db, IDZ)).toHaveLength(1);
+  });
+
+  it('createSessionForActiveDevice refuses a device that is not active', async () => {
+    const d = await seedIdentityAndDevice();
+    await seedSite();
+    const live = await createSessionForActiveDevice(h.db, {
+      sid: 'sid_live',
+      idz: IDZ,
+      deviceId: d.id,
+      clientId: 'idz_live_site1',
+      expiresAt: new Date(Date.now() + 60_000),
+    });
+    expect(live?.sid).toBe('sid_live');
+    await revokeDevice(h.db, d.id);
+    expect((await getSession(h.db, 'sid_live'))?.revokedAt).not.toBeNull();
+    const dead = await createSessionForActiveDevice(h.db, {
+      sid: 'sid_dead',
+      idz: IDZ,
+      deviceId: d.id,
+      clientId: 'idz_live_site1',
+      expiresAt: new Date(Date.now() + 60_000),
+    });
+    expect(dead).toBeNull();
+    expect(await getSession(h.db, 'sid_dead')).toBeNull();
+  });
+
+  it('a session insert and a revocation serialize on the device row', async () => {
+    const d = await seedIdentityAndDevice();
+    await seedSite();
+    // Both start together; whichever order the database picks, no live session survives.
+    await Promise.all([
+      createSessionForActiveDevice(h.db, {
+        sid: 'sid_race',
+        idz: IDZ,
+        deviceId: d.id,
+        clientId: 'idz_live_site1',
+        expiresAt: new Date(Date.now() + 60_000),
+      }),
+      revokeDevice(h.db, d.id),
+    ]);
+    const s = await getSession(h.db, 'sid_race');
+    expect(s === null || s.revokedAt !== null).toBe(true);
   });
 });

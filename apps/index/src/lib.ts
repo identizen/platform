@@ -20,6 +20,10 @@ export {
 export {
   CODE_TTL_MS,
   ChallengeSession,
+  RESERVE_GRACE_MS,
+  RESERVED_MESSAGE,
+  ReservedError,
+  isReservedError,
   type BrowserMeta,
   type OidcParams,
   type RedeemCodeInput,

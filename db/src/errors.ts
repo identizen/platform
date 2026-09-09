@@ -56,3 +56,10 @@ export function pgErrorField(err: unknown, field: string): string | undefined {
 export function isUniqueViolation(err: unknown): boolean {
   return pgErrorField(err, 'code') === '23505';
 }
+
+/** The identity already exists (its `idz` is derived from the master key, so this is a retry or a race). */
+export class IdentityExistsError extends ConflictError {
+  constructor(public readonly idz: string) {
+    super(`identity already exists: ${idz}`);
+  }
+}

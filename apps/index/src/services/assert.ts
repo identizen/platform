@@ -5,6 +5,7 @@ import {
   createPairing,
   getDevice,
   recordAudit,
+  revokePairing,
   touchDevice,
   type Device,
 } from '@identizen/db';
@@ -150,78 +151,97 @@ export async function processAssertion(
     throw err;
   }
 
-  let bindingCreated = false;
-  try {
-    const r = await bindOrVerify(db, {
-      rpId: challenge.rp_id,
-      sub: assertion.sub,
-      idz: device.idz,
-      sitePubkey: fromBase64Url(assertion.site_pubkey),
-    });
-    bindingCreated = r.created;
-  } catch (err) {
-    if (err instanceof BindingConflictError) {
-      throw await deny(
-        'binding_conflict',
-        'sub is bound to a different key or identity',
-        409,
-        device.id,
-        device.idz,
-      );
-    }
-    throw err;
+  // The session decides the outcome, so claim it before anything durable is written: a denial
+  // or expiry that already won leaves no binding, pairing or success audit behind, and one that
+  // arrives during the writes waits for `approve` (F03, 2026-09-08 review).
+  if (!(await stub.reserve())) {
+    const latest = (await stub.getState())?.status ?? 'expired';
+    const status = latest === 'pending' ? 'reserved' : latest;
+    throw await deny(`challenge_${status}`, `challenge is ${status}`, 410, device.id, device.idz);
   }
 
-  let pairing: SignedPairing | null = null;
-  if (state.browserPubkey) {
-    const id = newPairingId();
-    await createPairing(db, {
-      id,
-      deviceId: device.id,
-      browserPubkey: fromBase64Url(state.browserPubkey),
-      // Described from the browser's own request (User-Agent, IP), never the phone's.
-      label: state.browser?.ua ? browserLabel(state.browser.ua) : null,
-      userAgent: state.browser?.ua ?? null,
-      lastIp: state.browser?.ip ?? null,
-    });
-    pairing = signPairing(
-      {
-        type: 'pairing',
-        pairing_id: id,
-        device_id: device.id,
-        browser_pubkey: state.browserPubkey,
-        issued_at: now(),
-      },
-      indexKey.privateKey,
-    );
+  let pairingId: string | null = null;
+  try {
+    let bindingCreated = false;
+    try {
+      const r = await bindOrVerify(db, {
+        rpId: challenge.rp_id,
+        sub: assertion.sub,
+        idz: device.idz,
+        sitePubkey: fromBase64Url(assertion.site_pubkey),
+      });
+      bindingCreated = r.created;
+    } catch (err) {
+      if (err instanceof BindingConflictError) {
+        throw await deny(
+          'binding_conflict',
+          'sub is bound to a different key or identity',
+          409,
+          device.id,
+          device.idz,
+        );
+      }
+      throw err;
+    }
+
+    let pairing: SignedPairing | null = null;
+    if (state.browserPubkey) {
+      const id = newPairingId();
+      pairingId = id;
+      await createPairing(db, {
+        id,
+        deviceId: device.id,
+        browserPubkey: fromBase64Url(state.browserPubkey),
+        // Described from the browser's own request (User-Agent, IP), never the phone's.
+        label: state.browser?.ua ? browserLabel(state.browser.ua) : null,
+        userAgent: state.browser?.ua ?? null,
+        lastIp: state.browser?.ip ?? null,
+      });
+      pairing = signPairing(
+        {
+          type: 'pairing',
+          pairing_id: id,
+          device_id: device.id,
+          browser_pubkey: state.browserPubkey,
+          issued_at: now(),
+        },
+        indexKey.privateKey,
+      );
+      await recordAudit(db, {
+        kind: 'pairing.created',
+        idz: device.idz,
+        deviceId: device.id,
+        clientId: state.clientId,
+        detail: { pairing_id: id },
+      });
+    }
+
+    await touchDevice(db, device.id);
     await recordAudit(db, {
-      kind: 'pairing.created',
+      kind: 'login.success',
       idz: device.idz,
       deviceId: device.id,
       clientId: state.clientId,
-      detail: { pairing_id: id },
+      detail: {
+        challenge_id: challengeId,
+        acr: assertion.acr,
+        sub: assertion.sub,
+        binding_created: bindingCreated,
+      },
     });
+    return {
+      state,
+      assertion,
+      device,
+      pairing,
+      bindingCreated,
+      signedAssertion: body as Record<string, unknown>,
+    };
+  } catch (err) {
+    // The writes did not complete: undo the pairing (a binding is a fact the phone signed and
+    // may stay) and hand the session back so a denial or expiry can resolve it.
+    if (pairingId) await revokePairing(db, pairingId).catch(() => undefined);
+    await stub.release();
+    throw err;
   }
-
-  await touchDevice(db, device.id);
-  await recordAudit(db, {
-    kind: 'login.success',
-    idz: device.idz,
-    deviceId: device.id,
-    clientId: state.clientId,
-    detail: {
-      challenge_id: challengeId,
-      acr: assertion.acr,
-      sub: assertion.sub,
-      binding_created: bindingCreated,
-    },
-  });
-  return {
-    state,
-    assertion,
-    device,
-    pairing,
-    bindingCreated,
-    signedAssertion: body as Record<string, unknown>,
-  };
 }

@@ -1,5 +1,5 @@
 import { sha256, toBase64Url, utf8Encode, type SignedChallenge } from '@identizen/protocol';
-import { CODE_TTL_MS, type StoredSession } from '../src/do/challenge-session';
+import { CODE_TTL_MS, ReservedError, type StoredSession } from '../src/do/challenge-session';
 import { GuardState, type GuardRecord } from '../src/do/guard-state';
 import type { ChallengeStore, GuardStore, Stores } from '../src/stores';
 
@@ -120,10 +120,23 @@ class MemoryChallengeStore implements ChallengeStore {
     return Promise.resolve('ok' as const);
   }
 
+  reserve() {
+    const s = this.require();
+    if (s.status !== 'pending' || s.reservedAt) return Promise.resolve(false);
+    s.reservedAt = Date.now();
+    return Promise.resolve(true);
+  }
+
+  release() {
+    const s = this.load();
+    if (s) s.reservedAt = null;
+    return Promise.resolve();
+  }
+
   approve(...[assertion, pairing, code, redirect]: Parameters<ChallengeStore['approve']>) {
     const s = this.require();
     if (s.status !== 'pending') throw new Error(`session is ${s.status}`);
-    Object.assign(s, { status: 'approved', assertion, pairing, code, redirect });
+    Object.assign(s, { status: 'approved', assertion, pairing, code, redirect, reservedAt: null });
     s.resolvedAt = Date.now();
     return Promise.resolve(this.publicState(s));
   }
@@ -131,6 +144,7 @@ class MemoryChallengeStore implements ChallengeStore {
   deny() {
     const s = this.require();
     if (s.status !== 'pending') throw new Error(`session is ${s.status}`);
+    if (s.reservedAt) throw new ReservedError();
     s.status = 'denied';
     s.resolvedAt = Date.now();
     return Promise.resolve(this.publicState(s));

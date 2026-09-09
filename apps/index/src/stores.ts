@@ -66,6 +66,15 @@ export interface ChallengeStore {
     deviceId: string,
     idz: string,
   ): Promise<'ok' | 'not_pending' | 'wrong_identity' | 'already_targeted'>;
+  /**
+   * Claim a pending session for approval: true exactly once while it is pending and unclaimed.
+   * While claimed, `deny` refuses and expiry waits `RESERVE_GRACE_MS`, so the durable side
+   * effects of a verified assertion (binding, pairing, audit) are never written for a session
+   * that ends denied or expired (F03). `approve` or `release` ends the claim.
+   */
+  reserve(): Promise<boolean>;
+  /** Give up a claim without resolving the session (the side effects failed); no-op otherwise. */
+  release(): Promise<void>;
   /** Move pending -> approved (throws otherwise) and wake any waiting browser. */
   approve(
     assertion: Assertion,
@@ -73,7 +82,10 @@ export interface ChallengeStore {
     code: string | null,
     redirect: string | null,
   ): Promise<SessionState>;
-  /** Move pending -> denied (throws otherwise) and wake any waiting browser. */
+  /**
+   * Move pending -> denied (throws otherwise) and wake any waiting browser. Throws
+   * `ReservedError` while an approval holds the claim (`reserve`).
+   */
   deny(): Promise<SessionState>;
   /**
    * Redeem the authorization code exactly once, running every check (client, redirect, PKCE,
@@ -137,6 +149,8 @@ export function defaultStores(env: Pick<Env, 'CHALLENGE_SESSION' | 'REQUEST_GUAR
         getState: () => stub.getState(),
         setBrowserPubkey: (key, browser) => stub.setBrowserPubkey(key, browser),
         setTargetDevice: (deviceId, idz) => stub.setTargetDevice(deviceId, idz),
+        reserve: () => stub.reserve(),
+        release: () => stub.release(),
         approve: (assertion, pairing, code, redirect) =>
           stub.approve(assertion, pairing, code, redirect),
         deny: () => stub.deny(),

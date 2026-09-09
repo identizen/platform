@@ -85,6 +85,10 @@ export function meAuth(
     const session = await getSession(services.db, claims.sid);
     if (!session || !isSessionLive(session))
       throw unauthorized('invalid_token', 'session has been revoked');
+    // Defense in depth for F02: the device behind the session must still be active.
+    const sessionDevice = await getDevice(services.db, session.deviceId);
+    if (!sessionDevice || sessionDevice.status !== 'active')
+      throw unauthorized('invalid_token', 'device has been revoked');
     c.set('principal', { idz: session.idz, deviceId: null, via: 'dashboard' });
     await next();
   };

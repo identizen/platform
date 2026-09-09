@@ -1,6 +1,12 @@
 import { eq } from 'drizzle-orm';
 import type { Db } from '../client.js';
-import { HandleTakenError, NotFoundError, isUniqueViolation, pgErrorField } from '../errors.js';
+import {
+  HandleTakenError,
+  IdentityExistsError,
+  NotFoundError,
+  isUniqueViolation,
+  pgErrorField,
+} from '../errors.js';
 import { identities, type Identity, type IdentityKind } from '../../schema.js';
 
 export interface CreateIdentityInput {
@@ -29,7 +35,7 @@ export async function createIdentity(db: Db, input: CreateIdentityInput): Promis
     if (isUniqueViolation(err)) {
       const detail = pgErrorField(err, 'constraint_name') ?? '';
       if (detail.includes('handle') && input.handle) throw new HandleTakenError(input.handle);
-      throw new HandleTakenError(input.idz);
+      throw new IdentityExistsError(input.idz);
     }
     throw err;
   }

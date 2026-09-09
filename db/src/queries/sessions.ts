@@ -1,7 +1,7 @@
 import { and, eq, gt, isNull, sql } from 'drizzle-orm';
 import type { Db } from '../client.js';
 import { NotFoundError } from '../errors.js';
-import { sessions, type Session } from '../../schema.js';
+import { devices, sessions, type Session } from '../../schema.js';
 
 export interface CreateSessionInput {
   sid: string;
@@ -71,4 +71,27 @@ export async function revokeSessionsForDevice(db: Db, deviceId: string): Promise
       ),
     )
     .returning();
+}
+
+/**
+ * Create a session only while its device is active, serialized against revocation: the device
+ * row is share-locked for the insert, and `setDeviceStatus` takes it for update, so a revocation
+ * either runs first and this returns null, or waits and then ends the new session too (F02).
+ */
+export async function createSessionForActiveDevice(
+  db: Db,
+  input: CreateSessionInput,
+): Promise<Session | null> {
+  return db.transaction(async (tx) => {
+    const [device] = await tx
+      .select({ status: devices.status })
+      .from(devices)
+      .where(eq(devices.id, input.deviceId))
+      .for('share')
+      .limit(1);
+    if (!device || device.status !== 'active') return null;
+    const [row] = await tx.insert(sessions).values(input).returning();
+    if (!row) throw new Error('insert returned no row');
+    return row;
+  });
 }

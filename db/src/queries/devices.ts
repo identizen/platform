@@ -167,3 +167,36 @@ export const disableDevice = (db: Db, id: string): Promise<DeviceStatusChange> =
   setDeviceStatus(db, id, 'disabled');
 export const enableDevice = (db: Db, id: string): Promise<DeviceStatusChange> =>
   setDeviceStatus(db, id, 'active');
+
+export interface EnrollDeviceResult {
+  device: Device;
+  /** False when the key was already enrolled: `device` is that earlier row, whatever its status. */
+  created: boolean;
+}
+
+/**
+ * Enroll a device key exactly once. The unique index on `device_pubkey` decides races that the
+ * lookup before this call cannot: a concurrent second enrollment of the same key gets the row
+ * the first one created instead of a duplicate (F04). The caller checks the returned row's
+ * status and identity as it would for a repeated registration.
+ */
+export async function enrollDevice(db: Db, input: CreateDeviceInput): Promise<EnrollDeviceResult> {
+  const [row] = await db
+    .insert(devices)
+    .values({
+      id: input.id,
+      idz: input.idz,
+      devicePubkey: input.devicePubkey,
+      bleKey: input.bleKey ?? null,
+      pushToken: input.pushToken ?? null,
+      pushPlatform: input.pushPlatform ?? null,
+      attestation: input.attestation ?? null,
+      lastSeenAt: new Date(),
+    })
+    .onConflictDoNothing({ target: devices.devicePubkey })
+    .returning();
+  if (row) return { device: row, created: true };
+  const existing = await getDeviceByPubkey(db, input.devicePubkey);
+  if (!existing) throw new Error('device insert conflicted but no row exists');
+  return { device: existing, created: false };
+}

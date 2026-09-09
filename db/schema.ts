@@ -11,6 +11,7 @@ import {
   check,
   customType,
   index,
+  uniqueIndex,
   jsonb,
   pgTable,
   primaryKey,
@@ -88,6 +89,9 @@ export const devices = pgTable(
     createdAt: timestamptz('created_at').notNull().defaultNow(),
   },
   (t) => [
+    // A device key is enrolled at most once (PROTOCOL.md §8.1); enforced here, not only by the
+    // lookup before insert, so two concurrent enrollments cannot both create a row (F04).
+    uniqueIndex('devices_device_pubkey_uidx').on(t.devicePubkey),
     check('devices_push_platform_check', sql`${t.pushPlatform} in ('apns','fcm','web')`),
     check('devices_status_check', sql`${t.status} in ('active','disabled','revoked')`),
   ],

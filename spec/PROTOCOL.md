@@ -120,8 +120,9 @@ The assertion is **signed twice** (type `"assertion"`, §2):
 4. Parse and validate the assertion against the schema; check `nonce`, `rp_id`, and `acr` equal the challenge's and `reason_hash` equals the hash of the challenge's `reason` (both `null` for no reason); verify `device_sig` against the device's registered public key; verify `site_sig` against `site_pubkey` and `sub == hash(site_pubkey)`.
 5. For `acr: idz:mfa`, require a user-verifying value in `amr` (`403 insufficient_amr`).
 6. If the challenge was issued for a `sub`, require the assertion's `sub` to be that one (`403 wrong_subject`).
-7. **TOFU binding.** Look up `(rp_id, sub)` in `site_bindings`. If absent, create it with `site_pubkey` and the device's `idz`. If present, require `site_pubkey` and `idz` to match; otherwise reject (`409 binding_conflict`).
-8. Resolve the challenge as `approved` (the session is the one authority; a competing denial or expiry wins) and only then record the Verification API result, notify the site, and audit. Every failure branch records `login.denied` with the reason.
+7. **Claim the session.** Take the session's approval claim; if it is already denied, expired or claimed, reject (`410 challenge_<status>`) and write nothing. While the claim is held a decline answers `409 approval_in_progress` and expiry waits a short grace, so the writes below never outlive a login the session did not approve; if they fail, the claim is released (and a pairing already written is revoked).
+8. **TOFU binding.** Look up `(rp_id, sub)` in `site_bindings`. If absent, create it with `site_pubkey` and the device's `idz`. If present, require `site_pubkey` and `idz` to match; otherwise reject (`409 binding_conflict`).
+9. Resolve the challenge as `approved` (the session is the one authority; a denial or expiry that arrived before step 7 has already won, and nothing was written for it) and only then record the Verification API result, notify the site, and audit. Every failure branch records `login.denied` with the reason.
 
 A phone that receives a challenge for a `rp_id` it does not recognize still signs with the derived key for that `rp_id`; the site domain is inside the signed payload, so a phished login on a lookalike domain produces a signature the real site's `rp_id` will never match.
 
@@ -233,7 +234,7 @@ sig = Ed25519.sign(deviceKey, UTF8("identizen/v1/request\n" + METHOD + "\n" + PA
 
 where `nonce` was obtained moments earlier from `POST /devices/nonce` on the same index (valid for two minutes) and `index` is that index's URL. The nonce binds the proof to one index and one moment, and the rule below makes replaying it pointless: a captured proof cannot enroll the key a second time, or on another index. The legacy proof over `{ "device_pubkey": … }` alone (before nonces) may still be accepted by an index for app builds that predate it.
 
-A device key is enrolled at most once. Registering an active key again returns its existing enrollment (`200`); a revoked or disabled key is refused (`403 device_revoked`) and the phone must enroll with a fresh device key. The index derives `idz` from `master_pubkey`, so a restored phone (new device key, same seed) joins the existing identity.
+A device key is enrolled at most once (a unique index on the key enforces it, so two enrollments that race produce one row). Registering an active key again returns its existing enrollment (`200`); a revoked or disabled key is refused (`403 device_revoked`) and the phone must enroll with a fresh device key. The index derives `idz` from `master_pubkey`, so a restored phone (new device key, same seed) joins the existing identity.
 
 ### 8.2 Site verification record
 

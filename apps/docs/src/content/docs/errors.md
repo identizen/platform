@@ -249,9 +249,13 @@ Another identity already uses that handle.
 
 No challenge with that id, or it is no longer pending for discovery.
 
-### challenge_approved / challenge_denied / challenge_expired
+### challenge_approved / challenge_denied / challenge_expired / challenge_reserved
 
-The challenge already reached that terminal state (HTTP 410). Start a new login.
+The challenge already reached that terminal state, or another approval of it is being written (HTTP 410). Start a new login.
+
+### approval_in_progress
+
+HTTP 409 from `POST /challenge/{id}/deny`. The assertion for this challenge already verified and the index is writing its outcome, so the decline arrived too late to change it. The session resolves as approved within moments.
 
 ### malformed_assertion, challenge_mismatch, nonce_mismatch, rp_id_mismatch, acr_mismatch, reason_mismatch, expired, iat_too_early, iat_too_late, bad_device_signature, bad_site_pubkey, sub_mismatch, bad_site_signature
 

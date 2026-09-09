@@ -1545,7 +1545,7 @@ export const OPENAPI_DOCUMENT: Record<string, unknown> = {
             }
           },
           "410": {
-            "description": "`challenge_approved`, `challenge_denied`, `challenge_expired` — the session already reached that state; `expired` — the challenge `exp` has passed.",
+            "description": "`challenge_approved`, `challenge_denied`, `challenge_expired` — the session already reached that state; `challenge_reserved` — another approval of this challenge is being written; `expired` — the challenge `exp` has passed.",
             "content": {
               "application/json": {
                 "schema": {
@@ -1613,6 +1613,16 @@ export const OPENAPI_DOCUMENT: Record<string, unknown> = {
           },
           "404": {
             "$ref": "#/components/responses/UnknownChallenge"
+          },
+          "409": {
+            "description": "`approval_in_progress` — the assertion for this challenge verified and its writes are in flight; the decline arrived too late to change the outcome.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
           }
         }
       }

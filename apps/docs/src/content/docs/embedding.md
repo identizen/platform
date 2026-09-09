@@ -105,11 +105,15 @@ export const app = createApp({ stores: () => stores });
 `stores(env)` is called once per request with the resolved bindings and returns a `Stores`:
 `challenge(name)` and `guard(name)` take names that are already namespaced with `TENANT_KEY`
 (`nsName`), so a multi-tenant host keeps its isolation. `ChallengeStore` has the session's
-methods (`create`, `getState`, `approve`, `redeemCode`, `websocket`, …) and `GuardStore` the
+methods (`create`, `getState`, `reserve`, `approve`, `redeemCode`, `websocket`, …) and `GuardStore` the
 guard's (`check`, `allowPush`, `allowRate`, `enqueue`, `drain`); their doc comments spell out
 what the Durable Object alarms do today and an implementation must reproduce: expiry at the
 challenge's `exp`, keeping a resolved session for `CODE_TTL_MS`, the two-minute replay window,
-per-minute rate windows, and an inbox that drains atomically. A store without a WebSocket bridge
+per-minute rate windows, and an inbox that drains atomically. `reserve()` and `release()` carry
+the approval claim: the assertion route claims the session before it writes anything durable,
+`deny()` must throw `ReservedError` while the claim is held, and expiry must wait
+`RESERVE_GRACE_MS` for a claimed session, so a store backed by a database implements them as
+conditional updates on one row. A store without a WebSocket bridge
 returns `426` from `websocket` and the login page polls `/challenge/:id/state` instead.
 
 `GuardState` is exported and reusable as is: give it a `GuardStorage` over your database and every
