@@ -1,5 +1,11 @@
 # @identizen/dashboard
 
+## 0.3.0
+
+### Minor Changes
+
+- d54c84e: Settings gains "Delete my identity": a typed confirmation, a switch for a compromised recovery phrase, and sign-out once the index has removed everything.
+
 ## 0.2.0
 
 ### Minor Changes

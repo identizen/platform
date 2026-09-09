@@ -1,5 +1,11 @@
 # @identizen/db
 
+## 0.5.0
+
+### Minor Changes
+
+- d54c84e: Retention and deletion: `purgeSessions`, `purgeVerifications`, `purgeAuditEvents`, `purgeStalePendingSites`; `deleteIdentityData` (everything about an identity in one transaction, returning its live sessions) and `identity_tombstones` (migration 0006) with `getTombstone`.
+
 ## 0.4.0
 
 ### Minor Changes
