@@ -891,3 +891,41 @@ describe('F04: a device key is enrolled once even when two enrollments race', ()
     }
   });
 });
+
+describe('F05: a spent code says nothing to a client it was not issued to', () => {
+  it('another client presenting the spent code neither learns of nor revokes the session; the issuing client still does', async () => {
+    const victim = await registerSite({ rp_id: 'victim.example' });
+    const other = await registerSite({ rp_id: 'other.example', public: true });
+    const phone = await registerPhone();
+    const { login, tokens } = await loginAndExchange(victim, phone);
+    const foreign = await exchange(other, login.code);
+    expect(foreign.status).toBe(400);
+    expect(await json(foreign)).toMatchObject({ error: 'invalid_grant' });
+    const stillLive = await request(`${BASE}/userinfo`, {
+      headers: { authorization: `Bearer ${tokens.access_token}` },
+    });
+    expect(stillLive.status).toBe(200);
+    // RFC 6749 §4.1.2 still holds for the client the code belongs to.
+    const reuse = await exchange(victim, login.code);
+    expect(reuse.status).toBe(400);
+    const revoked = await request(`${BASE}/userinfo`, {
+      headers: { authorization: `Bearer ${tokens.access_token}` },
+    });
+    expect(revoked.status).toBe(401);
+  });
+});
+
+describe('F06: the egress policy sees hostnames as the resolver does', () => {
+  it('a trailing root dot does not slip a local name past registration', async () => {
+    // The test index allows local destinations (the fake phone lives there); model the hosted policy.
+    configure({ resolveEnv: (_r, base) => ({ ...base, OUTBOUND_ALLOW_LOCAL: 'false' }) });
+    const res = await postVia('/sites', {
+      name: 'Dotted',
+      rp_id: 'dotted.example',
+      redirect_uris: [REDIRECT_URI],
+      webhook_url: 'https://localhost./hook',
+    });
+    expect(res.status).toBe(400);
+    expect(await json(res)).toMatchObject({ error: 'invalid_destination' });
+  });
+});

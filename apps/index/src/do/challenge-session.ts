@@ -282,18 +282,8 @@ export class ChallengeSession extends DurableObject<Env> {
     if (!s || s.code === null || s.code !== input.code || !s.oidc) {
       return fail('invalid_grant', 'code is invalid, expired, or already used');
     }
-    if (s.codeUsed) {
-      return {
-        ...fail('invalid_grant', 'code is invalid, expired, or already used'),
-        reusedSid: s.sid ?? null,
-      };
-    }
-    if (s.status !== 'approved' || !s.assertion) {
-      return fail('invalid_grant', 'code is invalid, expired, or already used');
-    }
-    if (s.resolvedAt !== null && input.now - s.resolvedAt > CODE_TTL_MS) {
-      return fail('invalid_grant', 'code has expired');
-    }
+    // The code is bound to its client and redirect before anything about it is disclosed:
+    // another client presenting a spent code learns nothing and revokes nothing (F05).
     if (s.clientId !== input.clientId) {
       return fail('invalid_grant', 'code was issued to another client');
     }
@@ -307,6 +297,18 @@ export class ChallengeSession extends DurableObject<Env> {
     }
     if (s.oidc.redirect_uri !== undefined && input.redirectUri !== s.oidc.redirect_uri) {
       return fail('invalid_grant', 'redirect_uri does not match the authorization request');
+    }
+    if (s.codeUsed) {
+      return {
+        ...fail('invalid_grant', 'code is invalid, expired, or already used'),
+        reusedSid: s.sid ?? null,
+      };
+    }
+    if (s.status !== 'approved' || !s.assertion) {
+      return fail('invalid_grant', 'code is invalid, expired, or already used');
+    }
+    if (s.resolvedAt !== null && input.now - s.resolvedAt > CODE_TTL_MS) {
+      return fail('invalid_grant', 'code has expired');
     }
     // RFC 7636 §4.6: a code issued against a code_challenge needs the matching verifier. A code
     // issued without one (only possible with OIDC_PKCE_OPTIONAL) must not be exchanged with one.

@@ -85,7 +85,7 @@ The `request` or `request_uri` parameter was sent on `/authorize`. Request objec
 
 ### invalid_grant
 
-The code is unknown, expired (five minutes after approval), already used (a reused code also revokes the session the first exchange created), issued to another client, the `redirect_uri` differs, PKCE verification failed, or the device is no longer active. Start the login again.
+The code is unknown, expired (five minutes after approval), already used (a reused code, presented again by the client it was issued to with the same redirect, also revokes the session the first exchange created), issued to another client, the `redirect_uri` differs, PKCE verification failed, or the device is no longer active. Start the login again.
 
 ### unsupported_grant_type
 

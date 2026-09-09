@@ -11,7 +11,13 @@ import { updateSite, type Db, type Site } from '@identizen/db';
 import { randomToken } from '../lib/util';
 import type { Env } from '../env';
 import { ApiError } from '../lib/errors';
-import { fetchOutbound, outboundPolicy, type OutboundPolicy } from '../lib/outbound';
+import {
+  OUTBOUND_MAX_BODY_BYTES,
+  fetchOutbound,
+  outboundPolicy,
+  readBounded,
+  type OutboundPolicy,
+} from '../lib/outbound';
 import type { Services } from '../lib/services';
 
 export const VERIFICATION_TTL_MS = 30 * 24 * 60 * 60 * 1000;
@@ -147,7 +153,10 @@ export async function lookupTxt(
       signal: controller.signal,
     });
     if (!res.ok) return [];
-    const body: unknown = await res.json();
+    // The deadline covers the body too, and a TXT answer never needs more than the cap (F06).
+    const body: unknown = JSON.parse(
+      await readBounded(res, OUTBOUND_MAX_BODY_BYTES, controller.signal),
+    );
     if (!isDohAnswer(body)) return [];
     return (body.Answer ?? [])
       .filter((a) => a.type === 16)

@@ -66,9 +66,17 @@ function isLocalAddress(hostname: string): boolean {
 }
 
 /**
+ * The hostname as the resolver will see it: lower-case, without the trailing root dot(s) that
+ * `localhost.` or `printer.local.` use to slip past a name check (F06).
+ */
+export function canonicalHostname(hostname: string): string {
+  return hostname.toLowerCase().replace(/\.+$/, '');
+}
+
+/**
  * Why a URL may not be used as an outbound destination, or null when it may. Hostnames are
- * judged as written: the index cannot resolve DNS before connecting, so a public name that
- * resolves to a private address is a self-hoster's network policy to enforce.
+ * judged as written (canonicalized): the index cannot resolve DNS before connecting, so a
+ * public name that resolves to a private address is a self-hoster's network policy to enforce.
  */
 export function destinationProblem(url: string, policy: OutboundPolicy): string | null {
   let u: URL;
@@ -79,12 +87,66 @@ export function destinationProblem(url: string, policy: OutboundPolicy): string 
   }
   if (u.protocol !== 'https:' && u.protocol !== 'http:') return 'scheme must be https';
   if (u.username || u.password) return 'credentials in the URL are not allowed';
-  if (!u.hostname) return 'missing host';
+  const host = canonicalHostname(u.hostname);
+  if (!host) return 'missing host';
   if (policy.allowLocal) return null;
   if (u.protocol !== 'https:') return 'scheme must be https';
-  if (isLocalAddress(u.hostname))
-    return 'local, private and link-local destinations are not allowed';
+  if (isLocalAddress(host)) return 'local, private and link-local destinations are not allowed';
   return null;
+}
+
+/** The most of a response body the index keeps; a site's answer is a status, not a document. */
+export const OUTBOUND_MAX_BODY_BYTES = 64 * 1024;
+
+/**
+ * Read a response body up to `maxBytes` under `signal`: the deadline that covered the headers
+ * covers the bytes too, and a body that keeps coming is cut at the cap rather than buffered.
+ */
+export async function readBounded(
+  res: Response,
+  maxBytes: number,
+  signal: AbortSignal,
+): Promise<string> {
+  if (!res.body) return '';
+  const reader = res.body.getReader();
+  const chunks: Uint8Array[] = [];
+  let total = 0;
+  const abort = () => {
+    reader.cancel(signal.reason).catch(() => undefined);
+  };
+  if (signal.aborted) {
+    abort();
+    throw signal.reason instanceof Error ? signal.reason : new Error('outbound aborted');
+  }
+  signal.addEventListener('abort', abort, { once: true });
+  try {
+    for (;;) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      if (signal.aborted)
+        throw signal.reason instanceof Error ? signal.reason : new Error('aborted');
+      const room = maxBytes - total;
+      if (value.byteLength >= room) {
+        chunks.push(value.subarray(0, room));
+        total += room;
+        await reader.cancel('body cap reached').catch(() => undefined);
+        break;
+      }
+      chunks.push(value);
+      total += value.byteLength;
+    }
+  } finally {
+    signal.removeEventListener('abort', abort);
+  }
+  // A cancelled reader reports "done": an abort is a failure, not a short body.
+  if (signal.aborted) throw signal.reason instanceof Error ? signal.reason : new Error('aborted');
+  const joined = new Uint8Array(total);
+  let offset = 0;
+  for (const c of chunks) {
+    joined.set(c, offset);
+    offset += c.byteLength;
+  }
+  return new TextDecoder().decode(joined);
 }
 
 export class DestinationBlockedError extends Error {
@@ -98,7 +160,10 @@ export class DestinationBlockedError extends Error {
 
 /**
  * `fetch` for a destination somebody else supplied: policy check, hard deadline, no redirects
- * (a 3xx is returned as-is and callers treat it as a failure).
+ * (a 3xx is returned as-is and callers treat it as a failure). The body is read here, under the
+ * same deadline and capped at `maxBodyBytes`, so what comes back is a finished response: a
+ * server that answers headers and then trickles bytes cannot hold the caller past the deadline
+ * or make it buffer without bound (F06).
  */
 export async function fetchOutbound(
   fetchImpl: typeof fetch,
@@ -106,6 +171,7 @@ export async function fetchOutbound(
   init: RequestInit,
   policy: OutboundPolicy,
   timeoutMs = OUTBOUND_TIMEOUT_MS,
+  maxBodyBytes = OUTBOUND_MAX_BODY_BYTES,
 ): Promise<Response> {
   const problem = destinationProblem(url, policy);
   if (problem) throw new DestinationBlockedError(url, problem);
@@ -115,7 +181,14 @@ export async function fetchOutbound(
     timeoutMs,
   );
   try {
-    return await fetchImpl(url, { ...init, redirect: 'manual', signal: controller.signal });
+    const res = await fetchImpl(url, { ...init, redirect: 'manual', signal: controller.signal });
+    const text = await readBounded(res, maxBodyBytes, controller.signal);
+    const bodyless = res.status === 204 || res.status === 205 || res.status === 304;
+    return new Response(bodyless ? null : text, {
+      status: res.status,
+      statusText: res.statusText,
+      headers: res.headers,
+    });
   } finally {
     clearTimeout(timer);
   }

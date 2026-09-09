@@ -157,6 +157,10 @@ class MemoryChallengeStore implements ChallengeStore {
     const invalid = 'code is invalid, expired, or already used';
     if (!s || s.code === null || s.code !== input.code || !s.oidc)
       return fail('invalid_grant', invalid);
+    if (s.clientId !== input.clientId)
+      return fail('invalid_grant', 'code was issued to another client');
+    if (s.oidc.redirect_uri !== undefined && input.redirectUri !== s.oidc.redirect_uri)
+      return fail('invalid_grant', 'redirect_uri does not match the authorization request');
     if (s.codeUsed)
       return Promise.resolve({
         ok: false as const,
@@ -167,10 +171,6 @@ class MemoryChallengeStore implements ChallengeStore {
     if (s.status !== 'approved' || !s.assertion) return fail('invalid_grant', invalid);
     if (s.resolvedAt !== null && input.now - s.resolvedAt > CODE_TTL_MS)
       return fail('invalid_grant', 'code has expired');
-    if (s.clientId !== input.clientId)
-      return fail('invalid_grant', 'code was issued to another client');
-    if (s.oidc.redirect_uri !== undefined && input.redirectUri !== s.oidc.redirect_uri)
-      return fail('invalid_grant', 'redirect_uri does not match the authorization request');
     if (s.oidc.code_challenge !== undefined) {
       if (input.codeVerifier === undefined)
         return fail('invalid_request', 'code_verifier is required');

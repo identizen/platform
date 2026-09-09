@@ -5,9 +5,11 @@
 import { describe, expect, it } from 'vitest';
 import {
   DestinationBlockedError,
+  canonicalHostname,
   destinationProblem,
   fetchOutbound,
   outboundPolicy,
+  readBounded,
 } from '../src/lib/outbound';
 
 const strict = { allowLocal: false };
@@ -98,5 +100,64 @@ describe('fetchOutbound', () => {
     await expect(
       fetchOutbound(never, 'https://hooks.example.com/slow', {}, strict, 20),
     ).rejects.toThrow(/deadline/);
+  });
+});
+
+/** A body that trickles one byte every 20 ms until the reader cancels it. */
+function trickle(): ReadableStream<Uint8Array> {
+  let open = true;
+  return new ReadableStream<Uint8Array>({
+    pull(controller) {
+      return new Promise((resolve) =>
+        setTimeout(() => {
+          if (open) controller.enqueue(new Uint8Array([66]));
+          resolve();
+        }, 20),
+      );
+    },
+    cancel() {
+      open = false;
+    },
+  });
+}
+
+describe('F06: canonical hostnames and bounded bodies', () => {
+  it('strips trailing root dots and lower-cases before judging a name', () => {
+    expect(canonicalHostname('LocalHost.')).toBe('localhost');
+    expect(canonicalHostname('printer.local..')).toBe('printer.local');
+    for (const bad of [
+      'https://localhost./hook',
+      'https://LOCALHOST./hook',
+      'https://api.internal./x',
+    ]) {
+      expect(destinationProblem(bad, strict), bad).toMatch(/local/);
+    }
+    expect(destinationProblem('https://hooks.example.com./idz', strict)).toBeNull();
+  });
+
+  it('readBounded cuts a body at the cap and stops when the signal fires', async () => {
+    const big = new Response(new Uint8Array(10_000).fill(65));
+    const cut = await readBounded(big, 100, new AbortController().signal);
+    expect(cut).toHaveLength(100);
+
+    const endless = trickle();
+    const controller = new AbortController();
+    setTimeout(() => controller.abort(new Error('outbound deadline exceeded')), 60);
+    await expect(readBounded(new Response(endless), 1_000, controller.signal)).rejects.toThrow(
+      /deadline/,
+    );
+  });
+
+  it('the deadline covers the body, and what comes back is finished and capped', async () => {
+    const slowBody: typeof fetch = () => Promise.resolve(new Response(trickle(), { status: 200 }));
+    await expect(
+      fetchOutbound(slowBody, 'https://hooks.example.com/x', {}, strict, 80),
+    ).rejects.toThrow(/deadline/);
+
+    const large: typeof fetch = () =>
+      Promise.resolve(new Response(new Uint8Array(200_000).fill(68), { status: 200 }));
+    const res = await fetchOutbound(large, 'https://hooks.example.com/x', {}, strict, 1_000, 512);
+    expect(res.status).toBe(200);
+    expect((await res.text()).length).toBe(512);
   });
 });
