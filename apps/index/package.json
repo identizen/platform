@@ -1,6 +1,6 @@
 {
   "name": "@identizen/index",
-  "version": "0.6.0",
+  "version": "0.6.1",
   "private": false,
   "description": "Identizen index / relay / OIDC provider for Cloudflare Workers, as a deployable Worker and an embeddable library.",
   "license": "Apache-2.0",

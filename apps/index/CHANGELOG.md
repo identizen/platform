@@ -1,5 +1,11 @@
 # @identizen/index
 
+## 0.6.1
+
+### Patch Changes
+
+- a389808: `readBodyCapped` feeds Hono's parsed-body cache, so a route that parses the body after the signed or bearer middleware (an embedding host's own routes) still gets it; 0.6.0 consumed the stream and such routes failed with "Body has already been used".
+
 ## 0.6.0
 
 ### Minor Changes
