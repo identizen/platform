@@ -1,6 +1,6 @@
 {
   "name": "@identizen/index",
-  "version": "0.6.1",
+  "version": "0.7.0",
   "private": false,
   "description": "Identizen index / relay / OIDC provider for Cloudflare Workers, as a deployable Worker and an embeddable library.",
   "license": "Apache-2.0",
@@ -22,7 +22,7 @@
     "dev:e2e": "wrangler dev --env e2e"
   },
   "dependencies": {
-    "@identizen/db": "^0.3.0",
+    "@identizen/db": "^0.4.0",
     "@identizen/protocol": "^0.2.0",
     "hono": "^4.9.4",
     "jose": "^6.0.13",
