@@ -16,6 +16,8 @@ import {
   SignedAssertionSchema,
   SignedChallengeSchema,
   SignedPairingSchema,
+  RotationSchema,
+  SignedRotationSchema,
   type Acr,
   type Amr,
   type Assertion,
@@ -24,11 +26,14 @@ import {
   type SignedAssertion,
   type SignedChallenge,
   type SignedPairing,
+  type Rotation,
+  type SignedRotation,
 } from './schemas.js';
 
 export const SIGNING_PREFIX = 'identizen/v1/';
 
-export type SignedType = 'challenge' | 'assertion' | 'pairing' | 'request' | 'identity' | 'paired';
+export type SignedType =
+  'challenge' | 'assertion' | 'pairing' | 'request' | 'identity' | 'paired' | 'rotation';
 
 /** Bytes that are signed for a payload of the given type. */
 export function signingBytes(type: SignedType, payload: unknown): Uint8Array {
@@ -372,4 +377,74 @@ export function verifyIdentityProof(
 
 export function nowSeconds(): number {
   return Math.floor(Date.now() / 1000);
+}
+
+// ---------------------------------------------------------------------------
+// Index key rotation (PROTOCOL.md §3.1)
+
+/** The previous index key signs the statement that introduces the next one. */
+export function signRotation(rotation: Rotation, prevIndexPrivateKey: Uint8Array): SignedRotation {
+  const payload = RotationSchema.parse(rotation);
+  return { payload, sig: signPayload('rotation', payload, prevIndexPrivateKey) };
+}
+
+/** Verify a statement against the key it claims to succeed; the key must match `prev_pubkey`. */
+export function verifyRotation(
+  signed: unknown,
+  prevIndexPublicKey: Uint8Array,
+): VerifyResult<Rotation> {
+  const parsed = SignedRotationSchema.safeParse(signed);
+  if (!parsed.success) return { ok: false, error: 'malformed_rotation' };
+  const { payload, sig } = parsed.data;
+  if (payload.prev_pubkey !== toBase64Url(prevIndexPublicKey))
+    return { ok: false, error: 'wrong_prev_key' };
+  if (!verifyPayload('rotation', payload, sig, prevIndexPublicKey))
+    return { ok: false, error: 'bad_rotation_signature' };
+  return { ok: true, value: payload };
+}
+
+export interface ResolvedIndexKey {
+  /** The newest key the chain reaches from the pinned one (the pinned key itself when none apply). */
+  pubkey: string;
+  /** How many statements were followed. */
+  steps: number;
+}
+
+/**
+ * Walk a chain of rotation statements from a pinned key: each statement must be signed by the
+ * key the phone currently trusts and name it as `prev_pubkey`, and (when given) be for this
+ * index. Statements that do not chain from the current key are ignored, so an index can publish
+ * its whole history and every phone finds its own path. Returns the key to pin.
+ */
+export function resolveIndexKey(
+  pinnedPubkey: string,
+  rotations: unknown[],
+  opts: { index?: string } = {},
+): ResolvedIndexKey {
+  let current = pinnedPubkey;
+  let steps = 0;
+  // A statement may appear after the one it depends on regardless of order; loop until stable.
+  let progressed = true;
+  while (progressed && steps < 64) {
+    progressed = false;
+    for (const candidate of rotations) {
+      const parsed = SignedRotationSchema.safeParse(candidate);
+      if (!parsed.success) continue;
+      const { payload } = parsed.data;
+      if (payload.prev_pubkey !== current) continue;
+      if (opts.index !== undefined && payload.index !== opts.index) continue;
+      let prev: Uint8Array;
+      try {
+        prev = fromBase64Url(current);
+      } catch {
+        continue;
+      }
+      if (!verifyRotation(parsed.data, prev).ok) continue;
+      current = payload.next_pubkey;
+      steps += 1;
+      progressed = true;
+      break;
+    }
+  }
+  return { pubkey: current, steps };
 }

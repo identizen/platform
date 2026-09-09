@@ -76,6 +76,46 @@ Issued by the index's `ChallengeSession` Durable Object when a site starts a log
 
 The challenge is signed by the **index signing key** (type `"challenge"`, §2) so the phone can verify it came from an index it trusts. Index public keys are pinned in the app at device registration.
 
+### 3.1 Index key rotation
+
+A phone pins the index public key at registration (`index_pubkey` in the `POST /devices` response, §8.1) and never accepts another one on trust. An index rotates its key by **cross-certification**: the retiring key signs a rotation statement naming its successor, and the index publishes every statement it has ever issued, oldest first, as `rotations` at `GET /.well-known/identizen` (§8.2).
+
+```json
+{
+  "type": "rotation",
+  "index": "https://index.identizen.com",
+  "prev_pubkey": "<retiring Ed25519 public key, base64url>",
+  "next_pubkey": "<new Ed25519 public key, base64url>",
+  "iat": 1756560000
+}
+```
+
+| Field         | Rule                                                                                                    |
+| ------------- | ------------------------------------------------------------------------------------------------------- |
+| `type`        | Literal `"rotation"`.                                                                                   |
+| `index`       | Issuer URL of the index whose key rotates. A statement for another issuer is ignored by every verifier. |
+| `prev_pubkey` | The key being retired. The statement is signed by its private half (type `"rotation"`, §2).             |
+| `next_pubkey` | The key that replaces it. It signs challenges and pairings from the moment the index switches.          |
+| `iat`         | Unix seconds when the statement was signed. Informational; the chain, not the clock, is the authority.  |
+
+Wire form is `{ payload, sig }` as in §2. `/.well-known/identizen` returns:
+
+```json
+{
+  "index": "https://index.identizen.com",
+  "app": "https://app.identizen.com",
+  "index_pubkey": "<current key>",
+  "rotations": [{ "payload": { "type": "rotation", ... }, "sig": "..." }],
+  "protocol": "identizen/v1"
+}
+```
+
+A phone whose pinned key fails to verify a challenge with `bad_index_signature` fetches the document and walks the chain: starting from its pinned key, it looks for a statement whose `prev_pubkey` equals the key it holds, whose `index` equals the index it registered with, and whose signature verifies under that key; if one exists it moves to that statement's `next_pubkey` and repeats. When no statement continues the chain it stops. If it moved at least one step it re-pins the key it ended on and verifies the challenge again; otherwise the challenge stays rejected. The walk is bounded (`packages/protocol` stops after 64 steps) and ignores statements that do not chain, so a stray or malformed entry cannot strand a phone or move it anywhere the retiring key did not vouch for. `index_pubkey` in the document is never trusted on its own: a phone only moves along signed statements, so an attacker who controls the document but not the retiring key cannot re-pin anyone.
+
+The operator publishes the new statement **before** the index starts signing with the new key, so every phone finds the chain the first time it needs it. Statements are never removed: a phone that missed several rotations walks the whole chain in one visit. Reference implementation: `signRotation`, `verifyRotation` and `resolveIndexKey` in `packages/protocol`; test vector `spec/vectors/rotation.json`.
+
+Cross-certification covers a planned rotation, not a compromised key: whoever holds the retiring key can sign a statement to a key of their own. After a compromise the operator rotates anyway (to stop further signing with it) and phones registered before the rotation re-register (§8.1), which pins the current key afresh.
+
 ## 4. Assertion
 
 Produced by the phone after biometric approval.

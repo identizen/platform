@@ -1,5 +1,5 @@
 import { getIdentityByHandle } from '@identizen/db';
-import { toBase64Url } from '@identizen/protocol';
+import { SignedRotationSchema, toBase64Url, type SignedRotation } from '@identizen/protocol';
 import { Hono } from 'hono';
 import type { AppEnv } from '../app';
 import { badRequest, notFound } from '../lib/errors';
@@ -7,15 +7,23 @@ import { badRequest, notFound } from '../lib/errors';
 export function wellKnownRoutes(): Hono<AppEnv> {
   const r = new Hono<AppEnv>();
 
-  /** Public index metadata: pinned signing key and app URL. */
+  /**
+   * Public index metadata: the current signing key, the app URL, and the rotation statements
+   * (PROTOCOL.md §3.1) that take a phone from any key it pinned earlier to the current one.
+   */
   r.get('/.well-known/identizen', (c) => {
     const { indexKey, indexUrl, appUrl } = c.get('services');
-    return c.json({
-      index: indexUrl,
-      app: appUrl,
-      index_pubkey: toBase64Url(indexKey.publicKey),
-      protocol: 'identizen/v1',
-    });
+    return c.json(
+      {
+        index: indexUrl,
+        app: appUrl,
+        index_pubkey: toBase64Url(indexKey.publicKey),
+        rotations: indexKeyRotations(c.env),
+        protocol: 'identizen/v1',
+      },
+      200,
+      { 'cache-control': 'public, max-age=300' },
+    );
   });
 
   /**
@@ -49,4 +57,23 @@ export function wellKnownRoutes(): Hono<AppEnv> {
   });
 
   return r;
+}
+
+/**
+ * The rotation statements from `INDEX_KEY_ROTATIONS`, each checked for shape; a malformed entry
+ * is dropped rather than breaking discovery for every phone. Verification is the phone's job.
+ */
+export function indexKeyRotations(env: { INDEX_KEY_ROTATIONS?: string | undefined }): SignedRotation[] {
+  const raw = env.INDEX_KEY_ROTATIONS?.trim();
+  if (!raw) return [];
+  try {
+    const parsed: unknown = JSON.parse(raw);
+    if (!Array.isArray(parsed)) return [];
+    return parsed.flatMap((entry) => {
+      const r = SignedRotationSchema.safeParse(entry);
+      return r.success ? [r.data] : [];
+    });
+  } catch {
+    return [];
+  }
 }

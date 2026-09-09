@@ -19,6 +19,7 @@
     "deploy": "wrangler deploy",
     "types": "wrangler types",
     "keys": "tsx scripts/gen-oidc-keys.ts",
+    "keys:index": "tsx scripts/rotate-index-key.ts",
     "dev:e2e": "wrangler dev --env e2e"
   },
   "dependencies": {

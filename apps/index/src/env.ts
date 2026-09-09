@@ -62,6 +62,13 @@ export interface Env {
    */
   BLE_LOOKUP_LIMIT?: string;
   /**
+   * JSON array of signed index-key rotation statements (PROTOCOL.md §3.1), oldest first: each
+   * one is signed by the key it retires and names the key that replaced it. Published at
+   * `/.well-known/identizen` so a phone that pinned an older key can walk to the current one.
+   * `npm run keys:index -- rotate` prints the new key and the statement to append.
+   */
+  INDEX_KEY_ROTATIONS?: string;
+  /**
    * How long the scheduled sweep keeps audit events (default 365 days). Ended sessions, resolved
    * verifications and settled deliveries go after 30 days, unverified registrations after two
    * days; those are fixed. `0` disables audit retention (keep everything).

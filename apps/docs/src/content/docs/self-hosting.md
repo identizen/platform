@@ -36,7 +36,7 @@ Secrets:
 npm run keys -w @identizen/index                 # prints two ES256 JWKs
 npx wrangler secret put OIDC_SIGNING_KEYS        # paste the JSON array
 node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
-npx wrangler secret put INDEX_SIGNING_KEY        # the 32-byte hex Ed25519 key that signs challenges
+npx wrangler secret put INDEX_SIGNING_KEY        # the 32-byte hex Ed25519 key that signs challenges (npm run keys:index -w @identizen/index prints one)
 npx wrangler secret put SITE_REGISTRATION_TOKEN  # if registration is closed
 ```
 

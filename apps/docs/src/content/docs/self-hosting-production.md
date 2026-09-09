@@ -11,7 +11,7 @@ description: What is state and what is not, the two keys and what happens if you
 | --------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Postgres        | `identities`, `devices`, `sites`, `site_bindings`, `pairings`, `sessions`, `verifications`, `audit_events`, `orgs`                                                                                                                                                                                                  | The only persistent store. Back it up.                                                                                                                                |
 | Durable Objects | `ChallengeSession`: one in-flight login (the signed challenge, its OIDC parameters, one authorization code) for 60 seconds, wiped five minutes after it resolves. `RequestGuard`: per-device replay window, push counter, and an inbox of at most 50 challenge ids                                                  | Transient. Losing it aborts logins that are in flight and nothing else. In Docker it lives under `/data` (the `dostate` volume); on Cloudflare it is managed for you. |
-| Worker secrets  | `INDEX_SIGNING_KEY`, `OIDC_SIGNING_KEYS`, `SITE_REGISTRATION_TOKEN`, push credentials                                                                                                                                                                                                                               | Not in Postgres. Keep a copy in your secret store. The first two are covered below.                                                                                   |
+| Worker secrets  | `INDEX_SIGNING_KEY`, `INDEX_KEY_ROTATIONS`, `OIDC_SIGNING_KEYS`, `SITE_REGISTRATION_TOKEN`, push credentials                                                                                                                                                                                                        | Not in Postgres. Keep a copy in your secret store. The first two are covered below.                                                                                   |
 | Configuration   | `INDEX_URL`, `APP_URL`, `PUSH_PROVIDER`, `OPEN_SITE_REGISTRATION`, `DASHBOARD_CLIENT_IDS`, rate limits. `OIDC_PKCE_OPTIONAL` and `OUTBOUND_ALLOW_LOCAL` must be unset and `SITE_VERIFICATION` left at `required`: the index then only calls public https destinations, with a five-second deadline and no redirects | Environment variables in `wrangler.jsonc` `vars` or on the `index` container. Keep them in version control.                                                           |
 
 The index stores no private keys and no plaintext secrets: client and webhook secrets are stored as hashes, and the phone's keys never leave the phone.
@@ -20,16 +20,32 @@ The index stores no private keys and no plaintext secrets: client and webhook se
 
 ### `INDEX_SIGNING_KEY`
 
-The 32-byte Ed25519 key that signs every challenge and every browser pairing. When a phone registers (`POST /devices`) the response carries `index_pubkey`, and the app stores it next to the index URL. From then on the app fetches each challenge from the index and verifies the signature against that stored key and that URL. A challenge signed by any other key is rejected on the phone with `challenge rejected: bad_index_signature`. The app writes the pinned key only during registration; there is no re-pin flow. `GET /.well-known/identizen` publishes the current public key, so you can record what phones will pin.
+The 32-byte Ed25519 key that signs every challenge and every browser pairing. When a phone registers (`POST /devices`) the response carries `index_pubkey`, and the app stores it next to the index URL. From then on the app fetches each challenge from the index and verifies the signature against that stored key and that URL. A challenge signed by any other key is rejected on the phone with `challenge rejected: bad_index_signature`, unless the index has published a signed rotation that leads from the pinned key to the new one. `GET /.well-known/identizen` publishes the current public key and that rotation chain.
 
-If the key is lost, generating a new one means every phone registered before the change rejects every challenge from your index. Recovery is per phone, and it is the same as a lost phone:
+**Rotating it** (planned rotation, key still in hand) keeps every phone enrolled. The retiring key signs a statement naming its successor ([PROTOCOL.md §3.1](/protocol/#31-index-key-rotation)); phones walk the chain and re-pin on their own the next time a challenge fails to verify.
+
+1. With the current key in the environment, generate the new key and the statement:
+
+   ```sh
+   INDEX_SIGNING_KEY=<current hex> INDEX_URL=https://index.example.com \
+     npm run keys:index -w @identizen/index -- rotate
+   ```
+
+   It prints the new `INDEX_SIGNING_KEY` and the statement to append. Neither is stored anywhere; put the new key in your secret store now.
+
+2. Append the statement to the `INDEX_KEY_ROTATIONS` variable (a JSON array; keep every earlier statement, oldest first) in `wrangler.jsonc` or the container environment, and deploy. Check that `GET /.well-known/identizen` lists it under `rotations`.
+3. Only then set the new key: `npx wrangler secret put INDEX_SIGNING_KEY` (or restart the container with the new value). Challenges issued in the five minutes before the switch fail once and the user taps again; nothing else changes. Sessions, tokens, devices and pairings are untouched.
+
+Order matters: a phone that meets a challenge signed by the new key before the statement is published rejects it, and keeps rejecting until the document catches up (it is cached for five minutes). Never remove a statement: a phone that was off for a year needs the whole chain.
+
+**If the key is lost or compromised**, the chain cannot help: nothing can sign a statement from the old key (lost), or anyone can (compromised). Generate a new key with `npm run keys:index -w @identizen/index` and set it; every phone registered before the change rejects every challenge from your index. Recovery is per phone, and it is the same as a lost phone:
 
 1. In the app, Settings → **Indexes** → **Forget this index** for your index. (When it is the only index on the phone the app refuses, so use **Forget identity on this phone** instead, restore from the 24 words, and choose your index under **Advanced: index URL** on the restore screen.)
 2. Settings → **Indexes** → **Add index** with your index URL. The phone registers a new `device_id` there, with a fresh device key and the same seed, and pins the new key. Any other index on the phone is untouched.
 
 Both steps are in the next app build; the build in the stores today holds one index at a time, so there the person forgets the identity, restores from the 24 words, sets the index URL in Settings, and taps **Register this phone** on Home.
 
-The person's `sub` at every site is unchanged because it derives from the seed and the site's `rp_id`. Their old device row stays `active` on the index until they revoke it from the new phone's Devices tab or the dashboard. Until then a browser paired to the old device pushes each login to a device that no longer exists and the login times out, so revoking is part of the procedure; revocation ends the old pairings and sessions, and those browsers show the QR once and pair again. There is no way to do this for everyone at once. Back this key up first. Rotating it without a re-pin is open item 1 in the [threat model](/protocol/threat-model/).
+The person's `sub` at every site is unchanged because it derives from the seed and the site's `rp_id`. Their old device row stays `active` on the index until they revoke it from the new phone's Devices tab or the dashboard. Until then a browser paired to the old device pushes each login to a device that no longer exists and the login times out, so revoking is part of the procedure; revocation ends the old pairings and sessions, and those browsers show the QR once and pair again. There is no way to do this for everyone at once. Back this key up first, and rotate it on a schedule with the steps above so a compromise is the only event that ever needs this procedure.
 
 ### `OIDC_SIGNING_KEYS`
 

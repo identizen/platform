@@ -13,6 +13,9 @@ import {
   verifyIdentityProof,
   verifyRequestSignature,
   challengeId as newChallengeId,
+  generateKeyPair,
+  signRotation,
+  type SignedRotation,
 } from '@identizen/protocol';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as SecureStore from 'expo-secure-store';
@@ -65,6 +68,8 @@ function fakeIndex(hosts: string[] = [INDEX]) {
   );
   const devicePubs = new Map<string, Uint8Array>();
   const deviceIds = new Map(hosts.map((h, i) => [h, `dev_01K3ZB2N9G000000000000000${i + 1}`]));
+  // Rotation statements per host (PROTOCOL.md §3.1), published at /.well-known/identizen.
+  const rotations = new Map<string, SignedRotation[]>(hosts.map((h) => [h, []]));
   const fetchImpl: typeof fetch = async (input, init) => {
     const url = typeof input === 'string' ? input : input instanceof URL ? input.href : input.url;
     const method = init?.method ?? 'GET';
@@ -75,6 +80,15 @@ function fakeIndex(hosts: string[] = [INDEX]) {
     if (!host) return Response.json({ error: 'unknown_host' }, { status: 502 });
     const key = keys.get(host)!;
     const path = url.slice(host.length);
+    if (path === '/.well-known/identizen') {
+      return Response.json({
+        index: host,
+        app: 'http://app.test',
+        index_pubkey: toBase64Url(key.publicKey),
+        rotations: rotations.get(host),
+        protocol: 'identizen/v1',
+      });
+    }
     if (path === '/devices/nonce' && method === 'POST') {
       return Response.json({ nonce: 'n'.repeat(40), exp: Math.floor(Date.now() / 1000) + 120 });
     }
@@ -161,7 +175,27 @@ function fakeIndex(hosts: string[] = [INDEX]) {
     challenges.set(c.id, { host, signed: signChallenge(c, keys.get(host)!.privateKey) });
     return c;
   };
-  return { fetchImpl, calls, issue, devicePubs, deviceIds, keys };
+  /** Rotate a host's index key: the retiring key signs the statement naming its successor. */
+  const rotate = (host = hosts[0]!, over: Partial<SignedRotation['payload']> = {}) => {
+    const retiring = keys.get(host)!;
+    const next = generateKeyPair();
+    rotations.get(host)!.push(
+      signRotation(
+        {
+          type: 'rotation',
+          index: host,
+          prev_pubkey: toBase64Url(retiring.publicKey),
+          next_pubkey: toBase64Url(next.publicKey),
+          iat: Math.floor(Date.now() / 1000),
+          ...over,
+        },
+        retiring.privateKey,
+      ),
+    );
+    keys.set(host, next);
+    return next;
+  };
+  return { fetchImpl, calls, issue, devicePubs, deviceIds, keys, rotate, rotations };
 }
 
 const settings = { activeIndexUrl: INDEX, biometricRequired: true, bluetoothEnabled: false };
@@ -285,6 +319,42 @@ describe('identity lifecycle', () => {
     await expect(receiveChallenge(forged.payload.id, 'link')).rejects.toThrow(
       /bad_index_signature/,
     );
+  });
+
+  it('follows the index key rotation chain and re-pins, but only along signed statements', async () => {
+    const index = arrange();
+    await createIdentity(settings);
+    await register(null);
+    const pinned = (await readDevice(INDEX))!.indexPubkey;
+
+    // Two rotations while the phone was away: one discovery walks the whole chain, the pin
+    // moves to the current key, and the next challenge needs no discovery at all.
+    index.rotate();
+    const current = index.rotate();
+    const c = index.issue();
+    const pending = await receiveChallenge(c.id, 'push');
+    expect(pending.challenge.id).toBe(c.id);
+    expect((await readDevice(INDEX))!.indexPubkey).toBe(toBase64Url(current.publicKey));
+    const discoveries = () =>
+      index.calls.filter((x) => x.url === `${INDEX}/.well-known/identizen`).length;
+    expect(discoveries()).toBe(1);
+    await receiveChallenge(index.issue().id, 'push');
+    expect(discoveries()).toBe(1);
+    expect((await approveChallenge(pending.challenge, ['face'])).status).toBe(200);
+
+    // A statement for another issuer, however well signed, does not move the pin; nor does
+    // one whose signature no longer covers it.
+    const before = (await readDevice(INDEX))!.indexPubkey;
+    index.rotate(INDEX, { index: ORG });
+    const c2 = index.issue();
+    await expect(receiveChallenge(c2.id, 'push')).rejects.toThrow(/bad_index_signature/);
+    expect((await readDevice(INDEX))!.indexPubkey).toBe(before);
+    const chain = index.rotations.get(INDEX)!;
+    const last = chain[chain.length - 1]!;
+    chain[chain.length - 1] = { ...last, payload: { ...last.payload, index: INDEX } };
+    await expect(receiveChallenge(c2.id, 'push')).rejects.toThrow(/bad_index_signature/);
+    expect((await readDevice(INDEX))!.indexPubkey).toBe(before);
+    expect(before).not.toBe(pinned);
   });
 
   it('parses deep links, with or without the issuing index', () => {

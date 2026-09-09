@@ -1,0 +1,12 @@
+{
+  "next_index_key_hex": "fefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefe",
+  "rotation": {
+    "type": "rotation",
+    "index": "https://index.identizen.com",
+    "prev_pubkey": "JUO5L_EJVRFHatyDadtt3JM2ZaEZeN2hQE7hBmypVZ0",
+    "next_pubkey": "yph_emzYY0JGQdRQDcfeupeCUz7gccXwC8MAvIVFJDc",
+    "iat": 1756560000
+  },
+  "signing_input": "identizen/v1/rotation\n{\"iat\":1756560000,\"index\":\"https://index.identizen.com\",\"next_pubkey\":\"yph_emzYY0JGQdRQDcfeupeCUz7gccXwC8MAvIVFJDc\",\"prev_pubkey\":\"JUO5L_EJVRFHatyDadtt3JM2ZaEZeN2hQE7hBmypVZ0\",\"type\":\"rotation\"}",
+  "sig": "QCvqON_R9Y9N2SX8d2eMbVY01Of52Tlvfvy2xO4QUrjhYdzXVp6ZEXCYk0YNmNj5AtBosBV_SNLerWBfWIxMDg"
+}

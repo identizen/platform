@@ -17,12 +17,14 @@ import {
   verifyChallenge,
   type Amr,
   type Challenge,
+  resolveIndexKey,
 } from '@identizen/protocol';
-import { indexFetch, signedFetch } from '../api/client';
+import { publicFetch, indexFetch, signedFetch } from '../api/client';
 import { normalizeIndexUrl, parseQuery } from '../enrollment/links';
 import {
   getDeviceKey,
   registeredDevices,
+  repinIndexKey,
   requireDevice,
   type RegisteredDevice,
 } from '../identity/identity';
@@ -83,11 +85,24 @@ export async function receiveChallenge(
     : await locate(challengeId);
   if (res.status !== 200) throw new Error(`challenge fetch failed: ${res.status}`);
   const body = (await res.json()) as SignedChallengeBody;
-  const verified = verifyChallenge(
+  let verified = verifyChallenge(
     { payload: body.payload, sig: body.sig },
     fromBase64Url(device.indexPubkey),
     { index: device.indexUrl },
   );
+  // A signature the pinned key cannot verify may mean the index rotated its key: walk the
+  // rotation statements it publishes from the pinned key (PROTOCOL.md §3.1) and re-pin when the
+  // chain leads somewhere. Anything else stays rejected.
+  if (!verified.ok && verified.error === 'bad_index_signature') {
+    const repinned = await followIndexRotations(device.indexUrl, device.indexPubkey);
+    if (repinned) {
+      verified = verifyChallenge(
+        { payload: body.payload, sig: body.sig },
+        fromBase64Url(repinned),
+        { index: device.indexUrl },
+      );
+    }
+  }
   if (!verified.ok) throw new Error(`challenge rejected: ${verified.error}`);
   const pending: PendingChallenge = { challenge: verified.value, receivedAt: Date.now(), via };
   if (body.status === 'pending') challengeStore.add(pending);
@@ -174,4 +189,27 @@ export function parseChallengeLink(input: string): ChallengeLink | null {
   const q = input.indexOf('?');
   const index = q >= 0 ? normalizeIndexUrl(parseQuery(input.slice(q)).get('index') ?? '') : null;
   return { id, index };
+}
+
+/**
+ * Walk the index's published rotation statements from the key this phone pinned (PROTOCOL.md
+ * §3.1). Returns the newly pinned key when the chain led somewhere, null otherwise; discovery
+ * failures count as "nowhere", so a stale pin is never replaced by anything unverified.
+ */
+export async function followIndexRotations(
+  indexUrl: string,
+  pinnedPubkey: string,
+): Promise<string | null> {
+  try {
+    const res = await publicFetch(`${indexUrl}/.well-known/identizen`);
+    if (res.status !== 200) return null;
+    const meta = (await res.json()) as { rotations?: unknown };
+    const rotations = Array.isArray(meta.rotations) ? meta.rotations : [];
+    const walked = resolveIndexKey(pinnedPubkey, rotations, { index: indexUrl });
+    if (walked.steps === 0) return null;
+    await repinIndexKey(indexUrl, walked.pubkey);
+    return walked.pubkey;
+  } catch {
+    return null;
+  }
 }

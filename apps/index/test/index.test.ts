@@ -1,4 +1,11 @@
 import { SELF } from 'cloudflare:test';
+import {
+  fromHex,
+  keyPairFromPrivateKey,
+  resolveIndexKey,
+  toBase64Url,
+  verifyRotation,
+} from '@identizen/protocol';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { BASE, json, registerPhone, resetDb } from './helpers';
 
@@ -41,10 +48,37 @@ describe('health and well-known', () => {
 
   it('GET /.well-known/identizen exposes the pinned index key', async () => {
     const res = await SELF.fetch(`${BASE}/.well-known/identizen`);
+    expect(res.headers.get('cache-control')).toBe('public, max-age=300');
     const body = await json<{ index_pubkey: string; index: string; app: string }>(res);
     expect(body.index).toBe(BASE);
     expect(body.app).toBe('http://app.test');
     expect(body.index_pubkey).toMatch(/^[A-Za-z0-9_-]{43}$/);
+  });
+
+  it('publishes the key rotation chain so a phone pinned to a retired key re-pins (§3.1)', async () => {
+    const retired = keyPairFromPrivateKey(fromHex('41'.repeat(32)));
+    const pinned = toBase64Url(retired.publicKey);
+    const res = await SELF.fetch(`${BASE}/.well-known/identizen`);
+    const body = await json<{ index_pubkey: string; rotations: unknown[] }>(res);
+    // The malformed entry in INDEX_KEY_ROTATIONS is dropped, the signed statement survives.
+    expect(body.rotations).toHaveLength(1);
+    const statement = verifyRotation(body.rotations[0], retired.publicKey);
+    expect(statement.ok).toBe(true);
+    if (statement.ok) {
+      expect(statement.value.index).toBe(BASE);
+      expect(statement.value.prev_pubkey).toBe(pinned);
+      expect(statement.value.next_pubkey).toBe(body.index_pubkey);
+    }
+    expect(resolveIndexKey(pinned, body.rotations, { index: BASE })).toEqual({
+      pubkey: body.index_pubkey,
+      steps: 1,
+    });
+    // A phone pinned to a key the chain does not start from stays where it is.
+    const stranger = toBase64Url(keyPairFromPrivateKey(fromHex('42'.repeat(32))).publicKey);
+    expect(resolveIndexKey(stranger, body.rotations, { index: BASE })).toEqual({
+      pubkey: stranger,
+      steps: 0,
+    });
   });
 
   it('unknown routes are JSON 404s', async () => {

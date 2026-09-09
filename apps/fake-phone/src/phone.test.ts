@@ -8,6 +8,10 @@ import {
   verifyAssertion,
   challengeId as newChallengeId,
   randomBytes,
+  generateKeyPair,
+  signRotation,
+  type KeyPair,
+  type SignedRotation,
 } from '@identizen/protocol';
 import { FakePhone } from './phone.js';
 
@@ -19,6 +23,9 @@ function fakeIndex() {
   const calls: { path: string; method: string; body: unknown }[] = [];
   const challenges = new Map<string, ReturnType<typeof signChallenge>>();
   const devices = new Map<string, Uint8Array>();
+  // The current signing key and the rotation chain (PROTOCOL.md §3.1) published at well-known.
+  let signer: KeyPair = indexKey;
+  const rotations: SignedRotation[] = [];
   const fetchImpl: typeof fetch = async (input, init) => {
     const url = new URL(
       typeof input === 'string' ? input : input instanceof URL ? input.href : input.url,
@@ -26,6 +33,15 @@ function fakeIndex() {
     const method = init?.method ?? 'GET';
     const body = typeof init?.body === 'string' ? (JSON.parse(init.body) as unknown) : undefined;
     calls.push({ path: url.pathname, method, body });
+    if (url.pathname === '/.well-known/identizen') {
+      return Response.json({
+        index: INDEX,
+        app: 'http://app.test',
+        index_pubkey: toBase64Url(signer.publicKey),
+        rotations,
+        protocol: 'identizen/v1',
+      });
+    }
     if (url.pathname === '/devices/nonce' && method === 'POST') {
       return Response.json({ nonce: 'n'.repeat(40), exp: Math.floor(Date.now() / 1000) + 120 });
     }
@@ -81,11 +97,30 @@ function fakeIndex() {
       acr: 'idz:login',
       ...over,
     });
-    const signed = signChallenge(c, indexKey.privateKey);
+    const signed = signChallenge(c, signer.privateKey);
     challenges.set(c.id, signed);
     return c;
   };
-  return { fetchImpl, calls, issue };
+  /** Rotate the index key: the retiring key signs a statement naming its successor. */
+  const rotate = (over: Partial<SignedRotation['payload']> = {}) => {
+    const next = generateKeyPair();
+    rotations.push(
+      signRotation(
+        {
+          type: 'rotation',
+          index: INDEX,
+          prev_pubkey: toBase64Url(signer.publicKey),
+          next_pubkey: toBase64Url(next.publicKey),
+          iat: Math.floor(Date.now() / 1000),
+          ...over,
+        },
+        signer.privateKey,
+      ),
+    );
+    signer = next;
+    return next;
+  };
+  return { fetchImpl, calls, issue, rotate, rotations };
 }
 
 describe('FakePhone', () => {
@@ -152,6 +187,49 @@ describe('FakePhone', () => {
     const badFetch: typeof fetch = async () => Response.json({ ...forged, status: 'pending' });
     const p2 = new FakePhone({ indexUrl: INDEX, fetchImpl: badFetch, state: phone.snapshot });
     await expect(p2.onPush(c.id)).rejects.toThrow(/bad_index_signature/);
+  });
+
+  it('follows a published key rotation chain and re-pins (PROTOCOL.md §3.1)', async () => {
+    const index = fakeIndex();
+    const phone = new FakePhone({ indexUrl: INDEX, fetchImpl: index.fetchImpl });
+    await phone.register();
+    expect(phone.snapshot.indexPubkey).toBe(toBase64Url(indexKey.publicKey));
+
+    // Two rotations while the phone was away: it walks the whole chain in one step.
+    index.rotate();
+    const current = index.rotate();
+    const c = index.issue();
+    const p = await phone.onPush(c.id);
+    expect(p.challenge.id).toBe(c.id);
+    expect(phone.snapshot.indexPubkey).toBe(toBase64Url(current.publicKey));
+    expect(index.calls.filter((x) => x.path === '/.well-known/identizen')).toHaveLength(1);
+
+    // Already re-pinned: the next challenge needs no discovery round trip.
+    const c2 = index.issue();
+    await phone.onPush(c2.id);
+    expect(index.calls.filter((x) => x.path === '/.well-known/identizen')).toHaveLength(1);
+  });
+
+  it('does not re-pin on a chain that fails to verify or names another index', async () => {
+    const index = fakeIndex();
+    const phone = new FakePhone({ indexUrl: INDEX, fetchImpl: index.fetchImpl });
+    await phone.register();
+    const pinned = phone.snapshot.indexPubkey;
+
+    // A statement for a different issuer, even when properly signed, must not move the pin.
+    index.rotate({ index: 'http://other.test' });
+    const c = index.issue();
+    await expect(phone.onPush(c.id)).rejects.toThrow(/bad_index_signature/);
+    expect(phone.snapshot.indexPubkey).toBe(pinned);
+
+    // Tamper with the statement: the signature no longer covers it, so the chain is broken.
+    const good = index.rotations[0]!;
+    index.rotations[0] = {
+      ...good,
+      payload: { ...good.payload, index: INDEX },
+    };
+    await expect(phone.onPush(c.id)).rejects.toThrow(/bad_index_signature/);
+    expect(phone.snapshot.indexPubkey).toBe(pinned);
   });
 
   it('reset produces a new identity', async () => {

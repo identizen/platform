@@ -17,6 +17,7 @@ import {
   signRequest,
   toBase64Url,
   toHex,
+  resolveIndexKey,
   rotatingBleIdString,
   verifyChallenge,
   type Amr,
@@ -254,19 +255,54 @@ export class FakePhone {
     return this.receive(m[1], 'scan');
   }
 
+  /**
+   * Walk the index's published rotation statements from the pinned key (PROTOCOL.md §3.1). Returns
+   * the newly pinned key when the chain led somewhere, null when it did not (or discovery failed).
+   */
+  async followRotations(): Promise<string | null> {
+    if (!this.state.indexPubkey) return null;
+    try {
+      const res = await this.fetchImpl(`${this.indexUrl}/.well-known/identizen`);
+      if (res.status !== 200) return null;
+      const meta = (await res.json()) as { rotations?: unknown };
+      const rotations = Array.isArray(meta.rotations) ? meta.rotations : [];
+      const walked = resolveIndexKey(this.state.indexPubkey, rotations, {
+        index: this.indexIssuer,
+      });
+      if (walked.steps === 0) return null;
+      this.state = { ...this.state, indexPubkey: walked.pubkey };
+      return walked.pubkey;
+    } catch {
+      return null;
+    }
+  }
+
   /** Fetch + verify the signed challenge, then apply the policy. */
   async receive(challengeId: string, via: PendingChallenge['via']): Promise<PendingChallenge> {
     const res = await this.fetchImpl(`${this.indexUrl}/challenge/${challengeId}`);
     if (res.status !== 200) throw new Error(`challenge fetch failed: ${res.status}`);
     const body = (await res.json()) as { payload: unknown; sig: string; status: string };
     if (!this.state.indexPubkey) throw new Error('index public key is not pinned; register first');
-    const verified = verifyChallenge(
+    let verified = verifyChallenge(
       { payload: body.payload, sig: body.sig },
       fromBase64Url(this.state.indexPubkey),
       {
         index: this.indexIssuer,
       },
     );
+    // A signature the pinned key cannot verify may mean the index rotated its key: walk the
+    // published rotation chain from the pinned key (PROTOCOL.md §3.1) and re-pin if it leads
+    // somewhere; anything else stays rejected.
+    if (!verified.ok && verified.error === 'bad_index_signature') {
+      const repinned = await this.followRotations();
+      if (repinned) {
+        verified = verifyChallenge(
+          { payload: body.payload, sig: body.sig },
+          fromBase64Url(repinned),
+          { index: this.indexIssuer },
+        );
+      }
+    }
     if (!verified.ok) throw new Error(`challenge rejected: ${verified.error}`);
     const pending: PendingChallenge = { challenge: verified.value, receivedAt: Date.now(), via };
     this.pending.set(challengeId, pending);

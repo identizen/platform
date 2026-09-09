@@ -13,6 +13,9 @@ import {
   signIdentityProof,
   signPairing,
   signPayload,
+  signRotation,
+  resolveIndexKey,
+  verifyRotation,
   signRequest,
   verifyAssertion,
   verifyChallenge,
@@ -407,5 +410,57 @@ describe('identity proof and generic helpers', () => {
     expect(reasonHash(null)).toBeNull();
     expect(reasonHash(undefined)).toBeNull();
     expect(reasonHash('x')).toMatch(/^[A-Za-z0-9_-]{43}$/);
+  });
+});
+
+describe('index key rotation (PROTOCOL.md §3.1)', () => {
+  it('a statement signed by the previous key moves a phone to the next key; the chain walks any distance', () => {
+    const k0 = generateKeyPair();
+    const k1 = generateKeyPair();
+    const k2 = generateKeyPair();
+    const index = 'https://index.example.com';
+    const r01 = signRotation(
+      {
+        type: 'rotation',
+        index,
+        prev_pubkey: toBase64Url(k0.publicKey),
+        next_pubkey: toBase64Url(k1.publicKey),
+        iat: 1_756_560_000,
+      },
+      k0.privateKey,
+    );
+    const r12 = signRotation(
+      {
+        type: 'rotation',
+        index,
+        prev_pubkey: toBase64Url(k1.publicKey),
+        next_pubkey: toBase64Url(k2.publicKey),
+        iat: 1_756_560_100,
+      },
+      k1.privateKey,
+    );
+    expect(verifyRotation(r01, k0.publicKey).ok).toBe(true);
+    expect(verifyRotation(r01, k1.publicKey)).toMatchObject({ ok: false, error: 'wrong_prev_key' });
+    // A statement for the next key signed by someone else is refused.
+    const forged = { ...r01, sig: signPayload('rotation', r01.payload, k2.privateKey) };
+    expect(verifyRotation(forged, k0.publicKey)).toMatchObject({
+      ok: false,
+      error: 'bad_rotation_signature',
+    });
+    // Order does not matter and unrelated statements are ignored.
+    const walked = resolveIndexKey(toBase64Url(k0.publicKey), [r12, forged, r01], { index });
+    expect(walked).toEqual({ pubkey: toBase64Url(k2.publicKey), steps: 2 });
+    expect(resolveIndexKey(toBase64Url(k1.publicKey), [r01, r12], { index })).toEqual({
+      pubkey: toBase64Url(k2.publicKey),
+      steps: 1,
+    });
+    expect(resolveIndexKey(toBase64Url(k2.publicKey), [r01, r12], { index })).toEqual({
+      pubkey: toBase64Url(k2.publicKey),
+      steps: 0,
+    });
+    // A statement for another index never moves the pin.
+    expect(
+      resolveIndexKey(toBase64Url(k0.publicKey), [r01], { index: 'https://other.example' }),
+    ).toEqual({ pubkey: toBase64Url(k0.publicKey), steps: 0 });
   });
 });

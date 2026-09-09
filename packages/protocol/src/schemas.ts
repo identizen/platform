@@ -144,3 +144,26 @@ export type DeviceRegistration = z.infer<typeof DeviceRegistrationSchema>;
 /** Body of `POST /identities` (signed with Idz-Signature): set or clear the handle. */
 export const HandleUpdateSchema = z.object({ handle: HandleSchema.nullable() }).strict();
 export type HandleUpdate = z.infer<typeof HandleUpdateSchema>;
+
+/**
+ * Index key rotation statement (PROTOCOL.md §3.1): the previous index key vouches for the next
+ * one. A phone that pinned `prev_pubkey` verifies the signature with it and re-pins `next_pubkey`;
+ * a chain of statements takes a phone from any key it ever pinned to the current one.
+ */
+export const RotationSchema = z
+  .object({
+    type: z.literal('rotation'),
+    /** Issuer URL of the index whose key rotates. */
+    index: z.string().url(),
+    prev_pubkey: PublicKeySchema,
+    next_pubkey: PublicKeySchema,
+    /** Unix seconds when the rotation took effect. */
+    iat: z.number().int().nonnegative(),
+  })
+  .strict();
+export type Rotation = z.infer<typeof RotationSchema>;
+
+export const SignedRotationSchema = z
+  .object({ payload: RotationSchema, sig: SignatureSchema })
+  .strict();
+export type SignedRotation = z.infer<typeof SignedRotationSchema>;

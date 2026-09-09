@@ -24,6 +24,7 @@ import {
   signChallenge,
   signIdentityProof,
   signPairing,
+  signRotation,
   signRequest,
   signingBytes,
 } from './sign.js';
@@ -33,6 +34,8 @@ export const VECTOR_DEVICE_KEY_HEX =
   '202122232425262728292a2b2c2d2e2f303132333435363738393a3b3c3d3e3f';
 export const VECTOR_INDEX_KEY_HEX =
   '404142434445464748494a4b4c4d4e4f505152535455565758595a5b5c5d5e5f';
+export const VECTOR_INDEX_NEXT_KEY_HEX =
+  'fefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefe';
 export const VECTOR_BLE_KEY_HEX =
   '606162636465666768696a6b6c6d6e6f707172737475767778797a7b7c7d7e7f';
 export const VECTOR_NOW = 1756560000;
@@ -202,6 +205,22 @@ export function generateVectors(): VectorFiles {
     paired_signature_input: `identizen/v1/paired\n${VECTOR_CHALLENGE_ID}`,
   };
 
+  const nextIndex = keyPairFromPrivateKey(fromHex(VECTOR_INDEX_NEXT_KEY_HEX));
+  const rotationPayload = {
+    type: 'rotation' as const,
+    index: VECTOR_INDEX_URL,
+    prev_pubkey: toBase64Url(index.publicKey),
+    next_pubkey: toBase64Url(nextIndex.publicKey),
+    iat: VECTOR_NOW,
+  };
+  const rotationSigned = signRotation(rotationPayload, index.privateKey);
+  const rotation = {
+    next_index_key_hex: VECTOR_INDEX_NEXT_KEY_HEX,
+    rotation: rotationSigned.payload,
+    signing_input: new TextDecoder().decode(signingBytes('rotation', rotationSigned.payload)),
+    sig: rotationSigned.sig,
+  };
+
   const requestInput = {
     method: 'POST',
     path: '/identities',
@@ -231,6 +250,7 @@ export function generateVectors(): VectorFiles {
     'challenge.json': challenge,
     'assertion.json': assertion,
     'pairing.json': pairing,
+    'rotation.json': rotation,
     'request.json': request,
     'ble.json': ble,
   };

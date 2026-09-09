@@ -24,7 +24,7 @@ Every release `ee-vX.Y.Z` publishes both images tagged with the version, signed 
 
 Two keys, generated once and backed up in your secret store, both environment variables of the index only:
 
-- `INDEX_SIGNING_KEY`, the Ed25519 seed that signs every challenge. Phones pin its public half when they register, so losing it means every phone re-registers.
+- `INDEX_SIGNING_KEY`, the Ed25519 seed that signs every challenge. Phones pin its public half when they register; rotate it with the cross-signed procedure in [production](/self-hosting-production/#index_signing_key) (`INDEX_KEY_ROTATIONS` carries the chain), because losing it means every phone re-registers.
 - `OIDC_SIGNING_KEYS`, a JSON array of ES256 private JWKs that sign tokens. Rotate by prepending a new key and dropping the old one after the overlap.
 
 `LICENSE` is a one-line Ed25519-signed document Identizen issues for your subject and seat count. The index verifies it at start and reports it on `GET /orgs/public`, in the portal's status page and in the app. When it expires there are 14 days of grace with a banner, then sign-ins are refused with `503 license_expired` while the portal keeps working, so renewing is never locked out. Active members above the seat count refuse new invitations and SCIM creates with `409 seats_exceeded`. Renewing is replacing the value and restarting the index.

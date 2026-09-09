@@ -28,6 +28,7 @@ import {
   sameIndex,
   setActiveIndexUrl,
   wipeAll,
+  writeDevices,
   writeDevice,
   writeSeedHex,
   writeSettings,
@@ -273,4 +274,17 @@ export async function updateLocalHandle(handle: string | null, indexUrl?: string
  */
 export async function forgetIdentity(): Promise<void> {
   await wipeAll();
+}
+
+/**
+ * Re-pin the index key for `indexUrl` after a verified rotation chain (PROTOCOL.md §3.1); the
+ * caller has already walked the published statements from the key this phone pinned.
+ */
+export async function repinIndexKey(indexUrl: string, indexPubkey: string): Promise<void> {
+  const devices = await readDevices();
+  const key = indexKey(indexUrl);
+  const device = devices[key];
+  if (!device) throw new Error(`this phone is not registered on ${key}`);
+  devices[key] = { ...device, indexPubkey };
+  await writeDevices(devices);
 }
