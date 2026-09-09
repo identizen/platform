@@ -1,6 +1,6 @@
 {
   "name": "identizen",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "description": "Identizen CLI: `identizen init` registers your site and scaffolds the login routes; `identizen dev` runs a fake phone so you can log in without a device.",
   "license": "Apache-2.0",
   "type": "module",
