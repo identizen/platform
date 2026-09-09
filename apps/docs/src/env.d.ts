@@ -1,2 +1,2 @@
 /// <reference types="astro/client" />
-/// <reference types="@astrojs/starlight/locals" />
+/// <reference types="@astrojs/starlight" />

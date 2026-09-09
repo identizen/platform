@@ -23,5 +23,9 @@ export default defineConfig({
     ssr: { noExternal: ['@identizen/ui'] },
   },
   build: { inlineStylesheets: 'auto' },
+  // Astro 7 defaults to JSX whitespace rules; keep the lossless output the pages were written for.
+  compressHTML: true,
   prefetch: { prefetchAll: true },
+  // No server sessions: keeps the adapter from wiring a SESSION KV namespace into the Worker.
+  session: false,
 });

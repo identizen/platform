@@ -1,6 +1,7 @@
 // @ts-check
 import { defineConfig } from 'astro/config';
 import starlight from '@astrojs/starlight';
+import { unified } from '@astrojs/markdown-remark';
 import tailwindcss from '@tailwindcss/vite';
 import { rehypeMethodChips } from './src/plugins/rehype-method-chips.mjs';
 
@@ -22,7 +23,10 @@ const themeSync = `(function(){try{
 export default defineConfig({
   site: 'https://docs.identizen.com',
   vite: { plugins: [tailwindcss()] },
-  markdown: { rehypePlugins: [rehypeMethodChips] },
+  // Astro 7 defaults to Sätteri; the method-chip plugin is rehype, so keep the unified pipeline.
+  markdown: { processor: unified({ rehypePlugins: [rehypeMethodChips] }) },
+  // Astro 7 defaults to JSX whitespace rules; keep the lossless output the pages were written for.
+  compressHTML: true,
   integrations: [
     starlight({
       title: 'Identizen',

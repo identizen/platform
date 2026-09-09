@@ -5,7 +5,7 @@ import { existsSync, readdirSync, readFileSync, rmSync, statSync, writeFileSync 
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-const dist = fileURLToPath(new URL('../dist/', import.meta.url));
+const dist = fileURLToPath(new URL('../dist/client/', import.meta.url));
 const parts = readdirSync(dist).filter((f) => /^sitemap-\d+\.xml$/.test(f));
 if (parts.length !== 1) {
   console.error(`sitemap-single: expected one sitemap part in dist, found ${parts.length}`);

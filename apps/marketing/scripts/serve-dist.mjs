@@ -5,7 +5,7 @@ import { extname, join, normalize } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const port = Number(process.argv[2] ?? 4321);
-const root = fileURLToPath(new URL('../dist/', import.meta.url));
+const root = fileURLToPath(new URL('../dist/client/', import.meta.url));
 const types = {
   '.html': 'text/html; charset=utf-8',
   '.css': 'text/css; charset=utf-8',

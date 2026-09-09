@@ -1,4 +1,5 @@
 import type { APIRoute } from 'astro';
+import { env as workerEnv } from 'cloudflare:workers';
 import { looksLikeBot, sendContactMail, validateContact, verifyTurnstile } from '../../lib/contact';
 
 export const prerender = false;
@@ -10,8 +11,9 @@ interface Env {
   CONTACT_FROM?: string;
 }
 
-function env(locals: App.Locals): Env {
-  const runtime = (locals as { runtime?: { env?: Env } }).runtime?.env ?? {};
+function env(): Env {
+  // @astrojs/cloudflare 13+ removed locals.runtime; bindings and vars come from cloudflare:workers.
+  const runtime = (workerEnv ?? {}) as Env;
   const meta = import.meta.env as Record<string, string | undefined>;
   return {
     TURNSTILE_SECRET_KEY: runtime.TURNSTILE_SECRET_KEY ?? meta.TURNSTILE_SECRET_KEY,
@@ -22,8 +24,8 @@ function env(locals: App.Locals): Env {
 }
 
 /** POST /api/contact — Turnstile-protected form -> Resend. Without keys (dev) it logs and returns ok. */
-export const POST: APIRoute = async ({ request, locals, clientAddress }) => {
-  const e = env(locals);
+export const POST: APIRoute = async ({ request, clientAddress }) => {
+  const e = env();
   let raw: Record<string, unknown>;
   try {
     const ct = request.headers.get('content-type') ?? '';
