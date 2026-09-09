@@ -26,7 +26,7 @@
     "changeset": "changeset",
     "version-packages": "changeset version",
     "release": "turbo run build --filter=./packages/* --filter=@identizen/index --filter=@identizen/db && changeset publish",
-    "audit": "npm audit --omit=dev --audit-level=critical",
+    "audit": "node scripts/audit.mjs",
     "sbom": "npm sbom --sbom-format=cyclonedx --omit=dev > sbom.cdx.json"
   },
   "devDependencies": {
