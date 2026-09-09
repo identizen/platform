@@ -47,23 +47,29 @@ export function exemptHosts(env: VerificationEnv): string[] {
     .filter((h) => h.length > 0);
 }
 
+/**
+ * Decided by the host alone. The `idz_test_` / `idz_live_` prefix is a label the registrant
+ * picks; letting it waive the proof let anyone register a test client for a real domain and put
+ * that domain's name on the phone (F01, 2026-09-08 review).
+ */
 export function verificationRequired(
   env: VerificationEnv,
   site: Pick<Site, 'clientId' | 'rpId'>,
 ): boolean {
   if (env.SITE_VERIFICATION === 'off') return false;
-  if (site.clientId.startsWith('idz_test_')) return false;
   if (exemptHosts(env).includes(site.rpId.toLowerCase())) return false;
   return !isLocalRpId(site.rpId);
 }
 
 export function verificationStatus(
   env: VerificationEnv,
-  site: Pick<Site, 'clientId' | 'rpId' | 'verifiedAt'>,
+  site: Pick<Site, 'clientId' | 'rpId' | 'verifiedAt' | 'verificationMethod'>,
   now: number = Date.now(),
 ): VerificationStatus {
   if (!verificationRequired(env, site)) return 'not_required';
-  if (!site.verifiedAt) return 'pending';
+  // A row marked `not_required` was auto-passed at registration (a test client on a real host
+  // before F01, or a host that has since left the exempt list); it has not proved anything.
+  if (!site.verifiedAt || site.verificationMethod === 'not_required') return 'pending';
   return now - site.verifiedAt.getTime() > VERIFICATION_TTL_MS ? 'stale' : 'verified';
 }
 

@@ -22,7 +22,7 @@ npx identizen register-site --name "My app" --rp-id localhost \
   --redirect-uri http://localhost:5173/callback --public
 ```
 
-`register-site` prints `client_id` once (`idz_test_…` by default, `idz_live_…` with `--live`). `--rp-id` must be the host your users see in the address bar; the phone signs it into every approval, which is what makes phishing fail. `--public` means PKCE only, so nothing secret ships to the browser. Without `--index` the CLI targets `IDENTIZEN_INDEX_URL`, else `http://localhost:8787`; pass `--index https://index.identizen.com` to use the hosted index.
+`register-site` prints `client_id` once (`idz_test_…` by default, `idz_live_…` with `--live`). Both kinds prove their domain the same way when the host is not `localhost`. `--rp-id` must be the host your users see in the address bar; the phone signs it into every approval, which is what makes phishing fail. `--public` means PKCE only, so nothing secret ships to the browser. Without `--index` the CLI targets `IDENTIZEN_INDEX_URL`, else `http://localhost:8787`; pass `--index https://index.identizen.com` to use the hosted index.
 
 ## 2. In-page login with `@identizen/react`
 

@@ -33,7 +33,7 @@ const CreateSiteSchema = z
     webhook_url: z.string().url().nullable().optional(),
     /** Public (PKCE-only) clients get no secret. Default: confidential. */
     public: z.boolean().default(false),
-    /** `idz_test_` ids for local dev, `idz_live_` otherwise. */
+    /** A label only: `idz_test_` ids for development, `idz_live_` otherwise. Domain proof depends on the host. */
     environment: z.enum(['live', 'test']).default('live'),
   })
   .strict();
@@ -129,8 +129,9 @@ export function sitesRoutes(): Hono<AppEnv> {
     requireDestination(env, 'webhook_url', body.webhook_url);
     const clientId = `idz_${body.environment}_${ulid()}`;
     const rpId = normalizeRpId(body.rp_id);
-    // A live site must prove the domain before it can be used (PROTOCOL.md §8.2). Registrations
-    // that never do are swept so a squatter cannot hold a name; the token is what gets published.
+    // A site on a real host must prove the domain before it can be used (PROTOCOL.md §8.2), test
+    // clients included. Registrations that never do are swept so a squatter cannot hold a name;
+    // the token is what gets published.
     const needsProof = verificationRequired(env, { clientId, rpId });
     if (needsProof) {
       await deleteStalePendingSites(db, rpId, new Date(Date.now() - PENDING_REGISTRATION_TTL_MS));

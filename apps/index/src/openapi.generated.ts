@@ -2824,7 +2824,7 @@ export const OPENAPI_DOCUMENT: Record<string, unknown> = {
         ],
         "operationId": "getSiteVerification",
         "summary": "Domain verification status and what to publish",
-        "description": "A live site must prove control of its `rp_id` before it can start logins (PROTOCOL.md §8.2):\na DNS TXT record `_identizen.<rp_id>` (or at a parent zone) with `idz-site-verification=<token>`,\noptionally followed by `index=<this index URL>` to pin the index, or the same line served at\n`https://<rp_id>/.well-known/identizen-site`. No secret is needed: the token proves nothing by\nitself. `status` is `verified`, `pending`, `stale` (older than 30 days, re-checked at the next\nlogin) or `not_required` (test clients, localhost, or an index with `SITE_VERIFICATION=off`).\n",
+        "description": "A live site must prove control of its `rp_id` before it can start logins (PROTOCOL.md §8.2):\na DNS TXT record `_identizen.<rp_id>` (or at a parent zone) with `idz-site-verification=<token>`,\noptionally followed by `index=<this index URL>` to pin the index, or the same line served at\n`https://<rp_id>/.well-known/identizen-site`. No secret is needed: the token proves nothing by\nitself. `status` is `verified`, `pending`, `stale` (older than 30 days, re-checked at the next\nlogin) or `not_required` (localhost, a host on the index's exempt list, or an index with `SITE_VERIFICATION=off`;\nthe `idz_test_` prefix does not exempt a host).\n",
         "parameters": [
           {
             "$ref": "#/components/parameters/ClientIdPath"

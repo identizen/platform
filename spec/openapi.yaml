@@ -1752,7 +1752,8 @@ paths:
         optionally followed by `index=<this index URL>` to pin the index, or the same line served at
         `https://<rp_id>/.well-known/identizen-site`. No secret is needed: the token proves nothing by
         itself. `status` is `verified`, `pending`, `stale` (older than 30 days, re-checked at the next
-        login) or `not_required` (test clients, localhost, or an index with `SITE_VERIFICATION=off`).
+        login) or `not_required` (localhost, a host on the index's exempt list, or an index with `SITE_VERIFICATION=off`;
+        the `idz_test_` prefix does not exempt a host).
       parameters:
         - $ref: '#/components/parameters/ClientIdPath'
       responses:

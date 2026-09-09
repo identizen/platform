@@ -8,6 +8,7 @@ import { afterEach, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import { decodeJwt } from 'jose';
 import { requireSite, updateSite } from '@identizen/db';
 import { createServices } from '../src/lib/services';
+import { verificationStatus } from '../src/services/site-verification';
 import { startChallenge as startChallengeService } from '../src/services/challenge';
 import {
   deriveMasterKey,
@@ -535,7 +536,7 @@ describe('S05: the index trusts amr only as far as it goes', () => {
 describe('S08: a site the phone will name must have proved its domain', () => {
   const required = { SITE_VERIFICATION: 'required', OUTBOUND_ALLOW_LOCAL: 'true' };
 
-  it('a pending live registration cannot start a login; test clients and localhost are exempt', async () => {
+  it('a pending registration cannot start a login; localhost is exempt', async () => {
     const services = createServices(env);
     const live = await registerSite({ rp_id: 'squat.example' });
     const row = await requireSite(services.db, live.client_id);
@@ -624,5 +625,56 @@ describe('S08: a site the phone will name must have proved its domain', () => {
     const viaHttp = await SELF.fetch(`${BASE}/sites/${site2.client_id}/verify`, { method: 'POST' });
     expect(viaHttp.status).toBe(200);
     expect(await json(viaHttp)).toMatchObject({ method: 'http' });
+  });
+});
+
+describe('F01: a test client is held to the same domain proof as a live one', () => {
+  const required = { SITE_VERIFICATION: 'required', OUTBOUND_ALLOW_LOCAL: 'true' };
+  const registerTest = async (rp_id: string) =>
+    json<RegisteredSite>(
+      await post('/sites', {
+        name: 'Looks like the bank',
+        rp_id,
+        redirect_uris: [REDIRECT_URI],
+        environment: 'test',
+      }),
+    );
+  const login = (services: ReturnType<typeof createServices>, clientId: string) =>
+    startChallengeService(services, { clientId, acr: 'idz:login' }, { ...env, ...required });
+
+  it('a test client for a real host cannot start a login until the host is proved, even when registration auto-passed it', async () => {
+    const services = createServices(env);
+    const site = await registerTest('bank.example');
+    expect(site.client_id).toMatch(/^idz_test_/);
+    // This test index runs with verification off, so registration marks the row `not_required`:
+    // the exact shape of the rows the probe created on the hosted index before the fix.
+    const row = await requireSite(services.db, site.client_id);
+    expect(row.verificationMethod).toBe('not_required');
+    expect(verificationStatus({ ...env, ...required }, row)).toBe('pending');
+    await expect(login(services, site.client_id)).rejects.toMatchObject({
+      code: 'site_unverified',
+      status: 403,
+    });
+    // Proving the domain works exactly as for a live client.
+    const info = await json<{ instructions: { token: string } }>(
+      await SELF.fetch(`${BASE}/sites/${site.client_id}/verification`),
+    );
+    fetchMock
+      .get('https://cloudflare-dns.com')
+      .intercept({ path: (p) => p.startsWith('/dns-query?name=_identizen.bank.example') })
+      .reply(200, {
+        Answer: [{ type: 16, data: `"idz-site-verification=${info.instructions.token}"` }],
+      });
+    const ok = await SELF.fetch(`${BASE}/sites/${site.client_id}/verify`, { method: 'POST' });
+    expect(ok.status, await ok.clone().text()).toBe(200);
+    const proved = await requireSite(services.db, site.client_id);
+    expect(verificationStatus({ ...env, ...required }, proved)).toBe('verified');
+    await expect(login(services, site.client_id)).resolves.toBeTruthy();
+  });
+
+  it('a test client on localhost still needs no proof', async () => {
+    const services = createServices(env);
+    const site = await registerTest('localhost');
+    await expect(login(services, site.client_id)).resolves.toBeTruthy();
   });
 });

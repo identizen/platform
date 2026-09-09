@@ -249,7 +249,7 @@ The phone shows a site's `rp_id` to the person as the name of who is asking, so 
 
 - **HTTPS.** The same line served at `https://<rp_id>/.well-known/identizen-site`. This proves control of the host only, not of the zone.
 
-The index checks on request (`POST /sites/{client_id}/verify`) and again, silently, when a verification is older than thirty days at the next login; a record that has gone stops the site until it is published again. Registrations that never verify are dropped after forty-eight hours, so a name cannot be squatted. A host may be registered more than once; each registration proves the domain on its own. Test clients (`idz_test_`) and local hosts (`localhost`, `*.localhost`, IP literals) are exempt, as is an index configured with `SITE_VERIFICATION=off`.
+The index checks on request (`POST /sites/{client_id}/verify`) and again, silently, when a verification is older than thirty days at the next login; a record that has gone stops the site until it is published again. Registrations that never verify are dropped after forty-eight hours, so a name cannot be squatted. A host may be registered more than once; each registration proves the domain on its own. Local hosts (`localhost`, `*.localhost`, IP literals) are exempt, as is an index configured with `SITE_VERIFICATION=off`. The `idz_test_` prefix is a label chosen at registration and changes nothing here: a test client for a real host proves the host like any other.
 
 ## 9. Identifiers summary
 
