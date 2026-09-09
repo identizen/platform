@@ -32,18 +32,16 @@ export function limits(
   };
 }
 
-function clientIp(headers: Headers): string {
-  return (
-    headers.get('cf-connecting-ip') ??
-    headers.get('x-forwarded-for')?.split(',')[0]?.trim() ??
-    'unknown'
-  );
+import { clientIp as trustedClientIp } from '../lib/util';
+
+function clientIp(headers: Headers, env: { TRUST_PROXY_HEADERS?: string | undefined }): string {
+  return trustedClientIp(headers, env) ?? 'unknown';
 }
 
 /** Limit by source IP (CF-Connecting-IP). Requests without a resolvable IP are not limited. */
 export function ipRateLimit(): MiddlewareHandler<AppEnv> {
   return async (c, next) => {
-    const ip = clientIp(c.req.raw.headers);
+    const ip = clientIp(c.req.raw.headers, c.env);
     if (ip !== 'unknown') {
       const ok = await c
         .get('services')

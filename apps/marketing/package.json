@@ -7,7 +7,7 @@
   "type": "module",
   "scripts": {
     "dev": "astro dev --port 4320",
-    "build": "astro build && node scripts/sitemap-single.mjs",
+    "build": "astro build && node scripts/sitemap-single.mjs && node scripts/check-csp.mjs dist/client",
     "preview": "astro preview --port 4321",
     "typecheck": "astro check",
     "test:unit": "vitest run",

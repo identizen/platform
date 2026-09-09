@@ -17,7 +17,7 @@ import { bearer, hashSecret, randomToken, safeEqual } from '../lib/util';
 import { loadKeyring, publicJwks, OIDC_ALG } from '../oidc/keys';
 import { registeredRedirect, validateAuthorizeRequest } from '../oidc/authorize-request';
 import { pairwiseDeviceId } from '../oidc/pairwise';
-import { renderLoginPage } from '../oidc/login-page';
+import { loginPageCsp, renderLoginPage } from '../oidc/login-page';
 import {
   mintAccessToken,
   mintIdToken,
@@ -135,20 +135,27 @@ export function oidcRoutes(): Hono<AppEnv> {
     const id = started.signed.payload.id;
     const wsUrl = new URL(`/challenge/${id}/ws`, services.indexUrl);
     wsUrl.protocol = wsUrl.protocol === 'https:' ? 'wss:' : 'ws:';
+    // A per-response nonce marks the page's own script and style; nothing else may run (F08).
+    const nonce = randomToken(16);
+    c.header('Content-Security-Policy', loginPageCsp(nonce, services.indexUrl));
+    c.header('Cache-Control', 'no-store');
     return c.html(
-      renderLoginPage({
-        challengeId: id,
-        code: started.signed.payload.code,
-        rpName: site.name,
-        acr: v.acr,
-        reason: null,
-        deepLink: `${services.appUrl}/l/${id}?index=${encodeURIComponent(services.indexUrl)}`,
-        wsUrl: wsUrl.toString(),
-        indexUrl: services.indexUrl,
-        exp: started.signed.payload.exp,
-        pushed: started.pushedTo !== null,
-        errorRedirect: buildRedirect(redirectUri, { state }),
-      }),
+      renderLoginPage(
+        {
+          challengeId: id,
+          code: started.signed.payload.code,
+          rpName: site.name,
+          acr: v.acr,
+          reason: null,
+          deepLink: `${services.appUrl}/l/${id}?index=${encodeURIComponent(services.indexUrl)}`,
+          wsUrl: wsUrl.toString(),
+          indexUrl: services.indexUrl,
+          exp: started.signed.payload.exp,
+          pushed: started.pushedTo !== null,
+          errorRedirect: buildRedirect(redirectUri, { state }),
+        },
+        nonce,
+      ),
       200,
       { 'cache-control': 'no-store', 'x-frame-options': 'DENY', 'referrer-policy': 'no-referrer' },
     );

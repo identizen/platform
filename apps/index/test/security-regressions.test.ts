@@ -929,3 +929,86 @@ describe('F06: the egress policy sees hostnames as the resolver does', () => {
     expect(await json(res)).toMatchObject({ error: 'invalid_destination' });
   });
 });
+
+describe('F08: an origin policy per route and a header baseline', () => {
+  it('login endpoints answer any origin; account routes only the dashboard and listed origins', async () => {
+    const site = await registerSite({ public: true });
+    const { challenge } = pkcePair();
+    const anyOrigin = await request(`${BASE}/challenge`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json', origin: 'https://some-site.example' },
+      body: JSON.stringify({
+        client_id: site.client_id,
+        redirect_uri: REDIRECT_URI,
+        code_challenge: challenge,
+        code_challenge_method: 'S256',
+      }),
+    });
+    expect(anyOrigin.status).toBe(201);
+    expect(anyOrigin.headers.get('access-control-allow-origin')).toBe('https://some-site.example');
+    expect(anyOrigin.headers.get('x-content-type-options')).toBe('nosniff');
+    expect(anyOrigin.headers.get('referrer-policy')).toBe('no-referrer');
+
+    const stranger = await request(`${BASE}/me/devices`, {
+      method: 'OPTIONS',
+      headers: {
+        origin: 'https://evil.example',
+        'access-control-request-method': 'GET',
+        'access-control-request-headers': 'authorization',
+      },
+    });
+    expect(stranger.headers.get('access-control-allow-origin')).toBeNull();
+    const dashboard = await request(`${BASE}/me/devices`, {
+      method: 'OPTIONS',
+      headers: {
+        origin: new URL(env.APP_URL).origin,
+        'access-control-request-method': 'GET',
+        'access-control-request-headers': 'authorization',
+      },
+    });
+    expect(dashboard.headers.get('access-control-allow-origin')).toBe(new URL(env.APP_URL).origin);
+  });
+
+  it('the hosted login page carries a nonce CSP that covers exactly its own script and style', async () => {
+    const site = await registerSite({ public: true });
+    const { challenge } = pkcePair();
+    const params = new URLSearchParams({
+      response_type: 'code',
+      client_id: site.client_id,
+      redirect_uri: REDIRECT_URI,
+      scope: 'openid',
+      state: 'st',
+      code_challenge: challenge,
+      code_challenge_method: 'S256',
+    });
+    const page = await request(`${BASE}/authorize?${params.toString()}`);
+    expect(page.status).toBe(200);
+    const csp = page.headers.get('content-security-policy') ?? '';
+    const nonce = /script-src 'nonce-([A-Za-z0-9_-]+)'/.exec(csp)?.[1];
+    expect(nonce).toBeTruthy();
+    expect(csp).toContain("default-src 'none'");
+    expect(csp).toContain("frame-ancestors 'none'");
+    const html = await page.text();
+    expect(html.match(/<script nonce="[^"]+"/g)).toHaveLength(2);
+    expect(html.match(/<script(?! nonce=)/g)).toBeNull();
+    expect(html).toContain(`<style nonce="${nonce}"`);
+  });
+});
+
+describe('F09: request costs are bounded', () => {
+  it('a signed request body past the cap is refused before it is buffered', async () => {
+    const phone = await registerPhone();
+    const big = await signedFetch(phone, 'POST', `/devices/${phone.deviceId}/push-token`, {
+      push_token: 'x'.repeat(70 * 1024),
+      push_platform: 'apns',
+    });
+    expect(big.status).toBe(413);
+    expect(await json(big)).toMatchObject({ error: 'payload_too_large' });
+    const declared = await request(`${BASE}/challenge`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json', 'content-length': String(2 * 1024 * 1024) },
+      body: '{}',
+    });
+    expect(declared.status).toBe(413);
+  });
+});

@@ -1,0 +1,139 @@
+/** Local adversarial probes. Passing tests document a reproduced weakness, not a security pass. */
+import { createExecutionContext, env, waitOnExecutionContext } from 'cloudflare:test';
+import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { sql } from 'drizzle-orm';
+import { revokeDevice } from '@identizen/db';
+import { generateKeyPair, toBase64Url, signIdentityProof } from '@identizen/protocol';
+import { decodeJwt } from 'jose';
+import { createApp } from '../src/app';
+import type { AppOptions } from '../src/hooks';
+import { destinationProblem, fetchOutbound } from '../src/lib/outbound';
+import { BASE, registerSite, registerPhone, startChallenge, approve, request, json, useFetcher, resetDb, dbHandle, loginAndExchange, signedFetch, registrationNonce, exchange } from './helpers';
+
+function configure(options: AppOptions) {
+  const app = createApp(options);
+  useFetcher(async (input, init) => {
+    const ctx = createExecutionContext();
+    const response = await app.fetch(new Request(input, init), env, ctx);
+    await waitOnExecutionContext(ctx);
+    return response;
+  });
+}
+const post = (path: string, body: unknown) => request(`${BASE}${path}`, {
+  method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body),
+});
+beforeEach(resetDb);
+afterEach(() => useFetcher(null));
+
+describe('independent September 8 adversarial probes', () => {
+  it('R01: an unauthenticated test client impersonates a real domain and gets the same subject', async () => {
+    const legitimate = await registerSite({ rp_id: 'bank.example' });
+    const phone = await registerPhone();
+    const real = await loginAndExchange(legitimate, phone);
+    configure({ resolveEnv: (_r, base) => ({ ...base, SITE_VERIFICATION: 'required' }) });
+    const registered = await post('/sites', { name: 'Bank', rp_id: 'bank.example', environment: 'test', redirect_uris: ['https://attacker.example/callback'] });
+    expect(registered.status).toBe(201);
+    const attacker = await json<{ client_id: string; verification: { status: string } }>(registered);
+    expect(attacker.verification.status).toBe('not_required');
+    const ch = await startChallenge({ client_id: attacker.client_id });
+    const res = await approve(phone, ch.challenge_id);
+    expect(res.status).toBe(200);
+    expect((await json<{ sub: string }>(res)).sub).toBe(decodeJwt(real.tokens.id_token).sub);
+  });
+
+  it('R02: revoke between device validation and insertion still produces a usable session', async () => {
+    const site = await registerSite();
+    const phone = await registerPhone();
+    configure({
+      hooks: {
+        onSessionCreate: async ({ services, device }) => {
+          await revokeDevice(services.db, device.id);
+          return {};
+        },
+      },
+    });
+    const login = await loginAndExchange(site, phone);
+    const response = await request(`${BASE}/userinfo`, { headers: { authorization: `Bearer ${login.tokens.access_token}` } });
+    expect(response.status).toBe(200);
+    const db = dbHandle();
+    try {
+      const rows = await db.db.execute(sql`select d.status, s.revoked_at from devices d join sessions s on s.device_id=d.id`);
+      expect(Array.from(rows)).toMatchObject([{ status: 'revoked', revoked_at: null }]);
+    } finally { await db.close(); }
+  });
+
+  it('R03: denial during assertion leaves an active pairing and a success audit', async () => {
+    const site = await registerSite();
+    const phone = await registerPhone();
+    configure({ hooks: { onAssert: async ({ services, challengeId }) => { await services.stores.challenge(challengeId).deny(); } } });
+    const ch = await startChallenge({ client_id: site.client_id, browser_pubkey: 'A'.repeat(87) });
+    const res = await approve(phone, ch.challenge_id);
+    expect(res.status).toBe(500);
+    const db = dbHandle();
+    try {
+      expect(Array.from(await db.db.execute(sql`select status from pairings`))).toMatchObject([{ status: 'active' }]);
+      expect(Array.from(await db.db.execute(sql`select kind from audit_events where kind='login.success'`))).toHaveLength(1);
+    } finally { await db.close(); }
+    expect((await json<{ status: string }>(await request(`${BASE}/challenge/${ch.challenge_id}/state`))).status).toBe('denied');
+  });
+
+  it('R04: concurrent enrollment duplicates the credential, so revoking one row leaves it active', async () => {
+    const phone = await registerPhone();
+    const key = generateKeyPair();
+    const pub = toBase64Url(key.publicKey);
+    const nonce = await registrationNonce();
+    let arrived = 0;
+    let release!: () => void;
+    const gate = new Promise<void>((r) => { release = r; });
+    configure({ hooks: { onEnroll: async () => { arrived++; if (arrived === 2) release(); await gate; } } });
+    const body = { device_pubkey: pub, master_pubkey: toBase64Url(phone.master.publicKey), master_sig: signIdentityProof(pub, phone.master.privateKey, { index: BASE, nonce }), nonce };
+    const replies = await Promise.all([post('/devices', body), post('/devices', body)]);
+    expect(replies.map((r) => r.status)).toEqual([201, 201]);
+    const first = await json<{ device_id: string }>(replies[0]);
+    const second = await json<{ device_id: string }>(replies[1]);
+    expect(first.device_id).not.toBe(second.device_id);
+    expect((await signedFetch(phone, 'POST', `/devices/${first.device_id}/revoke`, {})).status).toBe(200);
+    expect((await signedFetch({ ...phone, device: key, deviceId: second.device_id }, 'GET', '/me/devices')).status).toBe(200);
+  });
+
+  it('R05: outbound timeout ends at headers and never aborts a stalled body', async () => {
+    let signal: AbortSignal | null | undefined;
+    const fakeFetch: typeof fetch = async (_input, init) => {
+      signal = init?.signal;
+      return new Response(new ReadableStream({ start(c) { c.enqueue(new Uint8Array([65])); } }));
+    };
+    const response = await fetchOutbound(fakeFetch, 'https://proof.example', {}, { allowLocal: false }, 10);
+    await new Promise((r) => setTimeout(r, 35));
+    expect(signal?.aborted).toBe(false);
+    await response.body?.cancel();
+    expect(destinationProblem('https://localhost./proof', { allowLocal: false })).toBeNull();
+  });
+
+  it('R06: a different public client can revoke a confidential-client session using its spent code', async () => {
+    const victimSite = await registerSite();
+    const attacker = await registerSite({ public: true, rp_id: 'attacker.example' });
+    const phone = await registerPhone();
+    const login = await loginAndExchange(victimSite, phone);
+    const code = login.login.code;
+    const wrongClient = await exchange(attacker, code, { code_verifier: 'x'.repeat(43) });
+    expect(wrongClient.status).toBe(400);
+    expect((await request(`${BASE}/userinfo`, { headers: { authorization: `Bearer ${login.tokens.access_token}` } })).status).toBe(401);
+  });
+
+  it('negative controls: tenant-scoped management refuses other identities and ordinary OAuth clients', async () => {
+    const site = await registerSite();
+    const first = await registerPhone();
+    const second = await registerPhone();
+    expect((await signedFetch(first, 'POST', `/me/devices/${second.deviceId}/revoke`, {})).status).toBe(403);
+    const login = await loginAndExchange(site, first);
+    configure({ resolveEnv: (_r, base) => ({ ...base, DASHBOARD_CLIENT_IDS: 'first-party-only' }) });
+    expect((await request(`${BASE}/me/devices`, { headers: { authorization: `Bearer ${login.tokens.access_token}` } })).status).toBe(403);
+  });
+
+  it('negative controls: injection strings are stored as data and do not execute SQL', async () => {
+    const name = "Robert'); DROP TABLE devices;--<script>alert(1)</script>";
+    const site = await registerSite({ name });
+    expect(site.name).toBe(name);
+    expect((await registerPhone()).deviceId).toMatch(/^dev_/);
+  });
+});

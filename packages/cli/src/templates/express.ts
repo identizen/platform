@@ -27,13 +27,24 @@ const REDIRECT_URI = \`\${SITE_URL}/api/auth/callback\`;
 /**
  * Where sessions ended by back-channel logout are recorded. The index POSTs a logout token when
  * the person revokes a device or a session in the Identizen app; every instance of your app must
- * see that. The default lives in one process: replace it with your database or cache before
- * running more than one instance (two calls: revoke(sid) and isRevoked(sid)).
+ * see that. The default lives in one process, so it is for development only: with
+ * NODE_ENV=production it refuses to run until you replace it with your database or cache (two
+ * calls: revoke(sid) and isRevoked(sid)). IDENTIZEN_ALLOW_MEMORY_REVOCATIONS=true is the
+ * explicit opt-out for a single-instance deployment that accepts losing revocations on restart.
  */
 const memory = new Set${opts.typescript ? '<string>' : ''}();
+function requireSharedStore() {
+  if (process.env.NODE_ENV === 'production' && process.env.IDENTIZEN_ALLOW_MEMORY_REVOCATIONS !== 'true') {
+    throw new Error(
+      'identizen: the default revocation store lives in one process and forgets on restart; ' +
+        'replace \`revocations\` with your database or cache before production ' +
+        '(or set IDENTIZEN_ALLOW_MEMORY_REVOCATIONS=true for a single instance).',
+    );
+  }
+}
 export const revocations = {
-  revoke: async (sid${opts.typescript ? ': string' : ''}) => { memory.add(sid); },
-  isRevoked: async (sid${opts.typescript ? ': string' : ''}) => memory.has(sid),
+  revoke: async (sid${opts.typescript ? ': string' : ''}) => { requireSharedStore(); memory.add(sid); },
+  isRevoked: async (sid${opts.typescript ? ': string' : ''}) => { requireSharedStore(); return memory.has(sid); },
 };
 
 /**

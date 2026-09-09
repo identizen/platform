@@ -119,6 +119,11 @@ export function rootRoutes(): Hono<AppEnv> {
         endpoints: ENDPOINT_MAP,
       });
     }
+    // A static page with one inline stylesheet and no script (F08).
+    c.header(
+      'Content-Security-Policy',
+      "default-src 'none'; style-src 'unsafe-inline'; img-src 'self' data:; form-action 'none'; frame-ancestors 'none'; base-uri 'none'",
+    );
     return c.html(page(indexUrl, appUrl));
   });
 

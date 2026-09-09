@@ -147,6 +147,10 @@ A unique constraint failed (for example the `rp_id` is already registered).
 
 HTTP 409. The object cannot move to the requested state (for example revoking a device that is already revoked). Read its current state and retry only if it makes sense.
 
+### payload_too_large
+
+HTTP 413. A signed request body was larger than 64 KiB, or any request declared a body over 1 MiB. Assertions and device updates are small; send only the fields the endpoint takes.
+
 ### rate_limited
 
 HTTP 429. Too many challenge, discovery, or `/authorize` requests from one IP address in a minute (`RATE_LIMIT_REQUESTS_PER_IP`, default 60). Try again in a minute.

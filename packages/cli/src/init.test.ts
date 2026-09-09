@@ -171,3 +171,19 @@ describe('helpers', () => {
     expect(a.positionals).toEqual(['extra']);
   });
 });
+
+describe('scaffolded revocation store (F10)', () => {
+  it('both templates refuse the process-local store in production unless opted out', async () => {
+    const { expressTemplate } = await import('./templates/express.js');
+    const { nextTemplate } = await import('./templates/next.js');
+    for (const files of [
+      expressTemplate({ typescript: true }),
+      nextTemplate({ appDir: 'app', libDir: 'lib' }),
+    ]) {
+      const src = files.map((f) => f.content).join('\n');
+      expect(src).toContain("process.env.NODE_ENV === 'production'");
+      expect(src).toContain('IDENTIZEN_ALLOW_MEMORY_REVOCATIONS');
+      expect(src).toContain('replace `revocations` with your database or cache');
+    }
+  });
+});

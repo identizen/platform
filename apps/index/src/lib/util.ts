@@ -1,3 +1,4 @@
+import { ApiError } from './errors';
 import { sha256, toBase64Url, toHex, utf8Encode, randomBytes } from '@identizen/protocol';
 
 /** SHA-256 hex of a secret, for at-rest comparison (client secrets, webhook secrets). */
@@ -23,15 +24,72 @@ export function bearer(header: string | undefined): string | null {
   return m?.[1] ?? null;
 }
 
+/**
+ * The client address the index may believe: Cloudflare's own `CF-Connecting-IP`, or the first
+ * `X-Forwarded-For` hop only when the operator declared a proxy of theirs in front
+ * (`TRUST_PROXY_HEADERS=true`). Anyone can send `X-Forwarded-For`, so without that declaration
+ * it is ignored rather than letting a caller pick their own rate-limit bucket (F09).
+ */
+export function clientIp(
+  headers: { get: (name: string) => string | null },
+  env: { TRUST_PROXY_HEADERS?: string | undefined },
+): string | null {
+  const cf = headers.get('cf-connecting-ip');
+  if (cf) return cf;
+  if (env.TRUST_PROXY_HEADERS !== 'true') return null;
+  return headers.get('x-forwarded-for')?.split(',')[0]?.trim() || null;
+}
+
 /** User-Agent and client IP of the request, for pairing records. */
-export function browserMeta(c: { req: { header: (name: string) => string | undefined } }): {
+export function browserMeta(c: {
+  req: { header: (name: string) => string | undefined; raw: Request };
+  env: { TRUST_PROXY_HEADERS?: string | undefined };
+}): {
   ua: string | null;
   ip: string | null;
 } {
   return {
     ua: c.req.header('user-agent') ?? null,
-    ip: c.req.header('cf-connecting-ip') ?? c.req.header('x-forwarded-for') ?? null,
+    ip: clientIp(c.req.raw.headers, c.env),
   };
+}
+
+/** The most a signed request body may carry: an assertion or a device update, never a document. */
+export const MAX_SIGNED_BODY_BYTES = 64 * 1024;
+
+/**
+ * Read a request body with a cap, before anything is buffered for signature checks: a declared
+ * or actual size past the cap is refused as `413 payload_too_large` (F09).
+ */
+export async function readBodyCapped(
+  c: { req: { raw: Request; header: (name: string) => string | undefined } },
+  maxBytes = MAX_SIGNED_BODY_BYTES,
+): Promise<string> {
+  const declared = Number(c.req.header('content-length') ?? '0');
+  if (declared > maxBytes)
+    throw new ApiError(413, 'payload_too_large', 'request body is too large');
+  const body = c.req.raw.body;
+  if (!body) return '';
+  const reader = body.getReader();
+  const chunks: Uint8Array[] = [];
+  let total = 0;
+  for (;;) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    total += value.byteLength;
+    if (total > maxBytes) {
+      await reader.cancel('body cap reached').catch(() => undefined);
+      throw new ApiError(413, 'payload_too_large', 'request body is too large');
+    }
+    chunks.push(value);
+  }
+  const joined = new Uint8Array(total);
+  let offset = 0;
+  for (const chunk of chunks) {
+    joined.set(chunk, offset);
+    offset += chunk.byteLength;
+  }
+  return new TextDecoder().decode(joined);
 }
 
 export interface ParsedUserAgent {

@@ -1,0 +1,1 @@
+CREATE INDEX "devices_ble_active_idx" ON "devices" USING btree ("last_seen_at" DESC NULLS LAST) WHERE "devices"."status" = 'active' and "devices"."ble_key" is not null;

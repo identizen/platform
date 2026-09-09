@@ -1,4 +1,5 @@
 import { nsName } from '../lib/names';
+import { readBodyCapped } from '../lib/util';
 import { getDevice, type Device } from '@identizen/db';
 import { parseIdzSignature, verifyRequestSignature } from '@identizen/protocol';
 import type { MiddlewareHandler } from 'hono';
@@ -33,7 +34,7 @@ export function deviceAuth(
     const device = await getDevice(db, parsed.device_id);
     if (!device) throw unauthorized('unknown_device', 'device is not registered');
 
-    const rawBody = await c.req.text();
+    const rawBody = await readBodyCapped(c);
     const url = new URL(c.req.url);
     const result = verifyRequestSignature(
       parsed,

@@ -36,12 +36,31 @@ export function qrSvg(text: string): string {
 const esc = (s: string): string =>
   s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
+/** The page's CSP: its two inline scripts carry `nonce`; nothing else runs or loads from elsewhere. */
+export function loginPageCsp(nonce: string, indexUrl: string): string {
+  const ws = new URL(indexUrl);
+  ws.protocol = ws.protocol === 'https:' ? 'wss:' : 'ws:';
+  return [
+    "default-src 'none'",
+    `script-src 'nonce-${nonce}'`,
+    `style-src-elem 'nonce-${nonce}'`,
+    "style-src-attr 'unsafe-inline'",
+    "img-src 'self' data:",
+    `connect-src 'self' ${ws.origin}`,
+    "form-action 'none'",
+    "frame-ancestors 'none'",
+    "base-uri 'none'",
+  ].join('; ');
+}
+
 /**
  * The hosted `/authorize` page. Shows the site name, the match code, a QR (or "check your phone"
  * for step-up), connects to the ChallengeSession over WebSocket, pairs the browser on first
  * approval (P-256 key in IndexedDB), and uses the pairing on later visits to skip the QR.
+ * `nonce` marks its inline script and style for the CSP from `loginPageCsp`.
  */
-export function renderLoginPage(input: LoginPageInput): string {
+export function renderLoginPage(input: LoginPageInput, nonce = ''): string {
+  const n = nonce ? ` nonce="${esc(nonce)}"` : '';
   const cfg = JSON.stringify({
     challengeId: input.challengeId,
     wsUrl: input.wsUrl,
@@ -58,8 +77,8 @@ export function renderLoginPage(input: LoginPageInput): string {
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex">
 <title>Sign in to ${esc(input.rpName)} with Identizen</title>
-<script>(function(){try{var t=localStorage.getItem('idz:theme');if(t==='light'||t==='dark'){document.documentElement.setAttribute('data-theme',t);}}catch(e){}})();</script>
-<style>
+<script${n}>(function(){try{var t=localStorage.getItem('idz:theme');if(t==='light'||t==='dark'){document.documentElement.setAttribute('data-theme',t);}}catch(e){}})();</script>
+<style${n}>
 :root{--s0:oklch(.995 .002 250);--s1:oklch(.975 .003 250);--fg:oklch(.2 .02 260);--muted:oklch(.48 .02 260);--border:oklch(.89 .006 250);--accent:oklch(.55 .19 30);--danger:oklch(.55 .21 15);color-scheme:light}
 :root[data-theme=dark]{--s0:oklch(.17 .012 260);--s1:oklch(.2 .013 260);--fg:oklch(.96 .005 250);--muted:oklch(.72 .015 260);--border:oklch(.28 .014 260);--accent:oklch(.7 .17 30);--danger:oklch(.7 .18 15);color-scheme:dark}
 @media(prefers-color-scheme:dark){:root:not([data-theme=light]){--s0:oklch(.17 .012 260);--s1:oklch(.2 .013 260);--fg:oklch(.96 .005 250);--muted:oklch(.72 .015 260);--border:oklch(.28 .014 260);--accent:oklch(.7 .17 30);--danger:oklch(.7 .18 15);color-scheme:dark}}
@@ -86,7 +105,7 @@ h1{font-size:18px;margin:0 0 4px;font-weight:600;letter-spacing:-.01em}p{margin:
   <p id="status" class="status pulse" aria-live="polite">Waiting for your phone…</p>
   <p class="foot">On this phone? <a href="${esc(input.deepLink)}">Open in Identizen</a></p>
 </main>
-<script>
+<script${n}>
 (function(){
   var cfg=${cfg};
   var status=document.getElementById('status');var hint=document.getElementById('hint');

@@ -50,7 +50,10 @@ export function discoverRoutes(): Hono<AppEnv> {
     const state = await stub.getState();
     if (!state || state.status !== 'pending')
       throw notFound('unknown_challenge', 'no pending challenge');
-    const candidates = await listActiveBleDevices(services.db);
+    // Bounded work per public request: the most recently seen advertisers, up to the limit; a
+    // phone outside that window still has the QR and the deep link (F09).
+    const limit = Math.max(1, Number(c.env.BLE_LOOKUP_LIMIT ?? '') || 5000);
+    const candidates = await listActiveBleDevices(services.db, limit);
     const match = resolveBleId(candidates, fromBase64Url(body.rotating_id), services.now());
     if (!match) throw notFound('no_device', 'no active device advertises this id');
     const device = await requireDevice(services.db, match.id);

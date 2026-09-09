@@ -49,6 +49,24 @@ export interface Env {
   /** Per-minute abuse limits (M10.2); defaults in middleware/rate-limit.ts. */
   RATE_LIMIT_CHALLENGES_PER_CLIENT?: string;
   RATE_LIMIT_REQUESTS_PER_IP?: string;
+  /**
+   * "true" when a reverse proxy the operator controls sits in front of the index and sets
+   * `X-Forwarded-For`; only then is that header believed for rate limits and pairing records.
+   * On Cloudflare the edge's `CF-Connecting-IP` is used and this is unnecessary (F09).
+   */
+  TRUST_PROXY_HEADERS?: string;
+  /**
+   * How many active BLE-advertising devices, most recently seen first, a `/discover/ble` lookup
+   * scans (default 5000): the work one public request can cause is bounded, and a phone that
+   * has not been seen in longer than that falls back to the QR or the deep link (F09).
+   */
+  BLE_LOOKUP_LIMIT?: string;
+  /**
+   * Comma-separated web origins allowed to call the bearer-authenticated `/me/*` routes from a
+   * browser, in addition to `APP_URL`'s origin. Everything else is refused CORS there; the
+   * public login endpoints keep answering any origin, as OIDC public clients need (F08).
+   */
+  CORS_ALLOWED_ORIGINS?: string;
   /** Comma-separated client ids allowed to call /me with a bearer token; "*" allows any (dev only). */
   DASHBOARD_CLIENT_IDS?: string;
   /** Push provider credentials (optional). */

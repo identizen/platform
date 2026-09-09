@@ -4,7 +4,7 @@ import { parseIdzSignature, verifyRequestSignature } from '@identizen/protocol';
 import type { MiddlewareHandler } from 'hono';
 import type { AppEnv } from '../app';
 import { forbidden, unauthorized } from '../lib/errors';
-import { bearer } from '../lib/util';
+import { bearer, readBodyCapped } from '../lib/util';
 import { loadKeyring } from '../oidc/keys';
 import { verifyAccessToken } from '../oidc/tokens';
 
@@ -35,7 +35,7 @@ export function meAuth(
 ): MiddlewareHandler<AppEnv & { Variables: PrincipalVariables }> {
   return async (c, next) => {
     const services = c.get('services');
-    const rawBody = await c.req.text();
+    const rawBody = await readBodyCapped(c);
     c.set('rawBody', rawBody);
 
     const sigHeader = c.req.header('Idz-Signature');

@@ -92,6 +92,10 @@ export const devices = pgTable(
     // A device key is enrolled at most once (PROTOCOL.md §8.1); enforced here, not only by the
     // lookup before insert, so two concurrent enrollments cannot both create a row (F04).
     uniqueIndex('devices_device_pubkey_uidx').on(t.devicePubkey),
+    // `/discover/ble` scans the most recently seen advertisers, bounded; this serves that scan.
+    index('devices_ble_active_idx')
+      .on(t.lastSeenAt.desc())
+      .where(sql`${t.status} = 'active' and ${t.bleKey} is not null`),
     check('devices_push_platform_check', sql`${t.pushPlatform} in ('apns','fcm','web')`),
     check('devices_status_check', sql`${t.status} in ('active','disabled','revoked')`),
   ],

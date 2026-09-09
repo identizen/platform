@@ -114,7 +114,7 @@ export async function GET(req: Request): Promise<Response> {
 
 ## Back-channel logout
 
-When the user revokes a device or a session in the Identizen app, the index POSTs a logout token to `/api/auth/backchannel-logout`. The scaffold records the `sid` through a two-call `revocations` store that the session helper checks on every request. The default lives in one process; point it at your database or cache before running more than one instance. The scaffold signs its session cookie with `IDENTIZEN_SESSION_SECRET`, which `identizen init` generates, never with the OIDC client secret, and sessions last a day (`IDENTIZEN_SESSION_TTL`) unless a revocation ends them first.
+When the user revokes a device or a session in the Identizen app, the index POSTs a logout token to `/api/auth/backchannel-logout`. The scaffold records the `sid` through a two-call `revocations` store that the session helper checks on every request. The default lives in one process, so it is for development only: with `NODE_ENV=production` the scaffold refuses to run until you point it at your database or cache (`IDENTIZEN_ALLOW_MEMORY_REVOCATIONS=true` opts out for a single instance that accepts losing revocations on restart). The scaffold signs its session cookie with `IDENTIZEN_SESSION_SECRET`, which `identizen init` generates, never with the OIDC client secret, and sessions last a day (`IDENTIZEN_SESSION_TTL`) unless a revocation ends them first.
 
 ```ts title="app/api/auth/backchannel-logout/route.ts"
 import { identizen, revocations } from '@/lib/identizen';

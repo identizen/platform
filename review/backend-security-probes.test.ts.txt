@@ -1,0 +1,107 @@
+/** Review probes: these deliberately assert the vulnerable behavior, not desired behavior. */
+import { SELF, env } from 'cloudflare:test';
+import { beforeAll, beforeEach, expect, it } from 'vitest';
+import { sql } from 'drizzle-orm';
+import initialSchema from '../../../db/migrations/0000_init.sql?raw';
+import pairingColumns from '../../../db/migrations/0001_same_omega_red.sql?raw';
+import { rotatingBleIdString, sha256, signIdentityProof, toBase64Url, utf8Encode } from '@identizen/protocol';
+import { BASE, approve, dbHandle, json, registerPhone, registerSite, resetDb, signedFetch, startChallenge } from './helpers';
+
+beforeAll(async () => {
+  expect(new URL(env.HYPERDRIVE.connectionString).pathname).toBe('/identizen_security_review_20260906');
+  const handle = dbHandle();
+  try {
+    const existing = await handle.db.execute(sql`select to_regclass('public.audit_events') as present`);
+    if (!existing[0]?.present) {
+      for (const statement of `${initialSchema}\n--> statement-breakpoint\n${pairingColumns}`.split('--> statement-breakpoint')) {
+        if (statement.trim()) await handle.db.execute(sql.raw(statement));
+      }
+    }
+  } finally { await handle.close(); }
+});
+
+beforeEach(async () => {
+  expect(new URL(env.HYPERDRIVE.connectionString).pathname).toBe('/identizen_security_review_20260906');
+  await resetDb();
+});
+const post = (path: string, body: unknown) => SELF.fetch(`${BASE}${path}`, {
+  method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body),
+});
+
+it('review: public-client tokens can be issued for an unregistered redirect', async () => {
+  const site = await registerSite({ public: true });
+  const phone = await registerPhone();
+  const verifier = 'v'.repeat(43);
+  const redirect = 'https://attacker.example/callback';
+  const started = await startChallenge({ client_id: site.client_id, redirect_uri: redirect,
+    code_challenge: toBase64Url(sha256(utf8Encode(verifier))), code_challenge_method: 'S256' });
+  const approved = await approve(phone, started.challenge_id);
+  expect(approved.status).toBe(200);
+  const result = await json<{ redirect: string }>(approved);
+  expect(new URL(result.redirect).origin).toBe('https://attacker.example');
+  const res = await SELF.fetch(`${BASE}/token`, { method: 'POST', body: new URLSearchParams({
+    grant_type: 'authorization_code', client_id: site.client_id,
+    code: new URL(result.redirect).searchParams.get('code')!, redirect_uri: redirect, code_verifier: verifier,
+  }) });
+  expect(res.status, await res.clone().text()).toBe(200);
+});
+
+it('review: a different identity can approve a targeted verification after BLE retargeting', async () => {
+  const site = await registerSite();
+  const victim = await registerPhone();
+  const attacker = await registerPhone();
+  const login = await startChallenge({ client_id: site.client_id });
+  const { sub } = await json<{ sub: string }>(await approve(victim, login.challenge_id));
+  const headers = { 'content-type': 'application/json', authorization: `Bearer ${site.client_secret}`, 'idz-client-id': site.client_id };
+  const request = await SELF.fetch(`${BASE}/v1/verify`, { method: 'POST', headers, body: JSON.stringify({ sub, reason: 'Approve review transaction' }) });
+  expect(request.status).toBe(201);
+  const v = await json<{ challenge_id: string; verification_id: string }>(request);
+  const discovered = await post('/discover/ble', { challenge_id: v.challenge_id,
+    rotating_id: rotatingBleIdString(attacker.bleKey, Math.floor(Date.now() / 1000)) });
+  expect(discovered.status).toBe(202);
+  const approved = await approve(attacker, v.challenge_id);
+  expect(approved.status, await approved.clone().text()).toBe(200);
+  const result = await json<{ status: string; sub: string; assertion: { payload: { sub: string } } }>(
+    await SELF.fetch(`${BASE}/v1/verify/${v.verification_id}`, { headers }));
+  expect(result.status).toBe('approved');
+  expect(result.sub).toBe(sub);
+  expect(result.assertion.payload.sub).not.toBe(sub);
+});
+
+it('review: an unrelated enrolled device can deny a targeted challenge', async () => {
+  const site = await registerSite();
+  const victim = await registerPhone();
+  const attacker = await registerPhone();
+  const login = await startChallenge({ client_id: site.client_id });
+  const { sub } = await json<{ sub: string }>(await approve(victim, login.challenge_id));
+  const target = await startChallenge({ client_id: site.client_id, acr: 'idz:mfa', login_hint: sub });
+  const res = await signedFetch(attacker, 'POST', `/challenge/${target.challenge_id}/deny`, {});
+  expect(res.status).toBe(200);
+  expect((await env.CHALLENGE_SESSION.getByName(target.challenge_id).getState())?.status).toBe('denied');
+});
+
+it('review: an old enrollment proof registers the same revoked key as active again', async () => {
+  const phone = await registerPhone();
+  const proof = { device_pubkey: toBase64Url(phone.device.publicKey), master_pubkey: toBase64Url(phone.master.publicKey),
+    master_sig: signIdentityProof(toBase64Url(phone.device.publicKey), phone.master.privateKey) };
+  expect((await signedFetch(phone, 'POST', `/devices/${phone.deviceId}/revoke`, {})).status).toBe(200);
+  const res = await post('/devices', proof);
+  expect(res.status).toBe(201);
+  const replacement = await json<{ device_id: string }>(res);
+  expect(replacement.device_id).not.toBe(phone.deviceId);
+  const me = await signedFetch({ ...phone, deviceId: replacement.device_id }, 'GET', '/me/devices');
+  expect(me.status).toBe(200);
+});
+
+it('review: step-up pushes bypass the per-device push quota', async () => {
+  const site = await registerSite();
+  const phone = await registerPhone();
+  const login = await startChallenge({ client_id: site.client_id });
+  const { sub } = await json<{ sub: string }>(await approve(phone, login.challenge_id));
+  const guard = env.REQUEST_GUARD.getByName(phone.deviceId);
+  for (let i = 0; i < 10; i++) expect(await guard.allowPush()).toBe(true);
+  expect(await guard.allowPush()).toBe(false);
+  const res = await post('/challenge', { client_id: site.client_id, acr: 'idz:mfa', login_hint: sub });
+  expect(res.status).toBe(201);
+  expect((await json<{ pushed: boolean }>(res)).pushed).toBe(true);
+});

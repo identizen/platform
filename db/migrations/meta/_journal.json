@@ -29,6 +29,13 @@
       "when": 1788967552316,
       "tag": "0003_device_pubkey_unique",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1788971367708,
+      "tag": "0004_ble_active_index",
+      "breakpoints": true
     }
   ]
 }

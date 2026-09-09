@@ -1,3 +1,4 @@
+import { sql } from 'drizzle-orm';
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import type { DbHandle } from '../src/client';
 import {
@@ -464,5 +465,24 @@ describe('enrollment and sessions under concurrency (F02, F04)', () => {
     ]);
     const s = await getSession(h.db, 'sid_race');
     expect(s === null || s.revokedAt !== null).toBe(true);
+  });
+});
+
+describe('BLE lookup bound (F09)', () => {
+  it('lists the most recently seen advertisers first, at most the limit', async () => {
+    await createIdentity(h.db, { idz: IDZ, masterPubkey: bytes(1) });
+    for (const [i, seen] of [3, 1, 2].entries()) {
+      const id = `dev_01K3ZB2N9G00000000000002${String(i)}0`;
+      await createDevice(h.db, { id, idz: IDZ, devicePubkey: keyFor(id), bleKey: bytes(3) });
+      await h.db.execute(
+        sql`update devices set last_seen_at = now() - make_interval(days => ${seen}) where id = ${id}`,
+      );
+    }
+    const two = await listActiveBleDevices(h.db, 2);
+    expect(two.map((d) => d.id)).toEqual([
+      'dev_01K3ZB2N9G0000000000000210',
+      'dev_01K3ZB2N9G0000000000000220',
+    ]);
+    expect(await listActiveBleDevices(h.db)).toHaveLength(3);
   });
 });

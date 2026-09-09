@@ -1,6 +1,25 @@
 // @ts-check
+import { createHash } from 'node:crypto';
 import { defineConfig } from 'astro/config';
 import starlight from '@astrojs/starlight';
+
+/** CSP hash source for an inline script or style rendered verbatim. */
+const sha256 = (source) => `sha256-${createHash('sha256').update(source).digest('base64')}`;
+
+/** Pinned from the built output (see scripts/check-csp.mjs, which lists any that go missing). */
+const STARLIGHT_INLINE_SCRIPT_HASHES = [
+  // Starlight 0.42.0: ThemeProvider, search modal, theme picker refresh, sidebar restore (two), tabs restore.
+  'sha256-VWo5Wp4aqSj6nSgMpeAp9cKieaoIfwFUAunAVugI5gA=',
+  'sha256-f/zAUE74ucc3JYp4r4QQvkJofoQdkOIhHYK+jeZ6eko=',
+  'sha256-GkZBRnvSuhtx/cvzvukVkX2JJZW+DdPlVr7BX8Tefqo=',
+  'sha256-wX2yOADeV+NMngflD5uYi3vl50SHC4sfM1EmylVjlX4=',
+  'sha256-7eCV4jtsr4t4knb3c4FCRPeu7GGZeOUGE3XvWix0XOQ=',
+  'sha256-OizSKqsU+f0G4vojbxNt0Lao3kUpTmCLQSv3y6P7qhQ=',
+];
+const STARLIGHT_INLINE_STYLE_HASHES = [
+  // src/components/DocCard.astro's scoped style, rendered inside MDX content.
+  'sha256-qO8eZJFSvnt7er76ryw4NpgPD3u4WQSpOnsoEGHjla4=',
+];
 import { unified } from '@astrojs/markdown-remark';
 import tailwindcss from '@tailwindcss/vite';
 import { rehypeMethodChips } from './src/plugins/rehype-method-chips.mjs';
@@ -27,6 +46,35 @@ export default defineConfig({
   markdown: { processor: unified({ rehypePlugins: [rehypeMethodChips] }) },
   // Astro 7 defaults to JSX whitespace rules; keep the lossless output the pages were written for.
   compressHTML: true,
+  // Hash-based CSP (F08): Astro hashes the scripts and stylesheets it and Starlight emit. Pagefind
+  // loads its bundle and index from this origin; nothing external is used. Frame-ancestors and
+  // the rest of the header baseline live in public/_headers.
+  security: {
+    csp: {
+      scriptDirective: {
+        resources: ["'self'"],
+        // Inline scripts Astro does not hash itself: the theme-sync script above (rendered from
+        // Starlight's `head`) and the inline scripts Starlight 0.42 ships (theme provider, search
+        // modal, sidebar restore). scripts/check-csp.mjs fails the build when one of these
+        // changes, so a Starlight upgrade updates this list instead of breaking pages silently.
+        hashes: [sha256(themeSync), ...STARLIGHT_INLINE_SCRIPT_HASHES],
+      },
+      styleDirective: {
+        resources: ["'self'", { resource: "'unsafe-inline'", kind: 'attribute' }],
+        hashes: [...STARLIGHT_INLINE_STYLE_HASHES],
+      },
+      directives: [
+        "default-src 'none'",
+        "img-src 'self' data:",
+        "font-src 'self'",
+        "connect-src 'self'",
+        "form-action 'self'",
+        "base-uri 'self'",
+        "manifest-src 'self'",
+        "object-src 'none'",
+      ],
+    },
+  },
   integrations: [
     starlight({
       title: 'Identizen',

@@ -2,7 +2,7 @@
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "identizen-marketing",
   "main": "@astrojs/cloudflare/entrypoints/server",
-  "compatibility_date": "2025-08-01",
+  "compatibility_date": "2026-09-01",
   "compatibility_flags": ["nodejs_compat"],
   "assets": {
     "binding": "ASSETS",

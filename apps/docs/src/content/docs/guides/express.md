@@ -25,8 +25,10 @@ interface Tx {
   verifier: string;
 }
 const transactions = new Map<string, Tx>();
-// Sessions ended by back-channel logout. This one lives in the process; back it with your
-// database or cache before running more than one instance.
+// Sessions ended by back-channel logout. This one lives in the process, so it is for development
+// only: back it with your database or cache before production. The scaffold's version refuses to
+// run with NODE_ENV=production until you do (IDENTIZEN_ALLOW_MEMORY_REVOCATIONS=true opts out
+// for a single instance that accepts losing revocations on restart).
 const revoked = new Set<string>();
 const revocations = {
   revoke: async (sid: string) => {

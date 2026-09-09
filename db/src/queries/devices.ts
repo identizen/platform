@@ -64,9 +64,13 @@ export async function listDevicesForIdentity(db: Db, idz: string): Promise<Devic
   return db.select().from(devices).where(eq(devices.idz, idz)).orderBy(devices.createdAt);
 }
 
-/** Active devices that advertise over BLE. Used by `/discover/ble` resolution. */
+/**
+ * Active devices that advertise over BLE, most recently seen first, at most `limit` of them.
+ * Used by `/discover/ble` resolution; the partial index `devices_ble_active_idx` serves it.
+ */
 export async function listActiveBleDevices(
   db: Db,
+  limit = 5000,
 ): Promise<(Pick<Device, 'id' | 'idz' | 'pushToken' | 'pushPlatform'> & { bleKey: Uint8Array })[]> {
   const rows = await db
     .select({
@@ -77,7 +81,9 @@ export async function listActiveBleDevices(
       pushPlatform: devices.pushPlatform,
     })
     .from(devices)
-    .where(and(eq(devices.status, 'active'), isNotNull(devices.bleKey)));
+    .where(and(eq(devices.status, 'active'), isNotNull(devices.bleKey)))
+    .orderBy(sql`${devices.lastSeenAt} desc nulls last`)
+    .limit(limit);
   return rows.flatMap((r) => (r.bleKey ? [{ ...r, bleKey: r.bleKey }] : []));
 }
 

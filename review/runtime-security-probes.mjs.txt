@@ -1,0 +1,41 @@
+// Local review probes. No network requests: the SDK receives an in-memory JWKS.
+import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
+import ts from 'typescript';
+import { SignJWT, exportJWK, generateKeyPair } from 'jose';
+import { IdentizenServer } from './packages/sdk/dist/server.js';
+
+const kp = await generateKeyPair('ES256');
+const publicJwk = await exportJWK(kp.publicKey);
+const sdk = new IdentizenServer({
+  indexUrl: 'https://review.invalid', clientId: 'review-client',
+  fetch: async () => Response.json({ keys: [{ ...publicJwk, kid: 'review-key', alg: 'ES256', use: 'sig' }] }),
+});
+const logout = await new SignJWT({ sub: 'review-sub', sid: 'review-sid', events: {
+  'http://schemas.openid.net/event/backchannel-logout': {},
+} }).setProtectedHeader({ alg: 'ES256', kid: 'review-key', typ: 'logout+jwt' })
+  .setIssuer('https://review.invalid').setAudience('review-client').setIssuedAt()
+  .setExpirationTime('2m').sign(kp.privateKey);
+assert.equal((await sdk.verifyIdToken(logout)).sub, 'review-sub');
+console.log('CONFIRMED: SDK verifyIdToken accepts a logout+jwt token when nonce is omitted.');
+
+// Execute the actual RequestGuard class with a storage adapter, then construct a fresh instance
+// against that same adapter to model loss of process memory. This is not a live eviction test.
+const source = readFileSync('apps/index/src/do/request-guard.ts', 'utf8')
+  .replace(/^import .*;\r?\n/gm, '').replace('export class RequestGuard', 'class RequestGuard');
+const js = ts.transpileModule(source, { compilerOptions: { target: ts.ScriptTarget.ES2022,
+  module: ts.ModuleKind.None } }).outputText;
+const Guard = new Function('DurableObject', `${js}\nreturn RequestGuard;`)(class {
+  constructor(ctx) { this.ctx = ctx; }
+});
+const persisted = new Map();
+const ctx = { storage: { setAlarm: async (at) => persisted.set('alarm', at) } };
+const first = new Guard(ctx);
+const now = Math.floor(Date.now() / 1000);
+assert.equal(await first.check(now, 'same-signature'), true);
+assert.equal(await first.check(now, 'same-signature'), false);
+await first.enqueue('review-challenge');
+const restarted = new Guard(ctx);
+assert.equal(await restarted.check(now, 'same-signature'), true);
+assert.deepEqual(restarted.drain(), []);
+console.log('CONFIRMED in class restart simulation: replay accepted and queued inbox entry lost.');
