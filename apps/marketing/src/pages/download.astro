@@ -14,7 +14,7 @@ const stores = [
     store: 'App Store',
     status: 'In App Store review',
     detail:
-      'Submitted and waiting on Apple. Needs iOS with Face ID or Touch ID. The listing appears here the moment it is approved.',
+      'Submitted and waiting on Apple. Needs iOS with Face ID or Touch ID. The listing appears here the moment it is approved; the beta below is the same build, available through TestFlight meanwhile.',
     unlock: 'Face ID or Touch ID',
     href: null as string | null,
   },
@@ -28,6 +28,9 @@ const stores = [
     href: null as string | null,
   },
 ];
+
+/** The TestFlight public link for the iOS beta; the QR in public/ encodes the same URL. */
+const testflight = 'https://testflight.apple.com/join/bxRRDtgY';
 
 const needs = [
   'A phone with a fingerprint or face unlock and a screen lock',
@@ -85,6 +88,45 @@ const needs = [
         ))
       }
     </ul>
+  </section>
+
+  <section class="section border-t border-border" aria-labelledby="beta">
+    <div class="container-site grid items-center gap-12 lg:grid-cols-[1fr_auto]">
+      <div>
+        <p class="eyebrow">iOS beta</p>
+        <h2 id="beta" class="headline mt-3 text-3xl">Try the iPhone app today</h2>
+        <p class="mt-4 text-lg text-fg-muted">
+          The build in App Store review is also on TestFlight, Apple's beta channel, so you do not
+          have to wait for the listing. Scan the code with your iPhone camera or open the link on
+          the phone.
+        </p>
+        <ol class="mt-6 space-y-2 text-sm text-fg-muted">
+          <li>1. Install Apple's free TestFlight app if you do not have it.</li>
+          <li>2. Scan the code, or open the link, and tap Accept, then Install.</li>
+          <li>3. Open Identizen and create your identity. Sign in at the demo bank to see it work.</li>
+        </ol>
+        <div class="mt-6 flex flex-wrap gap-3">
+          <a href={testflight} class="btn btn-primary" rel="noopener">
+            <Icon name="smartphone" />
+            Join the iOS beta
+          </a>
+          <a href="https://jtmerlin.com" class="btn btn-secondary" rel="noopener">
+            Open the demo bank
+          </a>
+        </div>
+        <p class="mt-4 text-xs text-fg-muted">
+          Beta builds expire after 90 days; the App Store version replaces this one when it ships.
+        </p>
+      </div>
+      <a
+        href={testflight}
+        rel="noopener"
+        class="card mx-auto block w-fit p-4"
+        aria-label="Join the Identizen iOS beta on TestFlight"
+      >
+        <img src="/testflight-qr.svg" alt="" width="200" height="200" class="block rounded bg-white" />
+      </a>
+    </div>
   </section>
 
   <section class="section border-t border-border bg-surface-1" aria-labelledby="meanwhile">
