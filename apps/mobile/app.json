@@ -24,7 +24,7 @@
       }
     },
     "android": {
-      "package": "com.identizen.app",
+      "package": "com.identizen.authenticator",
       "adaptiveIcon": {
         "foregroundImage": "./assets/icon.png",
         "backgroundColor": "#fbfbfc"
