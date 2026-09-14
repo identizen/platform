@@ -46,6 +46,10 @@
         "serviceAccountKeyPath": "../../../.eas/identizen-play.json",
         "track": "internal",
         "releaseStatus": "completed"
+      },
+      "ios": {
+        "appleId": "george.rios@pluralsoftware.com",
+        "ascAppId": "6808322640"
       }
     }
   }
