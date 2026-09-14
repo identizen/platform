@@ -5,10 +5,10 @@
     ],
     "target": {
       "namespace": "android_app",
-      "package_name": "com.identizen.app",
+      "package_name": "com.identizen.authenticator",
       "sha256_cert_fingerprints": [
-        "57:EB:5D:0E:5D:DD:09:85:F1:DE:E5:B4:60:3E:DB:1B:76:B4:73:C6:30:C5:C8:EC:F1:1F:EF:7A:A0:80:21:0F",
-        "77:4D:6A:B6:AE:80:3C:9F:FF:42:4D:FC:62:E0:C5:D3:A1:5F:C7:33:70:AB:C2:11:93:4D:31:06:2A:A1:F6:74"
+        "4F:13:1A:40:C6:A2:DE:81:B1:D2:A0:F7:C2:0B:60:F3:06:B3:BA:F5:64:4E:21:CA:B0:9E:A1:BE:71:5D:4A:26",
+        "6D:D2:42:11:2D:E2:F4:EE:DF:1C:B2:A4:8F:25:89:50:CB:BA:C8:7B:33:5F:75:10:6E:FD:B3:D4:C5:C2:3D:CA"
       ]
     }
   }
