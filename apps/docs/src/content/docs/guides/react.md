@@ -214,7 +214,7 @@ npm run dev
 
 `identizen dev` starts a fake phone at `http://localhost:4400` registered with the same index. Click **Continue with Identizen**, paste the deep link (or scan the QR with the real app); the fake phone approves automatically (`--policy manual` to approve by hand). You land on `/callback` signed in. On the second login the browser is paired and the approval pushes straight to the phone with no QR.
 
-The iOS app is in App Store review and the Android app is coming to Google Play. Until then use the fake phone from `identizen dev`, or the playground at https://identizen.com/playground. See [examples](/examples/) for complete sample apps.
+The iPhone app is on the [App Store](https://apps.apple.com/app/identizen/id6808322640) and the Android app is coming to Google Play. Without a phone at hand, use the fake phone from `identizen dev`, or the playground at https://identizen.com/playground. See [examples](/examples/) for complete sample apps.
 
 ## Hosted login instead
 

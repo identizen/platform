@@ -12,11 +12,11 @@ const stores = [
   {
     name: 'iPhone',
     store: 'App Store',
-    status: 'In App Store review',
+    status: 'On the App Store',
     detail:
-      'Submitted and waiting on Apple. Needs iOS with Face ID or Touch ID. The listing appears here the moment it is approved; the beta below is the same build, available through TestFlight meanwhile.',
+      'Version 0.1.0 is live. Needs iOS with Face ID or Touch ID. New builds reach the TestFlight beta below first, then the App Store.',
     unlock: 'Face ID or Touch ID',
-    href: null as string | null,
+    href: 'https://apps.apple.com/app/identizen/id6808322640' as string | null,
   },
   {
     name: 'Android',
@@ -41,12 +41,12 @@ const needs = [
 
 <Base
   title="Download"
-  description="Get the Identizen app. The iOS app is in App Store review and the Android app is coming to Google Play. Both are coming soon; try the playground meanwhile."
+  description="Get the Identizen app. The iPhone app is on the App Store and the Android app is coming to Google Play; try the playground meanwhile."
 >
   <PageHeader
     eyebrow="Download"
-    title="The Identizen app is coming soon."
-    lede="One app holds your identity, approves sign-ins, and lets you see and revoke every device and browser. Both stores are on the way."
+    title="Get the Identizen app."
+    lede="One app holds your identity, approves sign-ins, and lets you see and revoke every device and browser. On the App Store now; Google Play is on the way."
   />
 
   <section class="container-site pb-16" aria-labelledby="stores">
@@ -94,11 +94,11 @@ const needs = [
     <div class="container-site grid items-center gap-12 lg:grid-cols-[1fr_auto]">
       <div>
         <p class="eyebrow">iOS beta</p>
-        <h2 id="beta" class="headline mt-3 text-3xl">Try the iPhone app today</h2>
+        <h2 id="beta" class="headline mt-3 text-3xl">Get new builds first</h2>
         <p class="mt-4 text-lg text-fg-muted">
-          The build in App Store review is also on TestFlight, Apple's beta channel, so you do not
-          have to wait for the listing. Scan the code with your iPhone camera or open the link on
-          the phone.
+          Every iPhone build goes to TestFlight, Apple's beta channel, before the App Store. Join
+          with the code or the link and you get updates days early, with a feedback button built
+          in.
         </p>
         <ol class="mt-6 space-y-2 text-sm text-fg-muted">
           <li>1. Install Apple's free TestFlight app if you do not have it.</li>

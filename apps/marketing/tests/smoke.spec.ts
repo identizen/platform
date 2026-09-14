@@ -9,7 +9,7 @@ const PAGES = [
   ['/faq', 'Questions, answered plainly.'],
   ['/security', "Don't trust our claims. Inspect the design."],
   ['/help', 'Using Identizen'],
-  ['/download', 'The Identizen app is coming soon.'],
+  ['/download', 'Get the Identizen app.'],
   ['/compare/passkeys', 'Identizen and passkeys solve different layers.'],
   ['/blog/sign-up-without-accounts', 'Sign-up without accounts'],
   ['/blog/what-the-phone-actually-signs', 'What the phone actually signs'],
