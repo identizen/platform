@@ -88,22 +88,28 @@ const ld = jsonLd(
     <meta name="twitter:description" content={description} />
     <meta name="twitter:image" content={imageUrl} />
     <meta name="twitter:image:alt" content={imageAlt} />
-    {
-      noindex ? (
-        <meta name="robots" content="noindex" />
-      ) : (
-        <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1" />
-      )
-    }
-    <script type="application/ld+json" is:inline set:html={ld} />
-    <script is:inline set:html={THEME_INIT_SCRIPT} />
+    {noindex ? (
+      <meta name="robots" content="noindex" />
+    ) : (
+      <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1" />
+    )}
+    <script type="application/ld+json" is:inline set:html={ld}></script>
+    <script is:inline set:html={THEME_INIT_SCRIPT}></script>
+    {/* First-party, cookieless page analytics (traks, self-hosted); sends the path only. */}
+    <script
+      is:inline
+      defer
+      data-site="pb_live_dneq118mccwchi0jaq620bq1"
+      src="https://analytics-collect.identizen.com/t.js"
+    ></script>
   </head>
   <body class="flex min-h-screen flex-col bg-surface-0 text-fg antialiased">
     <a
       href="#main"
       class="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-50 focus:rounded-md focus:bg-surface-0 focus:px-3 focus:py-2 focus:outline-2 focus:outline-ring"
-      >Skip to content</a
     >
+      Skip to content
+    </a>
     <Header />
     <main id="main" class="flex-1">
       <slot />

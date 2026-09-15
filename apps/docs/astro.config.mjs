@@ -52,7 +52,7 @@ export default defineConfig({
   security: {
     csp: {
       scriptDirective: {
-        resources: ["'self'"],
+        resources: ["'self'", 'https://analytics-collect.identizen.com'],
         // Inline scripts Astro does not hash itself: the theme-sync script above (rendered from
         // Starlight's `head`) and the inline scripts Starlight 0.42 ships (theme provider, search
         // modal, sidebar restore). scripts/check-csp.mjs fails the build when one of these
@@ -67,7 +67,7 @@ export default defineConfig({
         "default-src 'none'",
         "img-src 'self' data:",
         "font-src 'self'",
-        "connect-src 'self'",
+        "connect-src 'self' https://analytics-collect.identizen.com",
         "form-action 'self'",
         "base-uri 'self'",
         "manifest-src 'self'",
@@ -88,7 +88,18 @@ export default defineConfig({
       favicon: '/favicon.svg',
       customCss: ['./src/styles/theme.css'],
       components: { Hero: './src/components/Hero.astro' },
-      head: [{ tag: 'script', content: themeSync }],
+      head: [
+        { tag: 'script', content: themeSync },
+        // First-party, cookieless page analytics (traks, self-hosted); sends the path only.
+        {
+          tag: 'script',
+          attrs: {
+            defer: true,
+            'data-site': 'pb_live_f82zfsvh4krza3s0wfxyi3cn',
+            src: 'https://analytics-collect.identizen.com/t.js',
+          },
+        },
+      ],
       social: [{ icon: 'github', label: 'GitHub', href: 'https://github.com/identizen/platform' }],
       editLink: { baseUrl: 'https://github.com/identizen/platform/edit/main/apps/docs/' },
       lastUpdated: false,

@@ -39,7 +39,11 @@ export default defineConfig({
   security: {
     csp: {
       scriptDirective: {
-        resources: ["'self'", 'https://challenges.cloudflare.com'],
+        resources: [
+          "'self'",
+          'https://challenges.cloudflare.com',
+          'https://analytics-collect.identizen.com',
+        ],
         // The theme-init script is rendered inline by Base.astro (is:inline, so Astro does not
         // hash it); scripts/check-csp.mjs fails the build if this ever stops matching.
         hashes: [sha256(THEME_INIT_SCRIPT)],
