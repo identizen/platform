@@ -22,10 +22,11 @@ export interface ChallengeState {
   redirect: string | null;
 }
 
-export function getChallenge(id: string): Promise<ChallengeResponse> {
-  return api<ChallengeResponse>(`/challenge/${id}`, { anonymous: true });
+/** `indexUrl` is the issuer a deep link names; the dashboard's own index otherwise. */
+export function getChallenge(id: string, indexUrl?: string): Promise<ChallengeResponse> {
+  return api<ChallengeResponse>(`/challenge/${id}`, { anonymous: true, indexUrl });
 }
 
-export function getChallengeState(id: string): Promise<ChallengeState> {
-  return api<ChallengeState>(`/challenge/${id}/state`, { anonymous: true });
+export function getChallengeState(id: string, indexUrl?: string): Promise<ChallengeState> {
+  return api<ChallengeState>(`/challenge/${id}/state`, { anonymous: true, indexUrl });
 }

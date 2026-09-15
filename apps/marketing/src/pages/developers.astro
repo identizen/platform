@@ -93,7 +93,9 @@ const links: { icon: IconName; label: string; href: string; text: string }[] = [
       <a href={`${SITE.docs}/quickstart`} class="btn btn-primary">
         Quickstart <Icon name="arrow-right" />
       </a>
-      <a href="/playground" class="btn btn-secondary">Open the playground</a>
+      <a href="/playground" class="btn btn-secondary">
+        Open the playground
+      </a>
       <a href="https://jtmerlin.com/docs" class="btn btn-secondary" rel="noopener">
         Read a full integration: JT Merlin Bank
       </a>
@@ -101,7 +103,9 @@ const links: { icon: IconName; label: string; href: string; text: string }[] = [
   </PageHeader>
 
   <section aria-labelledby="quick" class="container-site pb-20">
-    <h2 id="quick" class="sr-only">Quickstarts</h2>
+    <h2 id="quick" class="sr-only">
+      Quickstarts
+    </h2>
     <div class="grid gap-6 lg:grid-cols-2">
       <div class="card p-6">
         <p class="eyebrow">Path A</p>
@@ -125,17 +129,15 @@ const links: { icon: IconName; label: string; href: string; text: string }[] = [
         Three packages, one <code class="font-mono">npm install</code>.
       </h2>
       <ul class="mt-10 grid gap-5 sm:grid-cols-3">
-        {
-          packages.map((p) => (
-            <li class="card card-hover p-6">
-              <span class="icon-tile">
-                <Icon name={p.icon} />
-              </span>
-              <p class="mt-5 font-mono text-sm font-semibold">{p.name}</p>
-              <p class="mt-2 text-sm leading-relaxed text-fg-muted">{p.text}</p>
-            </li>
-          ))
-        }
+        {packages.map((p) => (
+          <li class="card card-hover p-6">
+            <span class="icon-tile">
+              <Icon name={p.icon} />
+            </span>
+            <p class="mt-5 font-mono text-sm font-semibold">{p.name}</p>
+            <p class="mt-2 text-sm leading-relaxed text-fg-muted">{p.text}</p>
+          </li>
+        ))}
       </ul>
     </div>
   </section>
@@ -143,30 +145,34 @@ const links: { icon: IconName; label: string; href: string; text: string }[] = [
   <section aria-labelledby="claims" class="section">
     <div class="container-site">
       <p class="eyebrow">Claims</p>
-      <h2 id="claims" class="headline mt-3 text-3xl">What your site receives</h2>
+      <h2 id="claims" class="headline mt-3 text-3xl">
+        What your site receives
+      </h2>
       <p class="mt-4 max-w-2xl text-fg-muted">
-        An <code class="font-mono text-sm">id_token</code> with these claims. No email: if you need one,
-        ask the user after login like any app.
+        An <code class="font-mono text-sm">id_token</code> with these claims. No email: if you need
+        one, ask the user after login like any app.
       </p>
       <div class="card mt-8 overflow-x-auto">
         <table class="w-full text-sm">
           <thead class="bg-surface-1 text-left text-fg-muted">
             <tr>
-              <th scope="col" class="px-5 py-3 font-medium">Claim</th>
-              <th scope="col" class="px-5 py-3 font-medium">Value</th>
+              <th scope="col" class="px-5 py-3 font-medium">
+                Claim
+              </th>
+              <th scope="col" class="px-5 py-3 font-medium">
+                Value
+              </th>
             </tr>
           </thead>
           <tbody>
-            {
-              claims.map(([k, v]) => (
-                <tr class="border-t border-border">
-                  <th scope="row" class="px-5 py-3 text-left font-mono font-medium">
-                    {k}
-                  </th>
-                  <td class="px-5 py-3 text-fg-muted">{v}</td>
-                </tr>
-              ))
-            }
+            {claims.map(([k, v]) => (
+              <tr class="border-t border-border">
+                <th scope="row" class="px-5 py-3 text-left font-mono font-medium">
+                  {k}
+                </th>
+                <td class="px-5 py-3 text-fg-muted">{v}</td>
+              </tr>
+            ))}
           </tbody>
         </table>
       </div>
@@ -177,37 +183,42 @@ const links: { icon: IconName; label: string; href: string; text: string }[] = [
     <div class="card-gradient grid gap-8 p-8 sm:grid-cols-[1.2fr_1fr] sm:p-10">
       <div>
         <p class="eyebrow">Self-host</p>
-        <h2 id="self" class="headline mt-3 text-3xl">Self-host in one command</h2>
+        <h2 id="self" class="headline mt-3 text-3xl">
+          Self-host in one command
+        </h2>
         <p class="mt-4 leading-relaxed text-fg-muted">
           The same code runs index.identizen.com. Deploy the index as a Cloudflare Worker with
-          Postgres behind Hyperdrive, or run the container. Configuration by environment variables
-          only. Federation over WebFinger means your index and ours resolve each other's handles.
+          Postgres behind Hyperdrive, or run the container, on a domain you own. Your users keep the
+          Identizen app; you host only the index. Configuration by environment variables only.
+          Federation over WebFinger means your index and ours resolve each other's handles.
         </p>
       </div>
       <div class="flex flex-col justify-center gap-3">
-        <a href={`${SITE.docs}/self-hosting`} class="btn btn-primary">Self-hosting guide</a>
-        <a href={`${SITE.docs}/protocol`} class="btn btn-secondary">Read the protocol spec</a>
+        <a href={`${SITE.docs}/self-hosting`} class="btn btn-primary">
+          Self-hosting guide
+        </a>
+        <a href={`${SITE.docs}/protocol`} class="btn btn-secondary">
+          Read the protocol spec
+        </a>
       </div>
     </div>
   </section>
 
   <section class="container-site pb-24">
     <ul class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-      {
-        links.map((l) => (
-          <li>
-            <a href={l.href} class="card card-hover flex h-full flex-col p-5">
-              <span class="icon-tile">
-                <Icon name={l.icon} />
-              </span>
-              <span class="mt-4 flex items-center gap-1 font-medium">
-                {l.label} <Icon name="arrow-right" size={14} />
-              </span>
-              <span class="mt-1 text-sm text-fg-muted">{l.text}</span>
-            </a>
-          </li>
-        ))
-      }
+      {links.map((l) => (
+        <li>
+          <a href={l.href} class="card card-hover flex h-full flex-col p-5">
+            <span class="icon-tile">
+              <Icon name={l.icon} />
+            </span>
+            <span class="mt-4 flex items-center gap-1 font-medium">
+              {l.label} <Icon name="arrow-right" size={14} />
+            </span>
+            <span class="mt-1 text-sm text-fg-muted">{l.text}</span>
+          </a>
+        </li>
+      ))}
     </ul>
   </section>
 </Base>

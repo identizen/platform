@@ -11,6 +11,8 @@ export const SID_DASHBOARD = 'sid_dashboard_0000000000000001';
 export const SID_ACME = 'sid_acme_0000000000000000000002';
 export const CHALLENGE_LOGIN = 'ch_01K3ZB2N9G0000000000000020';
 export const CHALLENGE_MFA = 'ch_01K3ZB2N9G0000000000000021';
+/** A second, self-hosted index the mocks also answer for: deep links that name their issuer. */
+export const OTHER_INDEX_URL = 'https://index.example.test';
 export const IDZ = 'Q4KpB8kZ7QwFHo5n4wKXk1s0JmHkq5pE';
 export const CLIENT_DASHBOARD = 'idz_test_dashboard';
 

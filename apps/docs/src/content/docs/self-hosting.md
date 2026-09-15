@@ -5,6 +5,17 @@ description: Run your own index on Cloudflare Workers or in Docker. Configuratio
 
 The index is one Worker plus Postgres. It stores public keys, push tokens, BLE HMAC keys, revocation state, and audit events — nothing an attacker can log in with. Two supported deployments run the same code.
 
+## What you host, and what you do not
+
+You host the index: the OpenID Provider your sites talk to, at a hostname you own such as `index.example.com`. Everything else stays as it is:
+
+- **Your users keep the Identizen app** from the App Store or Google Play. From app 0.2.0 a phone holds an identity on several indexes at once: a user adds yours from the app's index list (`https://index.example.com`) and approves your sites' logins from then on. Enrollment links that add an index in one tap are part of the [enterprise edition](/enterprise/enrollment/).
+- **Deep links keep pointing at `app.identizen.com`.** Leave `APP_URL` at `https://app.identizen.com`: the universal link the index emits, `https://app.identizen.com/l/<id>?index=https://index.example.com`, opens the app on a phone, and on a desktop shows the match code by reading the challenge from your index. Set `APP_URL` to your own dashboard only if you deploy `apps/web` yourself.
+- **Provider pushes work without our keys.** With `PUSH_PROVIDER` set to anything but `noop`, challenges for the store app are relayed through Expo's push service, which needs no credential from you. Every challenge also lands in the device's inbox, which the app drains while in the foreground, so a login never depends on the push.
+- **Handles are yours.** Names minted on your index are `name@index.example.com`, and other indexes resolve them over WebFinger.
+
+DNS you add: one custom domain for the index (`index.example.com`, on the zone you deploy the Worker to), and per site a `_identizen.<your app host>` TXT record (or the `/.well-known/identizen-site` file) that proves the site's `rp_id` to your index, exactly as on the hosted one.
+
 ## Cloudflare Workers
 
 Requirements: a Cloudflare account, `wrangler` logged in, and any Postgres (Neon, RDS, your own) reachable through [Hyperdrive](https://developers.cloudflare.com/hyperdrive/).
@@ -20,7 +31,7 @@ Put the Hyperdrive id in `apps/index/wrangler.jsonc` (`hyperdrive[0].id`) and se
 | Variable                           | Meaning                                                                                                                                                                                               |
 | ---------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `INDEX_URL`                        | Public issuer URL, e.g. `https://index.example.com`                                                                                                                                                   |
-| `APP_URL`                          | Where deep links point (`https://app.example.com/l/<id>`); the dashboard PWA                                                                                                                          |
+| `APP_URL`                          | Where deep links point (`<APP_URL>/l/<id>?index=<INDEX_URL>`). Keep `https://app.identizen.com` unless you deploy the dashboard PWA yourself                                                          |
 | `PUSH_PROVIDER`                    | `noop` (default; inbox only, no provider pushes). Any other value enables the real senders, chosen per device by its token and the credentials below                                                  |
 | `SITE_VERIFICATION`                | `required` (default): a live site must prove its `rp_id` by DNS TXT or the well-known file before it can start logins (PROTOCOL.md §8.2); `off` for local development, where hosts cannot be verified |
 | `OPEN_SITE_REGISTRATION`           | `true` lets anyone `POST /sites` (development only: anyone could register a name they do not own); otherwise set `SITE_REGISTRATION_TOKEN`                                                            |

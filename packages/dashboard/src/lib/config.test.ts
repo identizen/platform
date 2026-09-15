@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { indexUrlFromHost, resolveIndexUrl } from './config';
+import { indexUrlFromHost, normalizeIndexUrl, resolveIndexUrl } from './config';
 
 describe('indexUrlFromHost', () => {
   it('maps a tenant app host to the tenant index', () => {
@@ -12,6 +12,26 @@ describe('indexUrlFromHost', () => {
     expect(indexUrlFromHost('localhost')).toBeNull();
     expect(indexUrlFromHost('index.identizen.com')).toBeNull();
     expect(indexUrlFromHost('acme.app')).toBeNull();
+  });
+});
+
+describe('normalizeIndexUrl', () => {
+  it('accepts an https origin and plain http on loopback, lowercased, without a trailing slash', () => {
+    expect(normalizeIndexUrl('https://Index.Example.com/')).toBe('https://index.example.com');
+    expect(normalizeIndexUrl(' https://index.example.com:8443 ')).toBe(
+      'https://index.example.com:8443',
+    );
+    expect(normalizeIndexUrl('http://localhost:8787')).toBe('http://localhost:8787');
+    expect(normalizeIndexUrl('http://127.0.0.1:8787/')).toBe('http://127.0.0.1:8787');
+  });
+
+  it('refuses plain http elsewhere, paths, queries, and junk', () => {
+    expect(normalizeIndexUrl('http://index.example.com')).toBeNull();
+    expect(normalizeIndexUrl('https://index.example.com/v1')).toBeNull();
+    expect(normalizeIndexUrl('https://index.example.com?x=1')).toBeNull();
+    expect(normalizeIndexUrl('javascript:alert(1)')).toBeNull();
+    expect(normalizeIndexUrl('')).toBeNull();
+    expect(normalizeIndexUrl(null)).toBeNull();
   });
 });
 

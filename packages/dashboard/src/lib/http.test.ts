@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { getSession, setSession } from '../features/auth';
-import { MOCK_SESSION } from '../mocks/fixtures';
+import { MOCK_SESSION, OTHER_INDEX_URL } from '../mocks/fixtures';
 import { ApiError, UnauthorizedError, api } from './http';
 import { relativeTime, shortId } from './format';
 
@@ -33,6 +33,21 @@ describe('api', () => {
       anonymous: true,
     });
     expect(state.status).toBe('pending');
+  });
+
+  it('calls another index when the caller names one', async () => {
+    const calls: string[] = [];
+    const fetchImpl: typeof fetch = (input, init) => {
+      calls.push(input instanceof Request ? input.url : input.toString());
+      return fetch(input, init);
+    };
+    const state = await api<{ status: string }>('/challenge/ch_01K3ZB2N9G0000000000000020/state', {
+      anonymous: true,
+      indexUrl: OTHER_INDEX_URL,
+      fetchImpl,
+    });
+    expect(state.status).toBe('pending');
+    expect(calls).toEqual([`${OTHER_INDEX_URL}/challenge/ch_01K3ZB2N9G0000000000000020/state`]);
   });
 });
 

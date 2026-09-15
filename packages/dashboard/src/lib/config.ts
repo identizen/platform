@@ -54,6 +54,22 @@ export const INDEX_URL: string = resolveIndexUrl({
   hostname: typeof location === 'undefined' ? undefined : location.hostname,
 });
 
+/**
+ * An index issuer named by a link (`?index=`): https origin, or plain http on a loopback host for
+ * development; null for anything else. Same rule as the phone, so a link both accept is the same.
+ */
+export function normalizeIndexUrl(raw: string | null | undefined): string | null {
+  if (!raw) return null;
+  const m = /^(https?):\/\/([^/?#\s]+)\/*$/i.exec(raw.trim());
+  if (!m) return null;
+  const scheme = (m[1] ?? '').toLowerCase();
+  const host = (m[2] ?? '').toLowerCase();
+  const hostname = host.replace(/:\d+$/, '');
+  const loopback = hostname === 'localhost' || hostname === '127.0.0.1' || hostname === '[::1]';
+  if (scheme !== 'https' && !loopback) return null;
+  return `${scheme}://${host}`;
+}
+
 export const MOCK_MODE: boolean = viteEnv('VITE_IDENTIZEN_MOCK') === '1';
 
 export function appOrigin(): string {

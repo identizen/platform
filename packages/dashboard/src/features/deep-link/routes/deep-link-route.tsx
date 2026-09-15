@@ -1,6 +1,7 @@
-import { useParams } from '@tanstack/react-router';
+import { useParams, useSearch } from '@tanstack/react-router';
 import { Button, Card, CardContent, CardDescription, CardHeader, CardTitle } from '@identizen/ui';
 import { Smartphone } from 'lucide-react';
+import { normalizeIndexUrl } from '../../../lib/config';
 import { useChallenge, useChallengeState } from '../hooks/use-challenge';
 
 const STATUS_TEXT: Record<string, string> = {
@@ -12,16 +13,22 @@ const STATUS_TEXT: Record<string, string> = {
 
 /**
  * `/l/:challengeId`: universal-link landing. On a phone with the app installed the OS opens the
- * app before this page renders; otherwise show the site, the match code, and a way in.
+ * app before this page renders; otherwise show the site, the match code, and a way in. A link
+ * from another index (self-hosted, `?index=<issuer>`) is read from that index and the app link
+ * carries the issuer along, the way the phone expects it.
  */
 export function DeepLinkRoute() {
   // The package has no registered route tree, so params are untyped here; the app's router
   // mounts this route at `/l/$challengeId`.
   const params: Record<string, unknown> = useParams({ strict: false });
   const challengeId = typeof params.challengeId === 'string' ? params.challengeId : '';
-  const challenge = useChallenge(challengeId);
-  const state = useChallengeState(challengeId, challenge.isSuccess);
-  const appUrl = `identizen://l/${challengeId}`;
+  const search: Record<string, unknown> = useSearch({ strict: false });
+  const indexUrl = normalizeIndexUrl(typeof search.index === 'string' ? search.index : null);
+  const challenge = useChallenge(challengeId, indexUrl ?? undefined);
+  const state = useChallengeState(challengeId, challenge.isSuccess, indexUrl ?? undefined);
+  const appUrl = indexUrl
+    ? `identizen://l/${challengeId}?index=${encodeURIComponent(indexUrl)}`
+    : `identizen://l/${challengeId}`;
   const status = state.data?.status ?? challenge.data?.status ?? 'pending';
 
   return (
@@ -74,8 +81,7 @@ export function DeepLinkRoute() {
                   Do not have the app?{' '}
                   <a href="https://identizen.com/download/" className="text-accent underline">
                     Get the Identizen app
-                  </a>{' '}
-                  (App Store and Google Play links coming with the first release).
+                  </a>
                 </p>
               </>
             ) : null}

@@ -22,6 +22,29 @@ test('deep link for a step-up shows the reason', async ({ page }) => {
   await expect(page.getByTestId('code')).toHaveText('08');
 });
 
+test('a deep link naming another index is read from that index and the app link carries it', async ({
+  page,
+}) => {
+  const issuer = 'https://index.example.test';
+  await page.goto(`/l/ch_01K3ZB2N9G0000000000000020?index=${encodeURIComponent(issuer)}`);
+  await expect(page.getByText('Acme Demo is asking you to approve.')).toBeVisible();
+  await expect(page.getByTestId('open-app')).toHaveAttribute(
+    'href',
+    `identizen://l/ch_01K3ZB2N9G0000000000000020?index=${encodeURIComponent(issuer)}`,
+  );
+});
+
+test('a deep link naming an index over plain http falls back to the dashboard index', async ({
+  page,
+}) => {
+  await page.goto('/l/ch_01K3ZB2N9G0000000000000020?index=http%3A%2F%2Findex.example.test');
+  await expect(page.getByText('Acme Demo is asking you to approve.')).toBeVisible();
+  await expect(page.getByTestId('open-app')).toHaveAttribute(
+    'href',
+    'identizen://l/ch_01K3ZB2N9G0000000000000020',
+  );
+});
+
 test('unknown deep link is explained', async ({ page }) => {
   await page.goto('/l/ch_01K3ZB2N9G0000000000000099');
   await expect(page.getByText('This link is not valid any more.')).toBeVisible();

@@ -24,6 +24,8 @@ export interface ApiOptions {
   body?: unknown;
   /** Skip the bearer token (public endpoints). */
   anonymous?: boolean;
+  /** Call another index than the dashboard's own (a deep link names the index that issued it). */
+  indexUrl?: string | undefined;
   fetchImpl?: typeof fetch;
 }
 
@@ -41,7 +43,7 @@ export async function api<T>(path: string, opts: ApiOptions = {}): Promise<T> {
     if (!session) throw new UnauthorizedError('no session');
     headers.authorization = `Bearer ${session.accessToken}`;
   }
-  const res = await fetchImpl(`${INDEX_URL}${path}`, {
+  const res = await fetchImpl(`${opts.indexUrl ?? INDEX_URL}${path}`, {
     method: opts.method ?? 'GET',
     headers,
     ...(opts.body !== undefined && { body: JSON.stringify(opts.body) }),
