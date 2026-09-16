@@ -13,7 +13,7 @@ There is no sign-up. When Identizen provisions the tenant, we also create an inv
 
 What the owner does:
 
-1. Enroll a phone on the tenant index: install the Identizen app, create or restore an identity, then add the tenant index. The phone holds one identity on several indexes at once: **Settings → Indexes → Add index** with `https://{tenant}.index.identizen.com` registers the same identity there, next to the public one, and an enrollment link does the same on its own; nothing on the public index changes. A tenant index still knows only its own registrations: an identity that exists only on the public index or on another tenant is not one of its own until the phone registers there. (Several indexes on one phone ships with the next app build; the build in the stores today registers with one index at a time, set in **Settings** before registering.)
+1. Enroll a phone on the tenant index: install the Identizen app, create or restore an identity, then add the tenant index. The phone holds one identity on several indexes at once: **Settings → Indexes → Add index** with `https://{tenant}.index.identizen.com` registers the same identity there, next to the public one, and an enrollment link does the same on its own; nothing on the public index changes. A tenant index still knows only its own registrations: an identity that exists only on the public index or on another tenant is not one of its own until the phone registers there. (Several indexes on one phone needs app 0.2.0 or later.)
 2. Open the invitation link. The page says "You are invited to administer _{org}_" and offers **Sign in to accept**.
 3. Approve the sign-in on the phone. Back in the portal the invitation is accepted without another click, and the overview appears.
 

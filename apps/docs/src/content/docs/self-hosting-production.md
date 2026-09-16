@@ -43,7 +43,7 @@ Order matters: a phone that meets a challenge signed by the new key before the s
 1. In the app, Settings → **Indexes** → **Forget this index** for your index. (When it is the only index on the phone the app refuses, so use **Forget identity on this phone** instead, restore from the 24 words, and choose your index under **Advanced: index URL** on the restore screen.)
 2. Settings → **Indexes** → **Add index** with your index URL. The phone registers a new `device_id` there, with a fresh device key and the same seed, and pins the new key. Any other index on the phone is untouched.
 
-Both steps are in the next app build; the build in the stores today holds one index at a time, so there the person forgets the identity, restores from the 24 words, sets the index URL in Settings, and taps **Register this phone** on Home.
+Both steps need app 0.2.0 or later; on 0.1.0, which holds one index at a time, the person forgets the identity, restores from the 24 words, sets the index URL in Settings, and taps **Register this phone** on Home.
 
 The person's `sub` at every site is unchanged because it derives from the seed and the site's `rp_id`. Their old device row stays `active` on the index until they revoke it from the new phone's Devices tab or the dashboard. Until then a browser paired to the old device pushes each login to a device that no longer exists and the login times out, so revoking is part of the procedure; revocation ends the old pairings and sessions, and those browsers show the QR once and pair again. There is no way to do this for everyone at once. Back this key up first, and rotate it on a schedule with the steps above so a compromise is the only event that ever needs this procedure.
 
@@ -129,7 +129,7 @@ The steps:
    ```
 
 2. Add the new issuer, `client_id`, and secret to your application. Because `sub` is identical on both indexes, you can accept id_tokens from both issuers for a transition period and look up the same user row either way. Verify each token against the JWKS of the issuer named in its `iss`.
-3. Tell your users to add the new index on their phone: Settings → **Indexes** → **Add index** with your index URL (next app build; on the build in the stores today the phone holds one index, so the steps are the key-loss ones above). The phone then holds the same identity on both indexes and approves each request on the index that issued it, so logins to sites that stayed on the hosted index keep working.
+3. Tell your users to add the new index on their phone: Settings → **Indexes** → **Add index** with your index URL (app 0.2.0 or later; on 0.1.0 the phone holds one index, so the steps are the key-loss ones above). The phone then holds the same identity on both indexes and approves each request on the index that issued it, so logins to sites that stayed on the hosted index keep working.
 4. When everyone has moved, drop the old issuer from your configuration. The registration on the hosted index can stay; it holds a hashed secret and your redirect URIs, nothing more.
 
 The hosted index exports or deletes an identity's records on the holder's request, as described in the [privacy policy](https://identizen.com/legal/privacy/). A [tenant index on Identizen Cloud](/enterprise/cloud-setup/#data-residency) puts an organization's data in the US or the EU, chosen at provisioning; nothing promises a migration tool between the hosted index, a tenant index, and a self-hosted one beyond the steps above.

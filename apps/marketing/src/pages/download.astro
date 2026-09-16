@@ -17,7 +17,7 @@ const stores = [
     icon: 'apple' as BrandIconName,
     status: 'On the App Store',
     detail:
-      'Version 0.1.0 is live. Needs iOS with Face ID or Touch ID. New builds reach the TestFlight beta below first, then the App Store.',
+      'Version 0.2.0 is live. Needs iOS with Face ID or Touch ID. New builds reach the TestFlight beta below first, then the App Store.',
     unlock: 'Face ID or Touch ID',
     href: 'https://apps.apple.com/app/identizen/id6808322640' as string | null,
   },
@@ -54,45 +54,45 @@ const needs = [
   />
 
   <section class="container-site pb-16" aria-labelledby="stores">
-    <h2 id="stores" class="sr-only">Store status</h2>
+    <h2 id="stores" class="sr-only">
+      Store status
+    </h2>
     <ul class="grid gap-5 md:grid-cols-2">
-      {
-        stores.map((s) => (
-          <li class="card flex flex-col p-6">
-            <div class="flex items-center justify-between gap-4">
-              <div class="flex items-center gap-3">
-                <span class="icon-tile">
-                  <Icon name="smartphone" />
-                </span>
-                <div>
-                  <h3 class="font-semibold tracking-tight">{s.name}</h3>
-                  <p class="text-sm text-fg-muted">{s.store}</p>
-                </div>
+      {stores.map((s) => (
+        <li class="card flex flex-col p-6">
+          <div class="flex items-center justify-between gap-4">
+            <div class="flex items-center gap-3">
+              <span class="icon-tile">
+                <Icon name="smartphone" />
+              </span>
+              <div>
+                <h3 class="font-semibold tracking-tight">{s.name}</h3>
+                <p class="text-sm text-fg-muted">{s.store}</p>
               </div>
-              <span class="inline-flex items-center gap-1.5 rounded-full border border-accent/30 bg-accent-soft px-2.5 py-0.5 text-xs font-medium text-accent-soft-fg">
-                <span class="h-1.5 w-1.5 rounded-full bg-accent" aria-hidden="true" />
-                {s.status}
-              </span>
             </div>
-            <p class="mt-5 text-sm leading-relaxed text-fg-muted">{s.detail}</p>
-            <p class="mt-4 font-mono text-xs text-fg-muted">Unlocks with {s.unlock}</p>
-            {s.href ? (
-              <a href={s.href} class="btn btn-primary mt-6 self-start" rel="noopener">
-                <BrandIcon name={s.icon} />
-                Get it on the {s.store}
-              </a>
-            ) : (
-              <span
-                class="btn btn-secondary mt-6 cursor-default self-start opacity-70"
-                aria-disabled="true"
-              >
-                <BrandIcon name={s.icon} />
-                Coming soon
-              </span>
-            )}
-          </li>
-        ))
-      }
+            <span class="inline-flex items-center gap-1.5 rounded-full border border-accent/30 bg-accent-soft px-2.5 py-0.5 text-xs font-medium text-accent-soft-fg">
+              <span class="h-1.5 w-1.5 rounded-full bg-accent" aria-hidden="true" />
+              {s.status}
+            </span>
+          </div>
+          <p class="mt-5 text-sm leading-relaxed text-fg-muted">{s.detail}</p>
+          <p class="mt-4 font-mono text-xs text-fg-muted">Unlocks with {s.unlock}</p>
+          {s.href ? (
+            <a href={s.href} class="btn btn-primary mt-6 self-start" rel="noopener">
+              <BrandIcon name={s.icon} />
+              Get it on the {s.store}
+            </a>
+          ) : (
+            <span
+              class="btn btn-secondary mt-6 cursor-default self-start opacity-70"
+              aria-disabled="true"
+            >
+              <BrandIcon name={s.icon} />
+              Coming soon
+            </span>
+          )}
+        </li>
+      ))}
     </ul>
   </section>
 
@@ -100,16 +100,19 @@ const needs = [
     <div class="container-site grid items-center gap-12 lg:grid-cols-[1fr_auto]">
       <div>
         <p class="eyebrow">iOS beta</p>
-        <h2 id="beta" class="headline mt-3 text-3xl">Get new builds first</h2>
+        <h2 id="beta" class="headline mt-3 text-3xl">
+          Get new builds first
+        </h2>
         <p class="mt-4 text-lg text-fg-muted">
           Every iPhone build goes to TestFlight, Apple's beta channel, before the App Store. Join
-          with the code or the link and you get updates days early, with a feedback button built
-          in.
+          with the code or the link and you get updates days early, with a feedback button built in.
         </p>
         <ol class="mt-6 space-y-2 text-sm text-fg-muted">
           <li>1. Install Apple's free TestFlight app if you do not have it.</li>
           <li>2. Scan the code, or open the link, and tap Accept, then Install.</li>
-          <li>3. Open Identizen and create your identity. Sign in at the demo bank to see it work.</li>
+          <li>
+            3. Open Identizen and create your identity. Sign in at the demo bank to see it work.
+          </li>
         </ol>
         <div class="mt-6 flex flex-wrap gap-3">
           <a href={testflight} class="btn btn-primary" rel="noopener">
@@ -130,7 +133,13 @@ const needs = [
         class="card mx-auto block w-fit p-4"
         aria-label="Join the Identizen iOS beta on TestFlight"
       >
-        <img src="/testflight-qr.svg" alt="" width="200" height="200" class="block rounded bg-white" />
+        <img
+          src="/testflight-qr.svg"
+          alt=""
+          width="200"
+          height="200"
+          class="block rounded bg-white"
+        />
       </a>
     </div>
   </section>
@@ -139,7 +148,9 @@ const needs = [
     <div class="container-site grid gap-12 lg:grid-cols-2">
       <div>
         <p class="eyebrow">Meanwhile</p>
-        <h2 id="meanwhile" class="headline mt-3 text-3xl">Try it without the app</h2>
+        <h2 id="meanwhile" class="headline mt-3 text-3xl">
+          Try it without the app
+        </h2>
         <p class="mt-4 text-lg text-fg-muted">
           The playground runs a real login against the hosted index with a virtual phone in your
           browser, so you can see the match code, the approval, and the token today.
@@ -149,26 +160,29 @@ const needs = [
             <Icon name="smartphone" />
             Open the playground
           </a>
-          <a href="/contact" class="btn btn-secondary">Ask about early access</a>
+          <a href="/contact" class="btn btn-secondary">
+            Ask about early access
+          </a>
         </div>
       </div>
       <div>
         <p class="eyebrow">What you need</p>
         <ul class="mt-4 space-y-3 text-sm">
-          {
-            needs.map((n) => (
-              <li class="flex items-start gap-3">
-                <span class="mt-0.5 inline-flex h-5 w-5 items-center justify-center rounded-full bg-success-soft text-success-soft-fg">
-                  <Icon name="check" size={12} />
-                </span>
-                <span class="text-fg-muted">{n}</span>
-              </li>
-            ))
-          }
+          {needs.map((n) => (
+            <li class="flex items-start gap-3">
+              <span class="mt-0.5 inline-flex h-5 w-5 items-center justify-center rounded-full bg-success-soft text-success-soft-fg">
+                <Icon name="check" size={12} />
+              </span>
+              <span class="text-fg-muted">{n}</span>
+            </li>
+          ))}
         </ul>
         <p class="mt-6 text-sm text-fg-muted">
-          Once installed, the <a href="/help" class="link">help page</a> covers the first sign-in, paired
-          browsers, new phones, and lost phones.
+          Once installed, the{' '}
+          <a href="/help" class="link">
+            help page
+          </a>{' '}
+          covers the first sign-in, paired browsers, new phones, and lost phones.
         </p>
       </div>
     </div>
@@ -178,7 +192,10 @@ const needs = [
     <p class="max-w-2xl text-sm text-fg-muted">
       Building a site? You do not need the app to integrate: the CLI ships a fake phone for
       development and CI. Start with the
-      <a href={`${SITE.docs}/quickstart`} class="link" rel="noopener">quickstart</a>.
+      <a href={`${SITE.docs}/quickstart`} class="link" rel="noopener">
+        quickstart
+      </a>
+      .
     </p>
   </section>
 </Base>
