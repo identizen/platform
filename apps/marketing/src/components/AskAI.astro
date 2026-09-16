@@ -1,6 +1,7 @@
 ---
 /**
- * Floating "ask an AI about Identizen" buttons: left edge, vertically centered, desktop only.
+ * Floating "ask an AI about Identizen" buttons: left edge, vertically centered, only from the
+ * width where they clear the 75rem container (`container-site`) with a 1rem gap.
  * Each circle opens an assistant with the prompt from @identizen/ui/ask-ai already typed.
  */
 import { ASK_AI_PROMPT, ASK_AI_TARGETS } from '@identizen/ui/ask-ai';
@@ -8,7 +9,7 @@ import { ASK_AI_PROMPT, ASK_AI_TARGETS } from '@identizen/ui/ask-ai';
 
 <aside
   aria-label="Ask an AI assistant about Identizen"
-  class="fixed top-1/2 left-4 z-40 hidden -translate-y-1/2 flex-col gap-3 lg:flex"
+  class="ask-ai fixed top-1/2 left-4 z-40 hidden -translate-y-1/2 flex-col gap-3"
   data-testid="ask-ai"
 >
   {ASK_AI_TARGETS.map((t) => (
@@ -38,6 +39,11 @@ import { ASK_AI_PROMPT, ASK_AI_TARGETS } from '@identizen/ui/ask-ai';
 </aside>
 
 <style>
+  @media (min-width: 1360px) {
+    .ask-ai {
+      display: flex;
+    }
+  }
   /* Brand colors per assistant; kept here rather than as style attributes so the CSP stays hash-only. */
   .ask-ai-chatgpt {
     background: #10a37f;

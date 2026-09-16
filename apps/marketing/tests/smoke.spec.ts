@@ -167,7 +167,7 @@ test('search, social and answer-engine discovery', async ({ page, request }) => 
 test('floating ask-an-AI buttons open each assistant with the prompt, desktop only', async ({
   page,
 }) => {
-  await page.setViewportSize({ width: 1280, height: 800 });
+  await page.setViewportSize({ width: 1400, height: 800 });
   await page.goto('/');
   const aside = page.getByTestId('ask-ai');
   await expect(aside).toBeVisible();
@@ -183,6 +183,7 @@ test('floating ask-an-AI buttons open each assistant with the prompt, desktop on
     expect(href?.startsWith(host)).toBe(true);
     expect(decodeURIComponent(href ?? '')).toContain('https://identizen.com/llms.txt');
   }
-  await page.setViewportSize({ width: 800, height: 800 });
+  // Below 1360px the buttons would sit over the 75rem container's content.
+  await page.setViewportSize({ width: 1280, height: 800 });
   await expect(aside).toBeHidden();
 });

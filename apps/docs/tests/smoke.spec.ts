@@ -103,6 +103,7 @@ test('floating ask-an-AI buttons are on every page, desktop only', async ({ page
   const href = await page.getByTestId('ask-ai-claude').getAttribute('href');
   expect(href?.startsWith('https://claude.ai/new?q=')).toBe(true);
   expect(decodeURIComponent(href ?? '')).toContain('https://docs.identizen.com/llms.txt');
-  await page.setViewportSize({ width: 700, height: 800 });
+  // Below 72rem Starlight has no right column, so the corner would cover text.
+  await page.setViewportSize({ width: 1100, height: 800 });
   await expect(aside).toBeHidden();
 });

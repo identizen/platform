@@ -1,7 +1,8 @@
 ---
 /**
  * Floating "ask an AI about Identizen" buttons for the docs: bottom-right corner, tooltips to
- * the left, shown from the width where Starlight opens its sidebar (50rem). Same circles, marks,
+ * the left, shown from the width where Starlight adds its right column (72rem), so the corner
+ * holds no text. Same circles, marks,
  * colors and prompt as the marketing site (@identizen/ui/ask-ai).
  */
 import { ASK_AI_PROMPT, ASK_AI_TARGETS } from '@identizen/ui/ask-ai';
@@ -40,7 +41,7 @@ import { ASK_AI_PROMPT, ASK_AI_TARGETS } from '@identizen/ui/ask-ai';
     flex-direction: column;
     gap: 0.75rem;
   }
-  @media (min-width: 50rem) {
+  @media (min-width: 72rem) {
     .ask-ai {
       display: flex;
     }
