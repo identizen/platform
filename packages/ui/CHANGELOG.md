@@ -1,5 +1,11 @@
 # @identizen/ui
 
+## 0.1.1
+
+### Patch Changes
+
+- e819b31: `@identizen/ui/ask-ai` exports the "ask an AI about Identizen" prompt and assistant targets (ChatGPT, Perplexity, Claude) that the marketing and docs sites render as floating buttons.
+
 ## 0.1.0
 
 ### Minor Changes
