@@ -12,6 +12,7 @@
     ".": "./src/index.ts",
     "./tokens.css": "./src/tokens.css",
     "./theme": "./src/theme.ts",
+    "./ask-ai": "./src/ask-ai.ts",
     "./components/*": "./src/components/*",
     "./brand/*": "./brand/*"
   },

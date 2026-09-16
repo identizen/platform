@@ -1,0 +1,51 @@
+---
+/**
+ * Floating "ask an AI about Identizen" buttons: left edge, vertically centered, desktop only.
+ * Each circle opens an assistant with the prompt from @identizen/ui/ask-ai already typed.
+ */
+import { ASK_AI_PROMPT, ASK_AI_TARGETS } from '@identizen/ui/ask-ai';
+---
+
+<aside
+  aria-label="Ask an AI assistant about Identizen"
+  class="fixed top-1/2 left-4 z-40 hidden -translate-y-1/2 flex-col gap-3 lg:flex"
+  data-testid="ask-ai"
+>
+  {ASK_AI_TARGETS.map((t) => (
+    <a
+      href={t.href(ASK_AI_PROMPT)}
+      target="_blank"
+      rel="noopener noreferrer"
+      title={`Ask ${t.name} about Identizen`}
+      aria-label={`Ask ${t.name} about Identizen`}
+      data-testid={`ask-ai-${t.id}`}
+      class:list={[
+        'group relative flex size-11 items-center justify-center rounded-full text-white shadow-lg transition-transform hover:scale-110 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring',
+        `ask-ai-${t.id}`,
+      ]}
+    >
+      <svg viewBox="0 0 24 24" fill="currentColor" class="size-5" aria-hidden="true">
+        <path d={t.path} />
+      </svg>
+      <span
+        aria-hidden="true"
+        class="pointer-events-none absolute left-full ml-3 rounded-md bg-fg px-2.5 py-1 text-xs font-medium whitespace-nowrap text-surface-0 opacity-0 transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100"
+      >
+        Ask {t.name}
+      </span>
+    </a>
+  ))}
+</aside>
+
+<style>
+  /* Brand colors per assistant; kept here rather than as style attributes so the CSP stays hash-only. */
+  .ask-ai-chatgpt {
+    background: #10a37f;
+  }
+  .ask-ai-perplexity {
+    background: #20808d;
+  }
+  .ask-ai-claude {
+    background: #d97757;
+  }
+</style>

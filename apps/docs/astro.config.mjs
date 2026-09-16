@@ -87,7 +87,10 @@ export default defineConfig({
       },
       favicon: '/favicon.svg',
       customCss: ['./src/styles/theme.css'],
-      components: { Hero: './src/components/Hero.astro' },
+      components: {
+        Hero: './src/components/Hero.astro',
+        PageFrame: './src/components/PageFrame.astro',
+      },
       head: [
         { tag: 'script', content: themeSync },
         // First-party, cookieless page analytics (traks, self-hosted); sends the path only.

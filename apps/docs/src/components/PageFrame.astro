@@ -1,0 +1,16 @@
+---
+/**
+ * Starlight's page frame, plus the floating "ask an AI" buttons as a sibling of the frame:
+ * inside the content column they sit under the right sidebar's stacking context and cannot be
+ * clicked at desktop widths.
+ */
+import Default from '@astrojs/starlight/components/PageFrame.astro';
+import AskAI from './AskAI.astro';
+---
+
+<Default {...Astro.props}>
+  <slot name="header" slot="header" />
+  <slot name="sidebar" slot="sidebar" />
+  <slot />
+</Default>
+<AskAI />

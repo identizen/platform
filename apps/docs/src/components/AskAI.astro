@@ -1,0 +1,102 @@
+---
+/**
+ * Floating "ask an AI about Identizen" buttons for the docs: bottom-right corner, tooltips to
+ * the left, shown from the width where Starlight opens its sidebar (50rem). Same circles, marks,
+ * colors and prompt as the marketing site (@identizen/ui/ask-ai).
+ */
+import { ASK_AI_PROMPT, ASK_AI_TARGETS } from '@identizen/ui/ask-ai';
+---
+
+<aside class="ask-ai" aria-label="Ask an AI assistant about Identizen" data-testid="ask-ai">
+  {
+    ASK_AI_TARGETS.map((t) => (
+      <a
+        href={t.href(ASK_AI_PROMPT)}
+        target="_blank"
+        rel="noopener noreferrer"
+        title={`Ask ${t.name} about Identizen`}
+        aria-label={`Ask ${t.name} about Identizen`}
+        data-testid={`ask-ai-${t.id}`}
+        class:list={['ask-ai__button', `ask-ai__button--${t.id}`]}
+      >
+        <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+          <path d={t.path} />
+        </svg>
+        <span class="ask-ai__tip" aria-hidden="true">
+          Ask {t.name}
+        </span>
+      </a>
+    ))
+  }
+</aside>
+
+<style>
+  .ask-ai {
+    display: none;
+    position: fixed;
+    right: 1rem;
+    bottom: 1.25rem;
+    z-index: 40;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+  @media (min-width: 50rem) {
+    .ask-ai {
+      display: flex;
+    }
+  }
+  .ask-ai__button {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.75rem;
+    height: 2.75rem;
+    border-radius: 9999px;
+    color: #fff;
+    box-shadow:
+      0 10px 15px -3px rgb(0 0 0 / 0.1),
+      0 4px 6px -4px rgb(0 0 0 / 0.1);
+    transition: transform 150ms ease;
+    text-decoration: none;
+  }
+  .ask-ai__button:hover {
+    transform: scale(1.1);
+  }
+  .ask-ai__button:focus-visible {
+    outline: 2px solid var(--sl-color-accent);
+    outline-offset: 2px;
+  }
+  .ask-ai__button svg {
+    width: 1.25rem;
+    height: 1.25rem;
+  }
+  .ask-ai__button--chatgpt {
+    background: #10a37f;
+  }
+  .ask-ai__button--perplexity {
+    background: #20808d;
+  }
+  .ask-ai__button--claude {
+    background: #d97757;
+  }
+  .ask-ai__tip {
+    pointer-events: none;
+    position: absolute;
+    right: 100%;
+    margin-right: 0.75rem;
+    white-space: nowrap;
+    border-radius: 0.375rem;
+    background: var(--sl-color-text);
+    color: var(--sl-color-bg);
+    padding: 0.25rem 0.625rem;
+    font-size: 0.75rem;
+    font-weight: 500;
+    opacity: 0;
+    transition: opacity 150ms ease;
+  }
+  .ask-ai__button:hover .ask-ai__tip,
+  .ask-ai__button:focus-visible .ask-ai__tip {
+    opacity: 1;
+  }
+</style>

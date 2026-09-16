@@ -93,3 +93,16 @@ test('llms.txt, llms-full.txt and per-page markdown are served', async ({ reques
   expect(page.headers()['content-type']).toContain('text/markdown');
   expect(await page.text()).toContain('# React (any app)');
 });
+
+test('floating ask-an-AI buttons are on every page, desktop only', async ({ page }) => {
+  await page.setViewportSize({ width: 1280, height: 800 });
+  await page.goto('/quickstart/');
+  const aside = page.getByTestId('ask-ai');
+  await expect(aside).toBeVisible();
+  await expect(aside.getByRole('link')).toHaveCount(3);
+  const href = await page.getByTestId('ask-ai-claude').getAttribute('href');
+  expect(href?.startsWith('https://claude.ai/new?q=')).toBe(true);
+  expect(decodeURIComponent(href ?? '')).toContain('https://docs.identizen.com/llms.txt');
+  await page.setViewportSize({ width: 700, height: 800 });
+  await expect(aside).toBeHidden();
+});

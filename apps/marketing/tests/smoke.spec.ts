@@ -163,3 +163,26 @@ test('search, social and answer-engine discovery', async ({ page, request }) => 
     if (needle) expect(await res.text(), path).toContain(needle);
   }
 });
+
+test('floating ask-an-AI buttons open each assistant with the prompt, desktop only', async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 1280, height: 800 });
+  await page.goto('/');
+  const aside = page.getByTestId('ask-ai');
+  await expect(aside).toBeVisible();
+  for (const [id, host] of [
+    ['chatgpt', 'https://chatgpt.com/?q='],
+    ['perplexity', 'https://www.perplexity.ai/search?q='],
+    ['claude', 'https://claude.ai/new?q='],
+  ] as const) {
+    const link = page.getByTestId(`ask-ai-${id}`);
+    await expect(link).toHaveAttribute('target', '_blank');
+    await expect(link).toHaveAttribute('rel', 'noopener noreferrer');
+    const href = await link.getAttribute('href');
+    expect(href?.startsWith(host)).toBe(true);
+    expect(decodeURIComponent(href ?? '')).toContain('https://identizen.com/llms.txt');
+  }
+  await page.setViewportSize({ width: 800, height: 800 });
+  await expect(aside).toBeHidden();
+});
