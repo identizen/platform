@@ -1,7 +1,7 @@
 ---
 title: Human approval for agents
 description: Agents act with your credentials and nobody can prove you agreed to any specific action. The fix is not a new protocol. It is a phone, a piece of text, and a signature.
-date: 2026-09-06
+date: 2026-09-13
 author: George Rios
 ---
 

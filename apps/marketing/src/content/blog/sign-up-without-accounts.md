@@ -1,7 +1,7 @@
 ---
 title: Sign-up without accounts
 description: The first objection to accountless identity is practical. A business needs a name, an email, and a billing address. Here is how a site gets all of that, and why the sign-up form gets shorter, not longer.
-date: 2026-09-06
+date: 2026-09-09
 author: George Rios
 ---
 
