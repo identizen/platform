@@ -18,3 +18,4 @@
 - Cloudflare: `wrangler` for the index Worker, Durable Objects, Hyperdrive, and static-asset Workers (marketing, docs, web). Neon: `neonctl` for database ops.
 - Local Postgres for tests: `docker compose up -d postgres` or set `DATABASE_URL`.
 - Never commit tokens. npm publishing uses `NPM_TOKEN` from the environment.
+- Demo bank (apps/demo-bank, jtmerlin.com) demos two products: Identizen for login and approvals, and Fromenance (George's communication provenance platform, repo C:ProjectsFromenance) for the `/verify` page and the send-me-a-demo-email endpoint. Its Worker has server code in `src/worker` (Resend send, Fromenance registration, rate limits) with secrets set via `wrangler secret put`; the site presents itself as a fictional demo bank, never as a showcase for either product. Do not touch `src/features/auth` for Fromenance work.
