@@ -1,6 +1,12 @@
 import { Link } from '@tanstack/react-router';
 import { IdentizenLogo } from '@identizen/ui';
-import { DEMO_SOURCE, IDENTIZEN_DOCS, IDENTIZEN_SITE, IDENTIZEN_SOURCE } from '@/lib/config';
+import {
+  DEMO_SOURCE,
+  FROMENANCE_SITE,
+  IDENTIZEN_DOCS,
+  IDENTIZEN_SITE,
+  IDENTIZEN_SOURCE,
+} from '@/lib/config';
 
 export function SiteFooter() {
   return (
@@ -19,11 +25,17 @@ export function SiteFooter() {
             <span>Login and approvals powered by</span>
             <IdentizenLogo height={18} />
           </a>
+          <a href={FROMENANCE_SITE} className="text-sm text-fg-muted hover:text-fg">
+            Message verification powered by Fromenance
+          </a>
         </div>
         <div className="flex flex-col gap-2 text-sm">
           <p className="font-medium">This demo</p>
           <Link to="/docs" className="text-fg-muted hover:text-fg">
             How it is built
+          </Link>
+          <Link to="/verify" className="text-fg-muted hover:text-fg">
+            Verify a message
           </Link>
           <Link to="/docs/quickstart" className="text-fg-muted hover:text-fg">
             Add Identizen to your app

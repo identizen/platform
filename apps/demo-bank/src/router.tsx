@@ -23,6 +23,7 @@ import {
 import { HomeRoute } from '@/features/marketing';
 import { SignupRoute, findCustomer, firstName } from '@/features/customers';
 import { ActivityRoute, TransferRoute } from '@/features/transfers';
+import { VerifyRoute } from '@/features/verify';
 
 function Root() {
   const session = useSession();
@@ -87,6 +88,12 @@ const callbackRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/callback',
   component: CallbackRoute,
+});
+/** Public: the Fromenance verify page. No session involved. */
+const verifyRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/verify',
+  component: VerifyRoute,
 });
 const signupRoute = createRoute({
   getParentRoute: () => rootRoute,
@@ -154,6 +161,7 @@ const routeTree = rootRoute.addChildren([
   loginRoute,
   callbackRoute,
   signupRoute,
+  verifyRoute,
   docsRoute,
   docsCustomersRoute,
   docsQuickstartRoute,

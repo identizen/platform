@@ -18,3 +18,20 @@ export function appOrigin(): string {
 export function redirectUri(): string {
   return `${appOrigin()}/callback`;
 }
+
+/**
+ * Fromenance: the communication provenance platform behind /verify. Every value here is public.
+ * The site key is bound to this site's origins on the Fromenance tenant, so it is useless elsewhere.
+ */
+export const FROMENANCE_SITE = 'https://fromenance.com';
+export const FROMENANCE_DOCS = 'https://docs.fromenance.com';
+export const FROMENANCE_WIDGET_URL = 'https://cdn.fromenance.com/verify.js';
+export const FROMENANCE_SITE_KEY: string =
+  import.meta.env.VITE_FROMENANCE_SITE_KEY ?? 'sk_pub_ba5ca4a4b3a5cea18dc7c1b01ba937d0';
+/** Cloudflare Turnstile site key. The widget only asks for it once the site key is over its normal rate. */
+export const FROMENANCE_TURNSTILE_SITE_KEY: string =
+  import.meta.env.VITE_FROMENANCE_TURNSTILE_SITE_KEY ?? '';
+
+export const BANK_NAME = 'JT Merlin Bank';
+/** The forward-to address a real bank would run next to the page. See /verify. */
+export const VERIFY_ADDRESS = 'verify@jtmerlin.com';

@@ -9,6 +9,7 @@ export interface SiteHeaderProps {
 
 const NAV = [
   { to: '/', label: 'Personal' },
+  { to: '/verify', label: 'Verify a message' },
   { to: '/docs', label: 'Developers' },
 ];
 
