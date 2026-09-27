@@ -20,5 +20,7 @@ export default identizenConfig({
     'e2e/site/app/**/*.ts',
     'e2e/site/next.config.*',
     'e2e/site/middleware.ts',
+    // Workers entry points must export default { fetch }.
+    'apps/demo-bank/src/worker/index.ts',
   ],
 });

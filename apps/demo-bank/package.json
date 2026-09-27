@@ -1,6 +1,6 @@
 {
   "name": "@identizen/demo-bank",
-  "version": "0.1.1",
+  "version": "0.2.0",
   "private": true,
   "description": "JT Merlin Bank: a fictional demo bank for passwordless login, transaction approval, and message verification.",
   "type": "module",
@@ -8,6 +8,7 @@
     "dev": "vite --port 4500 --strictPort",
     "build": "vite build",
     "preview": "vite preview --port 4501 --strictPort",
+    "dev:worker": "wrangler dev --port 4502",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "test:unit": "vitest run",
     "deploy": "wrangler deploy"

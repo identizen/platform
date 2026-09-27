@@ -16,6 +16,7 @@ import {
   VERIFY_ADDRESS,
 } from '@/lib/config';
 import type { PublicVerdict } from '../api/widget';
+import { SendDemoEmail } from '../components/send-demo-email';
 import { VerifyWidget, type VerifyWidgetHandle } from '../components/verify-widget';
 import { DEMO_RECIPIENT, DEMO_VERIFY_CODE, LURE, REGISTERED_ALERT } from '../data/samples';
 
@@ -94,6 +95,7 @@ export function VerifyRoute() {
         </Card>
 
         <aside className="flex flex-col gap-4">
+          <SendDemoEmail />
           <div className="rounded-xl border bg-surface-1 p-5">
             <h2 className="font-semibold">Try it with a sample</h2>
             <p className="mt-1 text-sm text-fg-muted">

@@ -16,6 +16,22 @@ real, against the hosted index.
   Merlin demo tenant, so the page works locally without extra setup. The identity code under
   `src/features/auth` is untouched by this feature; see `src/features/verify`.
 
+## Send me a demo email
+
+`/verify` can also email the visitor a JT Merlin alert. The Worker (`src/worker`) flips a coin: the
+real alert is registered with Fromenance at send time (recipient hash, subject and content
+fingerprints, `Idempotency-Key` = message id) and carries the returned code; the lure is never
+registered and carries a code that passes the checksum but was never issued, with a link on the
+reserved `.example` TLD. Both end with a demo disclaimer. Mail goes out through Resend from
+`alerts@jtmerlin.com`; the endpoint is same-origin only and rate limited (3 per minute per IP,
+1 per minute per recipient) with the Workers rate limiting binding. The fingerprint pipeline is a
+port of the sample on docs.fromenance.com and is unit tested against its own invariants.
+
+Secrets on the Worker: `RESEND_API_KEY` (sending access, jtmerlin.com only), `FROMENANCE_API_KEY`
+(live, register scope), `FROMENANCE_TENANT_SECRET`. Locally, copy `.dev.vars.example` to
+`.dev.vars`, build, then `npm run dev:worker` and open http://localhost:4502 (the Vite dev server
+has no Worker, so `/api/demo-email` answers 404 there).
+
 ## Run locally
 
 ```bash

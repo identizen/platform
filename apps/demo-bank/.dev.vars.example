@@ -1,0 +1,5 @@
+# Local secrets for `npm run dev:worker` (wrangler dev). Copy to .dev.vars; never commit it.
+RESEND_API_KEY=re_...            # Resend key with sending access to the From domain below
+FROMENANCE_API_KEY=fr_test_...   # Fromenance key with the register scope on the JT Merlin tenant
+FROMENANCE_TENANT_SECRET=...     # the tenant's recipient hashing secret (Settings in app.fromenance.com)
+DEMO_MAIL_FROM=JT Merlin Bank <alerts@jtmerlin.com>

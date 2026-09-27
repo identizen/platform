@@ -2,15 +2,35 @@
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "jtmerlin-demo",
   "compatibility_date": "2026-09-01",
+  // The Worker answers POST /api/demo-email (see src/worker); everything else is a static asset.
+  "main": "./src/worker/index.ts",
   "assets": {
     "directory": "./dist",
+    "binding": "ASSETS",
     "not_found_handling": "single-page-application",
+    "run_worker_first": ["/api/*"],
   },
   "observability": {
     "enabled": true,
   },
-  // jtmerlin.com must be an active zone on this account before this route attaches.
-  // Until then the Worker answers at https://jtmerlin-demo.noundry.workers.dev.
+  "vars": {
+    // Resend sends from this identity once jtmerlin.com's Resend records are published.
+    "DEMO_MAIL_FROM": "JT Merlin Bank <alerts@jtmerlin.com>",
+  },
+  // Secrets, set with `wrangler secret put`: RESEND_API_KEY (sending access, jtmerlin.com only),
+  // FROMENANCE_API_KEY (fr_live_, scope register), FROMENANCE_TENANT_SECRET (recipient hashing).
+  "ratelimits": [
+    {
+      "name": "DEMO_MAIL_IP_LIMIT",
+      "namespace_id": "2001",
+      "simple": { "limit": 3, "period": 60 },
+    },
+    {
+      "name": "DEMO_MAIL_TO_LIMIT",
+      "namespace_id": "2002",
+      "simple": { "limit": 1, "period": 60 },
+    },
+  ],
   "workers_dev": true,
   "routes": [
     {
