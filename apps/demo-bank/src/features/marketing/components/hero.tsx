@@ -41,7 +41,7 @@ export function Hero() {
             ))}
           </ul>
           <p className="inline-flex items-center gap-1.5 text-xs text-fg-muted">
-            <KimiMark size={12} /> Sign-in and approvals by Identizen. This bank is a demo.
+            This bank is a demo. Nothing here is real.
           </p>
         </div>
 

@@ -39,7 +39,7 @@ export function FeatureGrid() {
     <section className="mx-auto w-full max-w-6xl px-6 py-16">
       <h2 className="font-display text-3xl font-semibold tracking-tight">Security you can see</h2>
       <p className="mt-2 max-w-2xl text-fg-muted">
-        Every item below is a real Identizen feature working in this demo, not a promise.
+        Every item below is working in this demo, not a promise.
       </p>
       <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {FEATURES.map(({ icon: Icon, title, body }) => (

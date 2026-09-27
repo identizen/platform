@@ -15,8 +15,8 @@ export function SiteFooter() {
         <div className="flex flex-col gap-3">
           <p className="text-sm text-fg-muted">
             <strong className="text-fg">JT Merlin Bank is not a bank.</strong> It is a demo
-            application maintained by the Identizen project. No accounts, balances, transfers, or
-            people on this site are real. Do not enter real financial information.
+            application. No accounts, balances, transfers, or people on this site are real. Do not
+            enter real financial information.
           </p>
           <a
             href={IDENTIZEN_SITE}

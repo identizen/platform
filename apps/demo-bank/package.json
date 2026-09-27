@@ -1,8 +1,8 @@
 {
   "name": "@identizen/demo-bank",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "private": true,
-  "description": "JT Merlin Bank: a fictional bank that shows how a site integrates Identizen for login and transaction approval.",
+  "description": "JT Merlin Bank: a fictional demo bank for passwordless login, transaction approval, and message verification.",
   "type": "module",
   "scripts": {
     "dev": "vite --port 4500 --strictPort",

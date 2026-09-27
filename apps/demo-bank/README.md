@@ -1,9 +1,10 @@
 # JT Merlin Bank (demo)
 
-A fictional bank that shows how a site integrates Identizen: passwordless login with the phone,
-browser pairing, and transaction approval with the exact reason shown on the phone. It also hosts
-a [Fromenance](https://fromenance.com) verify page at `/verify`, where a customer pastes an email
-and learns whether the bank really sent it. Every
+A fictional demo bank. It shows how a site integrates two products: Identizen for passwordless
+login with the phone, browser pairing, and transaction approval with the exact reason shown on the
+phone; and [Fromenance](https://fromenance.com) for the `/verify` page, where a customer pastes an
+email and learns whether the bank really sent it. The site's own copy presents itself as a demo
+bank, not as a showcase for either product. Every
 account, balance, payee, and transfer is a constant in the bundle. The login and the approvals are
 real, against the hosted index.
 
