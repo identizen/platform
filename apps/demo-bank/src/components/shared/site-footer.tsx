@@ -1,5 +1,6 @@
 import { Link } from '@tanstack/react-router';
 import { IdentizenLogo } from '@identizen/ui';
+import { FromenanceLogo } from './fromenance-logo';
 import {
   DEMO_SOURCE,
   FROMENANCE_SITE,
@@ -25,8 +26,12 @@ export function SiteFooter() {
             <span>Login and approvals powered by</span>
             <IdentizenLogo height={18} />
           </a>
-          <a href={FROMENANCE_SITE} className="text-sm text-fg-muted hover:text-fg">
-            Message verification powered by Fromenance
+          <a
+            href={FROMENANCE_SITE}
+            className="inline-flex items-center gap-2 text-sm text-fg-muted hover:text-fg"
+          >
+            <span>Message verification by</span>
+            <FromenanceLogo height={18} />
           </a>
         </div>
         <div className="flex flex-col gap-2 text-sm">

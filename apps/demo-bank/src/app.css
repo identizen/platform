@@ -29,6 +29,9 @@
     --color-ring: oklch(0.55 0.11 165);
     --color-primary: var(--color-accent);
     --color-primary-foreground: var(--color-accent-fg);
+    /* Fromenance wordmark, on-light variant (fromenance.com/brand). */
+    --frm-fg: #0b0c0f;
+    --frm-accent: #1d5fd6;
   }
   :root[data-theme='dark'] {
     --color-accent: oklch(0.72 0.12 165);
@@ -42,6 +45,9 @@
     --color-idz-soft-fg: oklch(0.86 0.08 30);
     --color-bank-soft: oklch(0.28 0.05 165);
     --color-bank-soft-fg: oklch(0.86 0.08 165);
+    /* Fromenance wordmark, on-dark variant. */
+    --frm-fg: #e8e8ea;
+    --frm-accent: #4f8cff;
   }
   @media (prefers-color-scheme: dark) {
     :root:not([data-theme='light']) {
@@ -56,6 +62,8 @@
       --color-idz-soft-fg: oklch(0.86 0.08 30);
       --color-bank-soft: oklch(0.28 0.05 165);
       --color-bank-soft-fg: oklch(0.86 0.08 165);
+      --frm-fg: #e8e8ea;
+      --frm-accent: #4f8cff;
     }
   }
 
