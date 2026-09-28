@@ -90,7 +90,7 @@ describe('drafts', () => {
 describe('sendDemoEmail', () => {
   it('registers the real alert before sending it, with the code from the registry', async () => {
     const { f, calls } = fakeFetch();
-    const result = await sendDemoEmail(env, 'Jane <Jane.Doe@Example.com>', {
+    const result = await sendDemoEmail(env, 'Jane <Jane.Doe@Example.com>', 'registered', {
       fetch: f,
       random: () => 0.1,
       now: () => NOW,
@@ -131,9 +131,23 @@ describe('sendDemoEmail', () => {
     expect(fp.simhash).toBe((r.content_fingerprint as { simhash: string }).simhash);
   });
 
+  it('the real alert is real for every template, whatever the random draw', async () => {
+    for (const r of [0.01, 0.4, 0.5, 0.99]) {
+      const { f, calls } = fakeFetch();
+      const result = await sendDemoEmail(env, 'jane.doe@example.com', 'registered', {
+        fetch: f,
+        random: () => r,
+        now: () => NOW,
+      });
+      expect(result.kind).toBe('registered');
+      expect(result.registrationId).toBe('com_1');
+      expect(calls[0]?.url).toBe('https://api.fromenance.com/v1/communications');
+    }
+  });
+
   it('never registers the lure and gives it a code that was never issued', async () => {
     const { f, calls } = fakeFetch();
-    const result = await sendDemoEmail(env, 'jane.doe@example.com', {
+    const result = await sendDemoEmail(env, 'jane.doe@example.com', 'lure', {
       fetch: f,
       random: () => 0.9,
       now: () => NOW,
@@ -153,14 +167,14 @@ describe('sendDemoEmail', () => {
   it('surfaces a registry failure without sending', async () => {
     const { f, calls } = fakeFetch({ registerStatus: 401 });
     await expect(
-      sendDemoEmail(env, 'jane.doe@example.com', { fetch: f, random: () => 0.1 }),
+      sendDemoEmail(env, 'jane.doe@example.com', 'registered', { fetch: f, random: () => 0.1 }),
     ).rejects.toMatchObject({ name: 'DemoMailError', stage: 'register', status: 401 });
     expect(calls).toHaveLength(1);
   });
 
   it('surfaces a mail provider failure', async () => {
     const { f } = fakeFetch({ sendStatus: 403 });
-    const err = await sendDemoEmail(env, 'jane.doe@example.com', {
+    const err = await sendDemoEmail(env, 'jane.doe@example.com', 'lure', {
       fetch: f,
       random: () => 0.9,
     }).catch((e: unknown) => e);

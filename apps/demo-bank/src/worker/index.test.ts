@@ -46,13 +46,34 @@ describe('handleRequest', () => {
 });
 
 describe('handleDemoEmail', () => {
-  it('sends and never reveals the kind', async () => {
+  it('sends the real alert by default and says so', async () => {
     const res = await handleDemoEmail(post({ email: 'jane@example.com' }), makeEnv(), {
       fetch: okFetch,
-      random: () => 0.1,
+      random: () => 0.9,
     });
     expect(res.status).toBe(200);
-    expect(await res.json()).toEqual({ sent: true });
+    expect(await res.json()).toEqual({ sent: true, kind: 'registered' });
+  });
+
+  it('sends a lure only when asked, and rejects any other kind', async () => {
+    const calls: string[] = [];
+    const spy = (async (input: RequestInfo | URL) => {
+      calls.push(urlOf(input));
+      return okFetch(input);
+    }) as typeof fetch;
+    const res = await handleDemoEmail(
+      post({ email: 'jane@example.com', kind: 'lure' }),
+      makeEnv(),
+      { fetch: spy, random: () => 0.1 },
+    );
+    expect(res.status).toBe(200);
+    expect(await res.json()).toEqual({ sent: true, kind: 'lure' });
+    expect(calls).toEqual(['https://api.resend.com/emails']);
+    const bad = await handleDemoEmail(
+      post({ email: 'jane@example.com', kind: 'random' }),
+      makeEnv(),
+    );
+    expect(bad.status).toBe(400);
   });
 
   it('rejects other methods, other origins, and bad addresses', async () => {
@@ -81,10 +102,11 @@ describe('handleDemoEmail', () => {
 
   it('maps provider failures to 502 with a plain message', async () => {
     const failing = (async () => new Response('{}', { status: 500 })) as unknown as typeof fetch;
-    const res = await handleDemoEmail(post({ email: 'jane@example.com' }), makeEnv(), {
-      fetch: failing,
-      random: () => 0.9,
-    });
+    const res = await handleDemoEmail(
+      post({ email: 'jane@example.com', kind: 'lure' }),
+      makeEnv(),
+      { fetch: failing, random: () => 0.9 },
+    );
     expect(res.status).toBe(502);
     expect(((await res.json()) as { error: string }).error).toMatch(/mail provider/);
   });

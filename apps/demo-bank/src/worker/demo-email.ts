@@ -1,11 +1,11 @@
 /**
  * "Send me a demo email": one JT Merlin alert to an address the visitor typed on /verify.
  *
- * A coin flip decides what goes out. Heads: the real alert, registered with Fromenance at send
- * time exactly as a bank would do it, so pasting it on /verify comes back Verified. Tails: a lure
- * that copies the alert, with urgency, a look-alike link, and a reference code that passes the
- * checksum but was never issued, so the same paste comes back Not verified. Both carry the demo
- * disclaimer. Nothing is stored here; the registry is the only record.
+ * The visitor picks what goes out. The real alert is registered with Fromenance at send time
+ * exactly as a bank would do it, so pasting it on /verify comes back Verified. The lure copies
+ * the alert, with urgency, a look-alike link, and a reference code that passes the checksum but
+ * was never issued, so the same paste comes back Not verified. Both carry the demo disclaimer.
+ * Nothing is stored here; the registry is the only record.
  */
 import { fingerprintContent, fingerprintSubject, randomVerifyCode } from './fingerprint';
 import { canonicalAddress, recipientHash } from './recipient-hash';
@@ -21,6 +21,11 @@ export interface DemoMailEnv {
 }
 
 export type DemoKind = 'registered' | 'lure';
+export const DEMO_KINDS: readonly DemoKind[] = ['registered', 'lure'];
+
+export function isDemoKind(value: unknown): value is DemoKind {
+  return typeof value === 'string' && (DEMO_KINDS as readonly string[]).includes(value);
+}
 export type TemplateId = 'card-transaction' | 'new-device' | 'wire-notice';
 
 export const BANK_NAME = 'JT Merlin Bank';
@@ -169,6 +174,7 @@ export class DemoMailError extends Error {
 
 export interface DemoMailDeps {
   fetch?: typeof fetch;
+  /** Picks the template, and the never-issued code for a lure. */
   random?: () => number;
   now?: () => Date;
 }
@@ -190,13 +196,13 @@ export function addressOf(from: string): string {
 export async function sendDemoEmail(
   env: DemoMailEnv,
   to: string,
+  kind: DemoKind,
   deps: DemoMailDeps = {},
 ): Promise<DemoMailResult> {
   const f = deps.fetch ?? fetch;
   const random = deps.random ?? Math.random;
   const now = (deps.now ?? (() => new Date()))();
   const address = canonicalAddress(to);
-  const kind: DemoKind = random() < 0.5 ? 'registered' : 'lure';
   const template = TEMPLATES[Math.floor(random() * TEMPLATES.length) % TEMPLATES.length];
   if (!template) throw new Error('no templates');
   const draft = draftDemoMessage(kind, template, now);

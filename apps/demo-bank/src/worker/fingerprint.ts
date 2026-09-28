@@ -270,9 +270,56 @@ const FOOTER_SENTENCE =
   /^(not sure|unsure|wondering) (if )?this (email|message|communication) (is|was|really).*$/i;
 
 /**
+ * Lines a mail client renders above an open message and that a select all copy carries along: the sender line
+ * ("JT Merlin Bank <alerts@bank.com>" or a bare address), the time line ("1:40 PM (2 minutes ago)",
+ * "Sat 9/27/2026 1:40 PM", "Sep 27, 2026, 1:40 PM"), Gmail's "to me", label words such as "Inbox", and the one or
+ * two letter avatar initials Outlook on the web shows. None of these is part of what the sender registered.
+ */
+const SENDER_LINE =
+  /^(?:[^<>@]{0,80}<[^\s<>@]+@[^\s<>@]+\.[a-z]{2,}>|[^\s<>@]+@[^\s<>@]+\.[a-z]{2,})$/i;
+const CLOCK = /\b\d{1,2}:\d{2}\b/;
+/** Every word a client's time line can be made of. A sentence fragment that happens to wrap onto its own line ("account on September 27 at 1:40 PM.") has other words and is kept. */
+const TIME_WORD =
+  /^(?:\d{1,2}:\d{2}(?::\d{2})?|\d{1,2}|\d{4}|\d{1,2}\/\d{1,2}\/\d{2,4}|\d{4}-\d{2}-\d{2}|am|pm|a\.m|p\.m|at|on|ago|today|yesterday|minutes?|mins?|hours?|hrs?|days?|weeks?|(?:mon|tue|tues|wed|thu|thur|thurs|fri|sat|sun)[a-z]*|(?:jan|feb|mar|apr|may|jun|jul|aug|sep|sept|oct|nov|dec)[a-z]*|utc|gmt(?:[+-]\d{1,2}(?::?\d{2})?)?|[ecmp][sd]t|[+-]\d{4})$/i;
+const TIME_LINE_START =
+  /^(?:\d|today|yesterday|(?:mon|tue|wed|thu|fri|sat|sun)|(?:jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec))/i;
+function isTimeLine(line: string): boolean {
+  // Client time lines start with a date or a clock and never end a sentence; a wrapped fragment such as
+  // "on September 27 at 1:40 PM." fails one of those and is kept.
+  if (line.length > 60 || !CLOCK.test(line) || !TIME_LINE_START.test(line) || /[.!?]$/.test(line))
+    return false;
+  return line
+    .split(/\s+/)
+    .map((w) => w.replace(/^[([]+|[)\],.]+$/g, ''))
+    .filter((w) => w.length > 0)
+    .every((w) => TIME_WORD.test(w));
+}
+const RELATIVE_TIME_LINE = /^\(?\d+\s+(minute|min|hour|hr|day|week)s?\s+ago\)?$/i;
+/** Gmail's "to me", or "To First Last": capitalized name words only, so a wrapped "to your account" is kept. */
+const TO_ME_LINE = /^[Tt]o\s+(me|[A-Z][\w.'-]*(?:\s+[A-Z][\w.'-]*){0,3})$/;
+const LABEL_LINE =
+  /^(inbox|external|important|starred|promotions|updates|social|forums|unread|reply|reply all|forward)$/i;
+const AVATAR_LINE = /^[A-Z]{1,2}$/;
+
+function isClientChrome(line: string): boolean {
+  return (
+    SENDER_LINE.test(line) ||
+    isTimeLine(line) ||
+    RELATIVE_TIME_LINE.test(line) ||
+    TO_ME_LINE.test(line) ||
+    LABEL_LINE.test(line) ||
+    AVATAR_LINE.test(line)
+  );
+}
+
+/**
  * Remove everything a forward adds: forwarded message markers, From/Sent/To/Subject header
  * blocks, "wrote:" lines, quote markers, external banners, device signatures, and the Fromenance
  * footer. Also cuts at the "--" signature line.
+ *
+ * A select all copy of an open message carries the client's own header rendering too: subject,
+ * sender, time, "to me". Those lines are dropped wherever they appear, and a sender line within
+ * the first few lines drops what sits above it (subject, label words), like text above a forward.
  */
 export function stripForwardChrome(text: string): string {
   const codes = new Set(extractVerifyCodes(text));
@@ -309,6 +356,11 @@ export function stripForwardChrome(text: string): string {
     }
     if (inHeaderBlock && /^[A-Za-z-]{2,20}:\s/.test(line)) continue;
     inHeaderBlock = false;
+    if (SENDER_LINE.test(line)) {
+      if (forwardStart === null && kept.length <= 2) forwardStart = kept.length;
+      continue;
+    }
+    if (isClientChrome(line)) continue;
     if (WROTE_LINE.test(line)) continue;
     if (/^on\b.{6,200}$/i.test(line) && !/wrote:/i.test(line)) {
       pendingOn = line;

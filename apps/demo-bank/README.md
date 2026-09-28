@@ -18,11 +18,15 @@ real, against the hosted index.
 
 ## Send me a demo email
 
-`/verify` can also email the visitor a JT Merlin alert. The Worker (`src/worker`) flips a coin: the
-real alert is registered with Fromenance at send time (recipient hash, subject and content
-fingerprints, `Idempotency-Key` = message id) and carries the returned code; the lure is never
-registered and carries a code that passes the checksum but was never issued, with a link on the
-reserved `.example` TLD. Both end with a demo disclaimer. Mail goes out through Resend from
+`/verify` can also email the visitor a JT Merlin alert, and the visitor picks which one. The Worker
+(`src/worker`) answers `POST /api/demo-email { email, kind }`: `kind: "registered"` (the default) is
+the real alert, registered with Fromenance at send time (recipient hash, subject and content
+fingerprints, `Idempotency-Key` = message id) and carrying the returned code, so pasting it on
+/verify comes back Verified; `kind: "lure"` is never registered and carries a code that passes the
+checksum but was never issued, with a link on the reserved `.example` TLD, so it comes back Not
+verified. Both end with a demo disclaimer. The page fills the widget's address field with the
+address the demo went to and remembers it in the browser, because the registry matches a code to
+the address that received the message: a paste without that address cannot come back Verified. Mail goes out through Resend from
 `alerts@jtmerlin.com`; the endpoint is same-origin only and rate limited (3 per minute per IP,
 1 per minute per recipient) with the Workers rate limiting binding. The fingerprint pipeline is a
 port of the sample on docs.fromenance.com and is unit tested against its own invariants.

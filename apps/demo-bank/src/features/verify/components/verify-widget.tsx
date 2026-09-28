@@ -3,6 +3,10 @@ import { BANK_NAME, FROMENANCE_SITE_KEY, FROMENANCE_TURNSTILE_SITE_KEY } from '@
 import {
   fillVerifyForm,
   loadFromenance,
+  recallVerifyEmail,
+  rememberVerifyEmail,
+  setVerifyEmail,
+  verifyEmailField,
   watchTheme,
   widgetTheme,
   type PublicVerdict,
@@ -12,6 +16,11 @@ import {
 export interface VerifyWidgetHandle {
   /** Put a sample into the widget's fields. False until the widget has mounted. */
   fill: (values: VerifyFormValues) => boolean;
+  /**
+   * Put the visitor's own address into the widget and remember it in this browser, so a message
+   * they had sent to themselves is checked against the right recipient. False until mounted.
+   */
+  setEmail: (email: string) => boolean;
 }
 
 export interface VerifyWidgetProps {
@@ -27,12 +36,14 @@ function bankAccent(): string {
 
 /**
  * Mounts the Fromenance verify widget into a div this component owns. The widget renders its own
- * form and verdict card; this component only loads it, hands it the site key and theme, and
- * relays the verdict to the page.
+ * form and verdict card; this component only loads it, hands it the site key and theme, relays the
+ * verdict to the page, and keeps the visitor's address in the form: the registry matches a code to
+ * the address that received the message, so a paste without the address cannot come back Verified.
  */
 export function VerifyWidget({ onVerdict, ref }: VerifyWidgetProps) {
   const target = useRef<HTMLDivElement>(null);
   const latest = useRef(onVerdict);
+  const remembered = useRef<string | null>(null);
   const [state, setState] = useState<'loading' | 'ready' | 'error'>('loading');
 
   useEffect(() => {
@@ -41,12 +52,18 @@ export function VerifyWidget({ onVerdict, ref }: VerifyWidgetProps) {
 
   useImperativeHandle(ref, () => ({
     fill: (values) => (target.current ? fillVerifyForm(target.current, values) : false),
+    setEmail: (email) => {
+      remembered.current = email;
+      rememberVerifyEmail(email);
+      return target.current ? setVerifyEmail(target.current, email) : false;
+    },
   }));
 
   useEffect(() => {
     const el = target.current;
     if (!el) return;
     let cancelled = false;
+    remembered.current = recallVerifyEmail();
     loadFromenance()
       .then((api) => {
         if (cancelled) return;
@@ -61,17 +78,29 @@ export function VerifyWidget({ onVerdict, ref }: VerifyWidgetProps) {
             ? { turnstileSiteKey: FROMENANCE_TURNSTILE_SITE_KEY }
             : {}),
         });
+        if (remembered.current) setVerifyEmail(el, remembered.current);
         setState('ready');
       })
       .catch(() => {
         if (!cancelled) setState('error');
       });
+    // The widget owns its submit button. Before its handler runs, an empty address field gets the
+    // address this visitor last asked a demo email to be sent to.
+    const beforeSubmit = (event: Event) => {
+      const t = event.target;
+      if (!(t instanceof Element) || !t.closest('button')) return;
+      const field = verifyEmailField(el);
+      if (field && field.value.trim() === '' && remembered.current)
+        field.value = remembered.current;
+    };
+    el.addEventListener('click', beforeSubmit, true);
     const stop = watchTheme((theme) => {
       el.querySelector('.frv')?.setAttribute('data-theme', theme);
     });
     return () => {
       cancelled = true;
       stop();
+      el.removeEventListener('click', beforeSubmit, true);
       el.replaceChildren();
     };
   }, []);

@@ -113,6 +113,42 @@ export function fillVerifyForm(root: HTMLElement, values: VerifyFormValues): boo
   return true;
 }
 
+/** The widget's address field, or null until the widget has mounted. */
+export function verifyEmailField(root: HTMLElement): HTMLInputElement | null {
+  return root.querySelector<HTMLInputElement>('input[aria-label="Your email address"]');
+}
+
+/** Put an address into the widget's address field without touching the message. False until mounted. */
+export function setVerifyEmail(root: HTMLElement, email: string): boolean {
+  const field = verifyEmailField(root);
+  if (!field) return false;
+  field.value = email;
+  return true;
+}
+
+const REMEMBERED_EMAIL_KEY = 'jtmerlin.verify.email';
+
+/**
+ * The address the visitor asked a demo email to be sent to. Kept in this browser only, so that
+ * coming back from the inbox (or from the email's footer link) still finds it in the form: the
+ * registry can only match a message to the address that received it.
+ */
+export function rememberVerifyEmail(email: string, storage?: Storage | null): void {
+  try {
+    (storage ?? localStorage).setItem(REMEMBERED_EMAIL_KEY, email);
+  } catch {
+    /* private mode or storage blocked: the field is still filled for this page view */
+  }
+}
+
+export function recallVerifyEmail(storage?: Storage | null): string | null {
+  try {
+    return (storage ?? localStorage).getItem(REMEMBERED_EMAIL_KEY);
+  } catch {
+    return null;
+  }
+}
+
 /** The theme the widget should render with: the site's explicit choice, else the system's. */
 export function widgetTheme(doc: Document = document): 'light' | 'dark' {
   const chosen = doc.documentElement.getAttribute('data-theme');

@@ -54,6 +54,19 @@ describe('normalization', () => {
     expect(normalizeContent({ text })).toBe('body text here');
   });
 
+  it('drops the header lines a mail client adds to a select all copy, subject included', () => {
+    const body =
+      'Hi there,\nA purchase was made on September 27 at 1:40 PM.\nThank you,\nJT Merlin Bank';
+    const gmail = `We noticed a card transaction\nInbox\n\nJT Merlin Bank <alerts@jtmerlin.com>\n1:40 PM (2 minutes ago)\nto me\n\n${body}`;
+    const outlook = `We noticed a card transaction\nJT\nJT Merlin Bank <alerts@jtmerlin.com>\nSat 9/27/2026 1:40 PM\nTo: George\n\n${body}`;
+    expect(normalizeContent({ text: gmail })).toBe(normalizeContent({ text: body }));
+    expect(normalizeContent({ text: outlook })).toBe(normalizeContent({ text: body }));
+    // Wrapped sentence fragments that merely resemble a time line stay.
+    expect(normalizeContent({ text: 'on September 27 at 1:40 PM.\nto your account' })).toBe(
+      'on september 27 at 1 40 pm to your account',
+    );
+  });
+
   it('prefers html and drops hidden preheaders and images', () => {
     const html =
       '<div style="display:none">preheader</div><p>Hello <a href="https://x.jtmerlin.com/a">there</a></p><img alt="logo" src="p.png">';

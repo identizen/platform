@@ -1,12 +1,6 @@
 import { useCallback, useRef, useState } from 'react';
 import { Button, Card, CardContent } from '@identizen/ui';
-import {
-  AlertTriangle,
-  CheckCircle2,
-  ClipboardPaste,
-  ShieldAlert,
-  ShieldCheck,
-} from 'lucide-react';
+import { AlertTriangle, ClipboardPaste, ShieldAlert, ShieldCheck } from 'lucide-react';
 import { CodeBlock } from '@/components/shared/code-block';
 import {
   BANK_NAME,
@@ -15,8 +9,10 @@ import {
   FROMENANCE_SITE,
   VERIFY_ADDRESS,
 } from '@/lib/config';
+import type { DemoKind } from '../api/demo-email';
 import type { PublicVerdict } from '../api/widget';
 import { SendDemoEmail } from '../components/send-demo-email';
+import { VerdictDetail } from '../components/verdict-detail';
 import { VerifyWidget, type VerifyWidgetHandle } from '../components/verify-widget';
 import { DEMO_RECIPIENT, DEMO_VERIFY_CODE, LURE, REGISTERED_ALERT } from '../data/samples';
 
@@ -48,7 +44,7 @@ const STEPS = [
   ],
   [
     'You ask',
-    `Paste the message here, or type the code from its footer. Real deployments also accept a forward to ${VERIFY_ADDRESS}; this demo shows the page.`,
+    `Paste the message here with the address that received it, or type the code from its footer. Real deployments also accept a forward to ${VERIFY_ADDRESS}; this demo shows the page.`,
   ],
   [
     'The registry answers',
@@ -74,6 +70,16 @@ export function VerifyRoute() {
     setVerdict(null);
   };
 
+  const onSent = useCallback((email: string, kind: DemoKind) => {
+    widget.current?.setEmail(email);
+    setHint(
+      kind === 'registered'
+        ? `When the alert arrives, copy the whole message and paste it into the form. The address ${email} is filled in for you.`
+        : `When the lure arrives, paste it into the form. It was never registered, so it comes back Not verified.`,
+    );
+    setVerdict(null);
+  }, []);
+
   return (
     <div className="mx-auto flex w-full max-w-6xl flex-col gap-14 px-6 py-10 md:py-14">
       <header className="max-w-2xl">
@@ -82,8 +88,9 @@ export function VerifyRoute() {
           Did this message really come from {BANK_NAME}?
         </h1>
         <p className="mt-4 text-lg text-fg-muted">
-          Paste the email you are not sure about, or type the reference code from its footer. We
-          check it against the messages we actually sent and answer in seconds. No sign-in needed.
+          Paste the email you are not sure about, or type the reference code from its footer, and
+          tell us the address that received it. We check it against the messages we actually sent
+          and answer in seconds. No sign-in needed.
         </p>
       </header>
 
@@ -95,7 +102,7 @@ export function VerifyRoute() {
         </Card>
 
         <aside className="flex flex-col gap-4">
-          <SendDemoEmail />
+          <SendDemoEmail onSent={onSent} />
           <div className="rounded-xl border bg-surface-1 p-5">
             <h2 className="font-semibold">Try it with a sample</h2>
             <p className="mt-1 text-sm text-fg-muted">
@@ -199,43 +206,6 @@ export function VerifyRoute() {
           </Button>
         </div>
       </section>
-    </div>
-  );
-}
-
-const TONE: Record<NonNullable<PublicVerdict['outcome']>, string> = {
-  verified: 'text-success-soft-fg',
-  not_verified: 'text-warning-soft-fg',
-  known_fraud: 'text-danger-soft-fg',
-};
-
-/** What the API returned, for people who came to see the mechanism rather than the card. */
-function VerdictDetail({ verdict }: { verdict: PublicVerdict }) {
-  const outcome = verdict.outcome ?? 'not_verified';
-  return (
-    <div className="rounded-xl border p-5 text-sm" data-testid="verdict-detail">
-      <p className="flex items-center gap-2 font-semibold">
-        <CheckCircle2 aria-hidden="true" className={`size-4 ${TONE[outcome]}`} />
-        What the API said
-      </p>
-      <dl className="mt-3 grid grid-cols-[auto_1fr] gap-x-4 gap-y-1.5 text-fg-muted">
-        <dt>outcome</dt>
-        <dd className="font-mono text-fg">{outcome}</dd>
-        <dt>rule</dt>
-        <dd className="font-mono text-fg">{verdict.rule ?? 'pending'}</dd>
-        {verdict.matched_sent_at && (
-          <>
-            <dt>matched</dt>
-            <dd className="font-mono text-fg">{verdict.matched_sent_at}</dd>
-          </>
-        )}
-        <dt>submission</dt>
-        <dd className="truncate font-mono text-fg">{verdict.submission_id}</dd>
-      </dl>
-      <p className="mt-3 text-xs text-fg-muted">
-        The rule names what matched: the code, the recipient, the content fingerprint, or nothing. A
-        real footer pasted into a different message comes back as a replay.
-      </p>
     </div>
   );
 }

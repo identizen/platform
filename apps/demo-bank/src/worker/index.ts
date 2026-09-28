@@ -1,13 +1,21 @@
 /**
  * The demo bank Worker. Everything is a static asset except one endpoint:
  *
- *   POST /api/demo-email  { "email": "you@example.com" }  ->  { "sent": true }
+ *   POST /api/demo-email  { "email": "you@example.com", "kind": "registered" | "lure" }
+ *                         ->  { "sent": true, "kind": "registered" }
  *
- * which sends the visitor a JT Merlin alert that is either real (registered with Fromenance) or a
- * lure, so they can try /verify against their own inbox. Same-origin only, rate limited per IP
- * and per recipient. The response never says which kind went out; that is what /verify is for.
+ * which sends the visitor a JT Merlin alert: the real one (registered with Fromenance at send
+ * time, so it verifies) by default, or a lure (never registered, so it does not) when asked.
+ * Same-origin only, rate limited per IP and per recipient.
  */
-import { DemoMailError, sendDemoEmail, type DemoMailDeps, type DemoMailEnv } from './demo-email';
+import {
+  DemoMailError,
+  isDemoKind,
+  sendDemoEmail,
+  type DemoKind,
+  type DemoMailDeps,
+  type DemoMailEnv,
+} from './demo-email';
 import { canonicalAddress } from './recipient-hash';
 
 interface RateLimit {
@@ -42,9 +50,16 @@ export async function handleDemoEmail(
     return json(403, { error: 'This endpoint only answers the demo bank itself.' });
   }
   let email = '';
+  let kind: DemoKind = 'registered';
   try {
-    const body = (await request.json()) as { email?: unknown };
+    const body = (await request.json()) as { email?: unknown; kind?: unknown };
     email = typeof body.email === 'string' ? canonicalAddress(body.email) : '';
+    if (body.kind !== undefined) {
+      if (!isDemoKind(body.kind)) {
+        return json(400, { error: '"kind" must be "registered" or "lure".' });
+      }
+      kind = body.kind;
+    }
   } catch {
     return json(400, { error: 'Send JSON with an "email" field.' });
   }
@@ -66,8 +81,8 @@ export async function handleDemoEmail(
   }
 
   try {
-    await sendDemoEmail(env, email, deps);
-    return json(200, { sent: true });
+    await sendDemoEmail(env, email, kind, deps);
+    return json(200, { sent: true, kind });
   } catch (err) {
     if (err instanceof DemoMailError) {
       console.error(`demo-email ${err.stage} failed: ${err.message}`);
