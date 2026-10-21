@@ -9,7 +9,7 @@ export interface ScheduledReport {
 }
 
 /**
- * What the Worker's cron trigger runs every five minutes: the delivery sweep. A host with its own
+ * What the Worker's cron trigger runs hourly: the delivery sweep. A host with its own
  * scheduler (the enterprise index runs one per tenant) calls `sweepDeliveries` itself with the
  * tenant's database; the container fires this through `wrangler dev --test-scheduled`.
  */

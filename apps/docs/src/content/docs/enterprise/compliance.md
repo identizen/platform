@@ -58,7 +58,7 @@ Identizen can raise any of them for a tenant. Creating past a quota answers 409 
 
 ## Scheduled jobs
 
-The tenant index runs a job set every five minutes for every active tenant: `retention` (once a day), `exports` (expired export files), `purge` (expired SAML flows and enrollments), `domains` (once a day: the [domain re-checks](/enterprise/portal/#domains); recorded only when at least one domain was due), `usage` (once a day: the active-device count for [billing](/enterprise/billing/)) and `webhooks` (deliveries that are due). Each run is recorded and shown under **Status**, and a tenant whose database is unreachable is skipped without affecting the others.
+The tenant index runs a job set hourly for every active tenant: `retention` (once a day), `exports` (expired export files), `purge` (expired SAML flows and enrollments), `domains` (once a day: the [domain re-checks](/enterprise/portal/#domains); recorded only when at least one domain was due), `usage` (once a day: the active-device count for [billing](/enterprise/billing/)) and `webhooks` (deliveries that are due). Each run is recorded and shown under **Status**, and a tenant whose database is unreachable is skipped without affecting the others.
 
 ## Over the API
 

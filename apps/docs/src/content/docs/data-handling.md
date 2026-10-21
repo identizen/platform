@@ -42,7 +42,7 @@ What `detail` holds in audit events, so there is no surprise: `login.success` ca
 | OIDC session (`sid`)                     | 30 days, or until revoked                                                 |
 | `Idz-Signature` request                  | Accepted within ±60 seconds; the same signature is rejected if seen again |
 
-A scheduled sweep runs every five minutes. Ended sessions, resolved verifications and settled webhook or logout deliveries are removed after thirty days, registrations that never proved their domain after two days, and audit events after `AUDIT_RETENTION_DAYS` (365 on the hosted index). Everything about an identity goes at once when its holder deletes it (below).
+A scheduled sweep runs hourly. Ended sessions, resolved verifications and settled webhook or logout deliveries are removed after thirty days, registrations that never proved their domain after two days, and audit events after `AUDIT_RETENTION_DAYS` (365 on the hosted index). Everything about an identity goes at once when its holder deletes it (below).
 
 ## What a site receives
 

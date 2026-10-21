@@ -7,9 +7,10 @@
   "observability": {
     "enabled": true,
   },
-  // Every five minutes: retry the webhooks and logout tokens the index still owes sites.
+  // Hourly: retry the webhooks and logout tokens the index still owes sites. (Was every five
+  // minutes, which kept the Neon compute from ever suspending.)
   "triggers": {
-    "crons": ["*/5 * * * *"],
+    "crons": ["0 * * * *"],
   },
   "vars": {
     "INDEX_URL": "https://index.identizen.com",

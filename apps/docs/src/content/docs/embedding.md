@@ -116,7 +116,7 @@ the approval claim: the assertion route claims the session before it writes anyt
 `RESERVE_GRACE_MS` for a claimed session, so a store backed by a database implements them as
 conditional updates on one row. The outbox for webhooks and logout tokens lives in the
 database (`deliveries`); a host runs `sweepDeliveries(deliveryContext(env), db)` from its own
-scheduler (the Worker's `scheduled` export does this every five minutes on a plain index). A store without a WebSocket bridge
+scheduler (the Worker's `scheduled` export does this hourly on a plain index). A store without a WebSocket bridge
 returns `426` from `websocket` and the login page polls `/challenge/:id/state` instead.
 
 `GuardState` is exported and reusable as is: give it a `GuardStorage` over your database and every

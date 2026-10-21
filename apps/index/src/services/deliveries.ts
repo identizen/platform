@@ -29,8 +29,9 @@ import { mintLogoutToken, mintWebhookToken } from '../oidc/tokens';
 
 /**
  * Backoff after each failed attempt. The first attempt runs in the request; the rest come from
- * the scheduled sweep (every five minutes on Cloudflare and in the container), so the early
- * delays are lower bounds. Nine attempts span about two days.
+ * the scheduled sweep (hourly on Cloudflare and in the container), so the early
+ * delays are lower bounds: the first four retries land about an hour apart. Nine
+ * attempts span about two days.
  */
 export const RETRY_SCHEDULE_MS = [
   30_000,
